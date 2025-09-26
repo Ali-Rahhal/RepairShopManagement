@@ -16,6 +16,7 @@ namespace RepairShop.Models
         public string Email { get; set; }
         [Required]
         public string Address { get; set; }
+        public bool IsActive { get; set; } = true;
 
         public ICollection<TransactionHeader> Transactions{ get; set; }
 

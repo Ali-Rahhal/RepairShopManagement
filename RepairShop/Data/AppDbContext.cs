@@ -13,6 +13,7 @@ namespace RepairShop.Data
         public DbSet<Client> Clients { get; set; }
         public DbSet<TransactionHeader> TransactionHeaders { get; set; }
         public DbSet<TransactionBody> TransactionBodies { get; set; }
+        public DbSet<AppUser> AppUsers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -15,6 +15,7 @@ namespace RepairShop.Models
         [Required]
         public string Status { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public bool IsActive { get; set; } = true;
 
         [Required]
         public int ClientId { get; set; }
