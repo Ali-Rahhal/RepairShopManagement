@@ -1,5 +1,6 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using RepairShop.Models
+@using RepairShop.Models.Helpers
 
 @inject SignInManager<AppUser> SignInManager
 @inject UserManager<AppUser> UserManager
@@ -7,9 +8,18 @@
 <ul class="navbar-nav">
 @if (SignInManager.IsSignedIn(User))
 {
-    <li class="nav-item">
-        <a id="manage" class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
-    </li>
+        <li class="nav-item">
+            @if (User.IsInRole(SD.Role_Admin))
+            {
+                @* <a id="manage" class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello Admin (@UserManager.GetUserName(User)) !</a> *@
+                <a id="manage" class="nav-link" title="Manage" href="#">Hello Admin (@UserManager.GetUserName(User)) !</a>
+            }
+            else
+            {
+                @* <a id="manage" class="nav-link" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello User (@UserManager.GetUserName(User)) !</a> *@
+                <a id="manage" class="nav-link" title="Manage" href="#">Hello User (@UserManager.GetUserName(User)) !</a>
+            }
+        </li>
     <li class="nav-item">
         <form id="logoutForm" class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/Index", new { area = "" })">
             <button id="logout" type="submit" class="nav-link btn btn-link border-0">Logout</button>
@@ -18,9 +28,6 @@
 }
 else
 {
-    <li class="nav-item">
-        <a class="nav-link" id="register" asp-area="Identity" asp-page="/Account/Register">Register</a>
-    </li>
     <li class="nav-item">
         <a class="nav-link" id="login" asp-area="Identity" asp-page="/Account/Login">Login</a>
     </li>

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using RepairShop.Data;
 using RepairShop.Models;
+using RepairShop.Repository;
+using RepairShop.Repository.IRepository;
 using RepairShop.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,7 +22,16 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 })
     .AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();
 
+//adding the correct paths for login, logout and access denied//should be done after adding identity
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = $"/Identity/Account/Login";
+    options.LogoutPath = $"/Identity/Account/Logout";
+    options.AccessDeniedPath = $"/Identity/Account/AccessDenied";
+});
+
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

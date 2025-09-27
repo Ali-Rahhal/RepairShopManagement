@@ -10,5 +10,7 @@ namespace RepairShop.Repository.IRepository
 {
     public interface IAppUserRepository : IRepository<AppUser>
     {
+        Task UpdateAsy(AppUser appUser);
+        Task UpdateRangeAsy(IEnumerable<AppUser> appUsers);
     }
 }
