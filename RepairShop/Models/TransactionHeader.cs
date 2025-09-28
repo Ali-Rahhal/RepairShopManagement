@@ -19,12 +19,12 @@ namespace RepairShop.Models
 
         [Required]
         public int ClientId { get; set; }
-        public Client Client { get; set; }
+        public Client Client { get; set; } //belongs to client
 
         [Required]
         public string AppUserId { get; set; }
-        public AppUser User { get; set; }
+        public AppUser User { get; set; } //crated by a user
 
-        public ICollection<TransactionBody> Parts { get; set; }
+        public ICollection<TransactionBody> Parts { get; set; } //has many parts
     }
 }

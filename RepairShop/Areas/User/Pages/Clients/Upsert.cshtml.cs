@@ -1,0 +1,64 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using RepairShop.Models;
+using RepairShop.Repository.IRepository;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+
+namespace RepairShop.Areas.User.Pages.Clients
+{
+    public class UpsertModel : PageModel
+    {
+        private readonly IUnitOfWork _unitOfWork;
+
+        public UpsertModel(IUnitOfWork unitOfWork)
+        {
+            _unitOfWork = unitOfWork;
+        }
+
+        [BindProperty]
+        public Client clientForUpsert { get; set; }
+
+        public async Task<IActionResult> OnGet(int? id)
+        {
+            clientForUpsert = new Client();
+            if (id == null || id == 0)
+            {
+                return Page();
+            }
+            else
+            {
+                clientForUpsert = await _unitOfWork.Client.GetAsy(o => o.Id == id);
+                if (clientForUpsert == null)
+                {
+                    return NotFound();
+                }
+                return Page();
+            }
+        }
+
+        public async Task<IActionResult> OnPost()
+        {
+            if (ModelState.IsValid)
+            {
+                if (clientForUpsert == null)
+                {
+                    return NotFound();
+                }
+
+                if (clientForUpsert.Id == 0)
+                {
+                    await _unitOfWork.Client.AddAsy(clientForUpsert);
+                    TempData["success"] = "Client created successfully";
+                }
+                else
+                {
+                    await _unitOfWork.Client.UpdateAsy(clientForUpsert);
+                    TempData["success"] = "Client updated successfully";
+                }
+
+                return RedirectToPage("Index");
+            }
+            return Page();
+        }
+    }
+}

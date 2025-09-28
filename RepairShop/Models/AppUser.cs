@@ -8,7 +8,7 @@ namespace RepairShop.Models
         public string? Role { get; set; }
         public bool IsActive { get; set; } = true;
         [ValidateNever]
-        public ICollection<TransactionHeader> Transactions { get; set; }
+        public ICollection<TransactionHeader> Transactions { get; set; } //creates many repair jobs
 
     }
 }

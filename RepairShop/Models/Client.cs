@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 
 namespace RepairShop.Models
 {
@@ -18,7 +19,8 @@ namespace RepairShop.Models
         public string Address { get; set; }
         public bool IsActive { get; set; } = true;
 
-        public ICollection<TransactionHeader> Transactions{ get; set; }
+        [ValidateNever]
+        public ICollection<TransactionHeader> Transactions{ get; set; } //has many repair jobs
 
     }
 }

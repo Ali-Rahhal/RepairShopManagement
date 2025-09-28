@@ -12,6 +12,6 @@ namespace RepairShop.Models
         public bool IsActive { get; set; } = true;
 
         public int TransactionHeaderId { get; set; }
-        public TransactionHeader TransactionHeader { get; set; }
+        public TransactionHeader TransactionHeader { get; set; } //belongs to a transaction header
     }
 }
