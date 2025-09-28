@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using RepairShop.Models;
+using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using System.ComponentModel.DataAnnotations;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
@@ -11,6 +13,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RepairShop.Areas.Admin.Pages.Users
 {
+    [Authorize(Roles = SD.Role_Admin)]
     public class EditModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
@@ -6,6 +7,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace RepairShop.Areas.User.Pages.Clients
 {
+    [Authorize]
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -55,6 +57,7 @@ namespace RepairShop.Areas.User.Pages.Clients
                     await _unitOfWork.Client.UpdateAsy(clientForUpsert);
                     TempData["success"] = "Client updated successfully";
                 }
+                await _unitOfWork.SaveAsy();
 
                 return RedirectToPage("Index");
             }

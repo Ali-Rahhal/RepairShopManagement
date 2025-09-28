@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Repository.IRepository;
 
 namespace RepairShop.Areas.User.Pages.Clients
 {
+    [Authorize]
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;

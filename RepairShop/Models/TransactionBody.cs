@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using RepairShop.Models.Helpers;
+using System.ComponentModel.DataAnnotations;
 
 namespace RepairShop.Models
 {
@@ -8,7 +9,7 @@ namespace RepairShop.Models
         [Required]
         public string PartName { get; set; }
         [Required]
-        public string Status { get; set; } // Pending, Fixed, Replaced
+        public string Status { get; set; } = SD.Status_Part_Pending; // Pending, Fixed, Replaced
         public bool IsActive { get; set; } = true;
 
         public int TransactionHeaderId { get; set; }

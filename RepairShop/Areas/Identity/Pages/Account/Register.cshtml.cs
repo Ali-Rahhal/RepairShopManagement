@@ -27,6 +27,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace RepairShop.Areas.Identity.Pages.Account
 {
+    [Authorize(Roles = SD.Role_Admin)]
     public class RegisterModel : PageModel
     {
         private readonly SignInManager<AppUser> _signInManager;
