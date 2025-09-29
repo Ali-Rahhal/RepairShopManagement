@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using System.Security.Claims;
 
@@ -45,6 +46,21 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             await _unitOfWork.TransactionHeader.RemoveAsy(THToBeDeleted);
             await _unitOfWork.SaveAsy();
             return new JsonResult(new { success = true, message = "Transaction deleted successfully" });
+        }
+
+        //API CALL for canceling a TH
+        public async Task<IActionResult> OnGetCancel(int? id)//The route is /User/TransactionHeaders/Index?handler=Cancel&id=1
+        {
+            var THToBeDeleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id);
+            if (THToBeDeleted == null)
+            {
+                return new JsonResult(new { success = false, message = "Error while cancelling" });
+            }
+
+            THToBeDeleted.Status = SD.Status_Job_Cancelled;
+            await _unitOfWork.TransactionHeader.UpdateAsy(THToBeDeleted);
+            await _unitOfWork.SaveAsy();
+            return new JsonResult(new { success = true, message = "Transaction cancelled successfully" });
         }
     }
 }

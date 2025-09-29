@@ -16,7 +16,7 @@ namespace RepairShop.Areas.Admin.Pages.Users
             _unitOfWork = unitOfWork;
         }
 
-        public async Task OnGet()
+        public void OnGet()
         {
         }
 

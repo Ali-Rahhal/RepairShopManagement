@@ -1,4 +1,5 @@
-﻿using RepairShop.Models.Helpers;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using RepairShop.Models.Helpers;
 using System.ComponentModel.DataAnnotations;
 
 namespace RepairShop.Models
@@ -13,6 +14,7 @@ namespace RepairShop.Models
         public bool IsActive { get; set; } = true;
 
         public int TransactionHeaderId { get; set; }
+        [ValidateNever]
         public TransactionHeader TransactionHeader { get; set; } //belongs to a transaction header
     }
 }
