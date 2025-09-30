@@ -8,6 +8,7 @@ $(document).ready(function () {
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": { url: `/User/TransactionBodies/Index?handler=All&headerId=${hId}` },//this url will call the OnGetAll method in the page model which returns all the TBs of the selected TH in json format.
+        "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "columns": [//defining the columns of the datatable and mapping them to the properties of the TB model.
             { data: 'partName', "width": "30%" },//dont forget the names should match the property names.
             {
@@ -29,11 +30,11 @@ function loadDataTable() {
             {
                 data: 'id',
                 "render": function (data) {//this is to render the edit and delete buttons in the last column.
-                    return `<div class="w-75 btn-group" role="group">
-                    <a href="/User/TransactionBodies/Upsert?id=${data}" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i> Edit</a>
+                    return `<div class="w-100 d-flex justify-content-center" role="group">
+                    <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
                     <!--onclick is for initiating Delete function and passing the url with id-->
-                    <a onClick=Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}') class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i> Delete</a>
-                    <a onClick=ChangeStatus(${data}) class="btn btn-warning mx-2"><i class="bi bi-gear"></i> Status</a>
+                    <a onClick=Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}') title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                    <a onClick=ChangeStatus(${data}) title="Change Status" class="btn btn-warning mx-2"><i class="bi bi-gear"></i></a>
                     </div>`//using `` for multi-line string and ${} for variable interpolation.
                 },//anchors only work with Get requests.
                 "width": "50%"
