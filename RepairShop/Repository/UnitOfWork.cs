@@ -15,6 +15,7 @@ namespace RepairShop.Repository
         public ITransactionBodyRepository TransactionBody { get; private set; }
         public IClientRepository Client { get; private set; }
         public IAppUserRepository AppUser { get; private set; }
+        public IPartRepository Part { get; private set; }
 
 
         public UnitOfWork(AppDbContext db)
@@ -24,6 +25,7 @@ namespace RepairShop.Repository
             TransactionBody = new TransactionBodyRepository(_db);
             Client = new ClientRepository(_db);
             AppUser = new AppUserRepository(_db);
+            Part = new PartRepository(_db);
         }
 
         public async Task SaveAsy()

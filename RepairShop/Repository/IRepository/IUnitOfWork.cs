@@ -13,7 +13,7 @@ namespace RepairShop.Repository.IRepository
         ITransactionBodyRepository TransactionBody { get; }
         IClientRepository Client { get; }
         IAppUserRepository AppUser { get; }
-        
+        IPartRepository Part { get; }
 
 
         Task SaveAsy();

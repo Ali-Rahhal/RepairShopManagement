@@ -14,6 +14,7 @@ namespace RepairShop.Data
         public DbSet<TransactionHeader> TransactionHeaders { get; set; }
         public DbSet<TransactionBody> TransactionBodies { get; set; }
         public DbSet<AppUser> AppUsers { get; set; }
+        public DbSet<Part> Parts { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
