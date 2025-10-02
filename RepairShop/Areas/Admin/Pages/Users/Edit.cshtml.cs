@@ -16,15 +16,13 @@ namespace RepairShop.Areas.Admin.Pages.Users
     [Authorize(Roles = SD.Role_Admin)]
     public class EditModel : PageModel
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly UserManager<AppUser> _userManager;
 
-        public EditModel(IUnitOfWork unitOfWork, 
+        public EditModel(
             RoleManager<IdentityRole> roleManager,
             UserManager<AppUser> userManager)
         {
-            _unitOfWork = unitOfWork;
             _roleManager = roleManager;
             _userManager = userManager;
         }
@@ -66,7 +64,7 @@ namespace RepairShop.Areas.Admin.Pages.Users
         {
             userForUpdate = new AppUser();
 
-            userForUpdate = await _unitOfWork.AppUser.GetAsy(o => (o.Id).Equals(id));
+            userForUpdate = await _userManager.FindByIdAsync(id);
             if (userForUpdate == null)
             {
                 return NotFound();
@@ -88,7 +86,7 @@ namespace RepairShop.Areas.Admin.Pages.Users
 
         public async Task<IActionResult> OnPost()
         {
-            userForUpdate = await _unitOfWork.AppUser.GetAsy(o => (o.Id).Equals(Input.Id));
+            userForUpdate = await _userManager.FindByIdAsync(Input.Id);
             do
             {
                 if (ModelState.IsValid)
@@ -97,12 +95,15 @@ namespace RepairShop.Areas.Admin.Pages.Users
                     {
                         return NotFound();
                     }
-                    var exists = (await _unitOfWork.AppUser.GetAllAsy()).Select(u => u.UserName).Contains(Input.UserCode);
-                    if (exists && !Input.UserCode.Equals(userForUpdate.UserName))
+
+                    // Checks if a user with the same UserCode already exists and is not the current user.
+                    var user = await _userManager.FindByNameAsync(Input.UserCode);
+                    if (user != null && !user.Id.Equals(userForUpdate.Id))
                     {
                         ModelState.AddModelError(string.Empty, "UserCode already exists. Please choose a different UserCode.");
                         break;
                     }
+
                     userForUpdate.UserName = Input.UserCode;
                     userForUpdate.Role = Input.Role;
 
@@ -124,8 +125,7 @@ namespace RepairShop.Areas.Admin.Pages.Users
                         }
                     }
                     
-                    await _unitOfWork.AppUser.UpdateAsy(userForUpdate);
-                    await _unitOfWork.SaveAsy();
+                    await _userManager.UpdateAsync(userForUpdate);
                     await _userManager.AddToRoleAsync(userForUpdate, Input.Role);//assign role to user based on selection
                     TempData["success"] = "User updated successfully";
                     return RedirectToPage("Index");

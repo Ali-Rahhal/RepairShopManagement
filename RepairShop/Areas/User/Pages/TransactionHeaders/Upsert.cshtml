@@ -27,16 +27,6 @@
                     <div class="col-12">
                         <div class="border p-3">
                             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                            <div class="form-floating py-2 col-12">
-                                <input asp-for="thForUpsert.PrinterModel" class="form-control border-0 shadow" />
-                                <label asp-for="thForUpsert.PrinterModel"></label>
-                                <span asp-validation-for="thForUpsert.PrinterModel" class="text-danger"></span>
-                            </div>
-                            <div class="form-floating py-2 col-12">
-                                <input asp-for="thForUpsert.SerialNumber" class="form-control border-0 shadow" />
-                                <label asp-for="thForUpsert.SerialNumber"></label>
-                                <span asp-validation-for="thForUpsert.SerialNumber" class="text-danger"></span>
-                            </div>
                             @if (Model.thForUpsert.Id == 0)
                             {
                                 <!-- This code injects the SignInManager service and uses it to get the current user's ID.
@@ -55,6 +45,16 @@
                                     <ul id="clientResults" class="list-group"></ul>
                                 </div>
                             }
+                            <div class="form-floating py-2 col-12">
+                                <input asp-for="thForUpsert.Model" class="form-control border-0 shadow" />
+                                <label asp-for="thForUpsert.Model"></label>
+                                <span asp-validation-for="thForUpsert.Model" class="text-danger"></span>
+                            </div>
+                            <div class="form-floating py-2 col-12">
+                                <input asp-for="thForUpsert.SerialNumber" class="form-control border-0 shadow" />
+                                <label asp-for="thForUpsert.SerialNumber"></label>
+                                <span asp-validation-for="thForUpsert.SerialNumber" class="text-danger"></span>
+                            </div>
                             <div class="py-2 col-12">
                                 <label asp-for="thForUpsert.Description" class="ms-2 text-muted"></label>
                                 <textarea asp-for="thForUpsert.Description" class="form-control border-0 shadow"></textarea>

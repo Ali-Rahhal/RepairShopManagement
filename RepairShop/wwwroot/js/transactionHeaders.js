@@ -106,7 +106,7 @@ function loadDataTable() {
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "columns": [
-            { data: 'printerModel', "width": "25%" },
+            { data: 'model', "width": "25%" },
             { data: 'serialNumber', "width": "15%" },
             {
                 data: 'status',
@@ -213,8 +213,13 @@ function Delete(url) {
             $.ajax({
                 url: url,//url is passed from the Delete function call in the datatable render method.
                 success: function (data) {//data is the json returned from the OnGetDelete method in the page model.
-                    dataTable.ajax.reload();//reload the datatable to reflect the changes.
-                    toastr.success(data.message);//show success message using toastr.
+                    if (data.success) {
+                        dataTable.ajax.reload();//reload the datatable to reflect the changes.
+                        toastr.success(data.message);//show success message using toastr.
+                    }
+                    else {
+                        toastr.error(data.message);//show error message using toastr.
+                    }
                 }
             })
         }
@@ -235,9 +240,14 @@ function Cancel(url) {
         if (result.isConfirmed) {//if user clicks on yes, cancel it button
             $.ajax({
                 url: url,//url is passed from the Cancel function call in the datatable render method.
-                success: function (data) {//data is the json returned from the OnGetCancel method in the page model.
-                    dataTable.ajax.reload();//reload the datatable to reflect the changes.
-                    toastr.success(data.message);//show success message using toastr.
+                success: function (data) {//data is the json returned from the OnGetDelete method in the page model.
+                    if (data.success) {
+                        dataTable.ajax.reload();//reload the datatable to reflect the changes.
+                        toastr.success(data.message);//show success message using toastr.
+                    }
+                    else {
+                        toastr.error(data.message);//show error message using toastr.
+                    }
                 }
             })
         }

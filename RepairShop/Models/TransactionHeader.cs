@@ -9,7 +9,7 @@ namespace RepairShop.Models
         public int Id { get; set; }
 
         [Required]
-        public string PrinterModel { get; set; }
+        public string Model { get; set; }
         [Required]
         public string SerialNumber { get; set; }
         [Required]

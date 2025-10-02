@@ -23,11 +23,16 @@ namespace RepairShop.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<AppUser> _signInManager;
         private readonly ILogger<LoginModel> _logger;
+        private readonly UserManager<AppUser> _userManager;
 
-        public LoginModel(SignInManager<AppUser> signInManager, ILogger<LoginModel> logger)
+        public LoginModel(
+            SignInManager<AppUser> signInManager, 
+            ILogger<LoginModel> logger, 
+            UserManager<AppUser> userManager)
         {
             _signInManager = signInManager;
             _logger = logger;
+            _userManager = userManager;
         }
 
         /// <summary>
@@ -115,6 +120,14 @@ namespace RepairShop.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
+                // If user is not active then do not allow login
+                var user = await _userManager.FindByNameAsync(Input.UserCode);
+                if (user.IsActive == false)
+                {
+                    ModelState.AddModelError(string.Empty, "User is not active.");
+                    return Page();
+                }
+
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
                 var result = await _signInManager.PasswordSignInAsync(Input.UserCode, Input.Password, Input.RememberMe, lockoutOnFailure: false);

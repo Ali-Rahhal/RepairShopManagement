@@ -35,6 +35,13 @@ namespace RepairShop.Areas.User.Pages.Clients
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
 
+            //Check if client has related transactions
+            var transactionsRelatedToClient = (await _unitOfWork.TransactionHeader.GetAllAsy(t => t.IsActive == true && t.ClientId == clientToBeDeleted.Id));
+            if (transactionsRelatedToClient.Count() > 0)
+            {
+                return new JsonResult(new { success = false, message = "Client cannot be deleted because it has related transactions" });
+            }
+
             await _unitOfWork.Client.RemoveAsy(clientToBeDeleted);
             await _unitOfWork.SaveAsy();
             return new JsonResult(new { success = true, message = "Client deleted successfully" });

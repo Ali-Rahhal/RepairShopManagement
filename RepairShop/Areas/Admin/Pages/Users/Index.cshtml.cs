@@ -36,6 +36,13 @@ namespace RepairShop.Areas.Admin.Pages.Users
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
 
+            //Check if client has related transactions
+            var transactionsRelatedToUser = (await _unitOfWork.TransactionHeader.GetAllAsy(t => t.IsActive == true && t.UserId == userToBeDeleted.Id));
+            if (transactionsRelatedToUser.Count() > 0)
+            {
+                return new JsonResult(new { success = false, message = "User cannot be deleted because it has related transactions" });
+            }
+
             await _unitOfWork.AppUser.RemoveAsy(userToBeDeleted);
             await _unitOfWork.SaveAsy();
             return new JsonResult(new { success = true, message = "User deleted successfully" });

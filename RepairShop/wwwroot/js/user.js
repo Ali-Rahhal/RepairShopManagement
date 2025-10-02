@@ -42,8 +42,13 @@ function Delete(url) {
             $.ajax({
                 url: url,//url is passed from the Delete function call in the datatable render method.
                 success: function (data) {//data is the json returned from the OnGetDelete method in the page model.
-                    dataTable.ajax.reload();//reload the datatable to reflect the changes.
-                    toastr.success(data.message);//show success message using toastr.
+                    if (data.success) {
+                        dataTable.ajax.reload();//reload the datatable to reflect the changes.
+                        toastr.success(data.message);//show success message using toastr.
+                    }
+                    else {
+                        toastr.error(data.message);//show error message using toastr.
+                    }
                 }
             })
         }

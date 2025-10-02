@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RepairShop.Data;
 
@@ -11,9 +12,11 @@ using RepairShop.Data;
 namespace RepairShop.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251002100153_changedPrinterModelToModelInTranHeader")]
+    partial class changedPrinterModelToModelInTranHeader
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -258,36 +261,6 @@ namespace RepairShop.Migrations
                     b.ToTable("Clients");
                 });
 
-            modelBuilder.Entity("RepairShop.Models.Part", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Part");
-                });
-
             modelBuilder.Entity("RepairShop.Models.TransactionBody", b =>
                 {
                     b.Property<int>("Id")
@@ -298,9 +271,6 @@ namespace RepairShop.Migrations
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
-
-                    b.Property<int?>("PartId")
-                        .HasColumnType("int");
 
                     b.Property<string>("PartName")
                         .IsRequired()
@@ -314,8 +284,6 @@ namespace RepairShop.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("PartId");
 
                     b.HasIndex("TransactionHeaderId");
 
@@ -421,17 +389,11 @@ namespace RepairShop.Migrations
 
             modelBuilder.Entity("RepairShop.Models.TransactionBody", b =>
                 {
-                    b.HasOne("RepairShop.Models.Part", "Part")
-                        .WithMany()
-                        .HasForeignKey("PartId");
-
                     b.HasOne("RepairShop.Models.TransactionHeader", "TransactionHeader")
                         .WithMany("Parts")
                         .HasForeignKey("TransactionHeaderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Part");
 
                     b.Navigation("TransactionHeader");
                 });

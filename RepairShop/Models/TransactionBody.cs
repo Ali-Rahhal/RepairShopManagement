@@ -7,6 +7,9 @@ namespace RepairShop.Models
     public class TransactionBody
     {
         public int Id { get; set; }
+        public int? PartId { get; set; }   // Nullable if sometimes no replacement part is used
+        [ValidateNever]
+        public Part Part { get; set; }
         [Required]
         public string PartName { get; set; }
         [Required]

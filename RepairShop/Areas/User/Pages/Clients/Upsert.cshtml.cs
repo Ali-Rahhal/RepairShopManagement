@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
+using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace RepairShop.Areas.User.Pages.Clients
 {
-    [Authorize]
+    [Authorize(Roles = SD.Role_Admin)]
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;

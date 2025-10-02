@@ -5,6 +5,10 @@ $(document).ready(function () {
     loadDataTable();
 });
 
+function isAdmin() {//function to check if the user is admin
+    return document.getElementById("isAdmin").value === "True";
+}
+
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": { url: '/User/Clients/Index?handler=All' },//this url will call the OnGetAll method in the page model which returns all the clients in json format.
@@ -16,6 +20,7 @@ function loadDataTable() {
             { data: 'address', "width": "20%" },
             {
                 data: 'id',
+                visible: isAdmin(),//only show this column if the user is admin.
                 "render": function (data) {//this is to render the edit and delete buttons in the last column.
                     return `<div class="w-100 d-flex justify-content-center" role="group">
                     <a href="/User/Clients/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
@@ -44,8 +49,13 @@ function Delete(url) {
             $.ajax({
                 url: url,//url is passed from the Delete function call in the datatable render method.
                 success: function (data) {//data is the json returned from the OnGetDelete method in the page model.
-                    dataTable.ajax.reload();//reload the datatable to reflect the changes.
-                    toastr.success(data.message);//show success message using toastr.
+                    if (data.success) {
+                        dataTable.ajax.reload();//reload the datatable to reflect the changes.
+                        toastr.success(data.message);//show success message using toastr.
+                    }    
+                    else {
+                        toastr.error(data.message);//show error message using toastr.
+                    }
                 }
             })
         }
