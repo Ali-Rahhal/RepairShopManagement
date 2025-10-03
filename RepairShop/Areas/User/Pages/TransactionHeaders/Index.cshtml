@@ -44,9 +44,13 @@
             </div>
             
             <div class="col-6 text-end">
-                <a asp-page="Upsert" class="btn btn-primary">
+                @if (User.IsInRole(SD.Role_User))
+                {
+                    <a asp-page="Upsert" class="btn btn-primary">
                     <i class="bi bi-plus-circle"></i> Create New Transaction
-                </a>
+                    </a>
+                }
+                
             </div>
         </div>
         <div class="table-responsive">

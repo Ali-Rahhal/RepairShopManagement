@@ -11,9 +11,9 @@ namespace RepairShop.Models
         [ValidateNever]
         public Part Part { get; set; }
         [Required]
-        public string PartName { get; set; }
+        public string BrokenPartName { get; set; }
         [Required]
-        public string Status { get; set; } = SD.Status_Part_Pending; // Pending, Fixed, Replaced
+        public string Status { get; set; } // Pending, Fixed, Replaced
         public bool IsActive { get; set; } = true;
 
         public int TransactionHeaderId { get; set; }

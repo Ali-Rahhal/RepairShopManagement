@@ -5,8 +5,6 @@ using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using RepairShop.Services.Helper;
-using System.Text.RegularExpressions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace RepairShop.Areas.User.Pages.TransactionBodies
 {
@@ -23,16 +21,25 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
         [BindProperty]
         public TransactionBody tbForUpsert { get; set; }
 
+        public List<string> Categories { get; set; }
+
         public async Task<IActionResult> OnGet(int? id, int? headerId)
         {
-            tbForUpsert = new TransactionBody();
+            // Load categories for dropdown
+            await LoadCategories();
+
             if (id == null || id == 0)
             {
-                tbForUpsert.TransactionHeaderId = headerId.Value;
+                // Create mode
+                tbForUpsert = new TransactionBody
+                {
+                    TransactionHeaderId = headerId.Value
+                };
                 return Page();
             }
             else
             {
+                // Edit mode - only load the existing record
                 tbForUpsert = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == id);
                 if (tbForUpsert == null)
                 {
@@ -40,6 +47,36 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                 }
                 return Page();
             }
+        }
+
+        // AJAX handler to get parts by category
+        public async Task<IActionResult> OnGetPartsByCategory(string category)
+        {
+            var parts = (await _unitOfWork.Part.GetAllAsy())
+                .Where(p => p.IsActive && p.Quantity > 0 && p.Category == category)
+                .Select(p => new { p.Id, p.Name })
+                .OrderBy(p => p.Name)
+                .ToList();
+
+            return new JsonResult(parts);
+        }
+
+        // AJAX handler to get part details
+        public async Task<IActionResult> OnGetPartDetails(int id)
+        {
+            var part = await _unitOfWork.Part.GetAsy(p => p.Id == id && p.IsActive);
+            if (part == null)
+            {
+                return new JsonResult(null);
+            }
+
+            return new JsonResult(new
+            {
+                part.Id,
+                part.Name,
+                part.Quantity,
+                part.Price
+            });
         }
 
         public async Task<IActionResult> OnPost()
@@ -53,25 +90,63 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
 
                 if (tbForUpsert.Id == 0)
                 {
+                    // CREATE MODE
+                    // If status is Pending Replace and a part is selected, decrement inventory
+                    if (tbForUpsert.Status == SD.Status_Part_Pending_Replace &&
+                        tbForUpsert.PartId.HasValue && tbForUpsert.PartId.Value > 0)
+                    {
+                        var selectedPart = await _unitOfWork.Part.GetAsy(p => p.Id == tbForUpsert.PartId.Value);
+                        if (selectedPart != null && selectedPart.Quantity > 0)
+                        {
+                            // Decrement part quantity
+                            selectedPart.Quantity--;
+                            await _unitOfWork.Part.UpdateAsy(selectedPart);
+                        }
+                        else
+                        {
+                            ModelState.AddModelError(string.Empty, "Selected replacement part is out of stock.");
+                            await LoadCategories();
+                            return Page();
+                        }
+                    }
+
                     await _unitOfWork.TransactionBody.AddAsy(tbForUpsert);
 
-                    // Update the corresponding TransactionHeader's status to 'In Progress'.
-                    var Header = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == tbForUpsert.TransactionHeaderId);
-                    Header.Status = SD.Status_Job_InProgress;
-                    await _unitOfWork.TransactionHeader.UpdateAsy(Header);
                     await _unitOfWork.SaveAsy();
-                    TempData["success"] = "Part created successfully";
+                    TempData["success"] = "Part Added successfully";
                 }
                 else
                 {
-                    await _unitOfWork.TransactionBody.UpdateAsy(tbForUpsert);
+                    // EDIT MODE - Only update PartName, ignore other changes
+                    var existingTransactionBody = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == tbForUpsert.Id);
+                    if (existingTransactionBody == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Only update the PartName, preserve everything else
+                    existingTransactionBody.BrokenPartName = tbForUpsert.BrokenPartName;
+
+                    await _unitOfWork.TransactionBody.UpdateAsy(existingTransactionBody);
                     await _unitOfWork.SaveAsy();
-                    TempData["success"] = "Part updated successfully";
+                    TempData["success"] = "Part name updated successfully";
                 }
-                
+
                 return RedirectToPage("Index", new { HeaderId = tbForUpsert.TransactionHeaderId });
             }
+
+            await LoadCategories();
             return Page();
+        }
+
+        private async Task LoadCategories()
+        {
+            Categories = (await _unitOfWork.Part.GetAllAsy())
+                .Where(p => p.IsActive && p.Quantity > 0)
+                .Select(p => p.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToList();
         }
     }
 }

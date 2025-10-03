@@ -51,6 +51,20 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             return new JsonResult(new { data = THList });//We return JsonResult because we will call this method using AJAX
         }
 
+        //API CALL for changing status from New to InProgress
+        public async Task<IActionResult> OnGetChangeStatus(int? id)//The route is /User/TransactionHeaders/Index?handler=ChangeStatus&id=1
+        {
+            var THToBeChanged = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id);
+            if (THToBeChanged == null)
+            {
+                return new JsonResult(new { success = false, message = "Error while changing status" });
+            }
+
+            THToBeChanged.Status = SD.Status_Job_InProgress;
+            await _unitOfWork.TransactionHeader.UpdateAsy(THToBeChanged);
+            await _unitOfWork.SaveAsy();
+            return new JsonResult(new { success = true, message = "Status changed successfully" });
+        }
         //API CALL for deleting a TH//Didnt use OnPostDelete because it needs the link to send a form and it causes issues with DataTables
         public async Task<IActionResult> OnGetDelete(int? id)//The route is /User/TransactionHeaders/Index?handler=Delete&id=1
         {
@@ -58,6 +72,10 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             if (THToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
+            }
+            if (THToBeDeleted.Status != SD.Status_Job_New)
+            {
+                return new JsonResult(new { success = false, message = "You can only delete a new transaction" });
             }
 
             await _unitOfWork.TransactionHeader.RemoveAsy(THToBeDeleted);

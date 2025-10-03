@@ -30,6 +30,6 @@ namespace RepairShop.Models
         public AppUser User { get; set; } //created by a user
 
         [ValidateNever]
-        public ICollection<TransactionBody> Parts { get; set; } //has many parts
+        public ICollection<TransactionBody> BrokenParts { get; set; } //has many parts
     }
 }

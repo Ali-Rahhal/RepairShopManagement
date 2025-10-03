@@ -167,13 +167,23 @@ function loadDataTable() {
             {
                 data: 'id',
                 visible: !isAdmin(),//this column is only visible to non-admin users
-                "render": function (data) {
-                    return `<div class="w-75 d-flex" role="group">
-                    <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a> 
-                    <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                    <a onClick=Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}') title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                    <a onClick=Cancel('/User/TransactionHeaders/Index?handler=Cancel&id=${data}') title="Cancel" class="btn btn-warning mx-2"><i class="bi bi-x-circle"></i></a>
-                    </div>`;
+                "render": function (data, type, row) {
+                    //show status change button if status is "New"
+                    if (row.status === "New") {
+                        return `<div class="w-75 d-flex" role="group">
+                            <a onClick="changeStatusToInProgress('/User/TransactionHeaders/Index?handler=ChangeStatus&id=${data}')" title="Start Work" class="btn btn-success mx-2"><i class="bi bi-play-circle"></i></a>
+                            <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
+                            <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                            <a onClick="Cancel('/User/TransactionHeaders/Index?handler=Cancel&id=${data}')" title="Cancel" class="btn btn-warning mx-2"><i class="bi bi-x-circle"></i></a>
+                        </div>`;
+                    } else {
+                        return `<div class="w-75 d-flex" role="group">
+                            <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a> 
+                            <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
+                            <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                            <a onClick="Cancel('/User/TransactionHeaders/Index?handler=Cancel&id=${data}')" title="Cancel" class="btn btn-warning mx-2"><i class="bi bi-x-circle"></i></a>
+                        </div>`;
+                    }
                 },
                 "width": "20%"
             }
@@ -216,6 +226,21 @@ function loadDataTable() {
             return true;
         }
     );
+}
+
+// Function to change status from "New" to "InProgress"
+function changeStatusToInProgress(url) {
+    $.ajax({
+        url: url,
+        success: function (data) {
+            if (data.success) {
+                toastr.success(data.message);
+                dataTable.ajax.reload(); // Reload to reflect the status change
+            } else {
+                toastr.error(data.message);
+            }
+        }
+    });
 }
 
 //function for sweet alert delete confirmation

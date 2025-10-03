@@ -18,7 +18,7 @@ function loadDataTable() {
                     return `<div class="w-100 d-flex justify-content-center" role="group">
                     <a href="/Admin/Users/Edit?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
                     <!--onclick is for initiating Delete function and passing the url with id-->
-                    <a onClick=Delete('/Admin/Users/Index?handler=Delete&id=${data}') title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                    <a onClick="Delete('/Admin/Users/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                     </div>`//using `` for multi-line string and ${} for variable interpolation.
                 },//anchors only work with Get requests.
                 "width": "20%"

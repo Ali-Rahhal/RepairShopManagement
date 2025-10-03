@@ -3,30 +3,108 @@
 @{
 }
 
-
 <div class="card shadow border-0 my-4">
     <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
         <div class="row">
             <div class="col-12 text-center">
                 <h2 class="text-white py-2">
-                    @(Model.tbForUpsert.Id != 0 ? "Edit" : "Create") Transaction
+                    @(Model.tbForUpsert.Id != 0 ? "Edit" : "Add") Part
                 </h2>
             </div>
         </div>
     </div>
     <div class="card-body p-4">
-        <form method="post" class="row" ">
+        <form method="post" class="row">
             <input type="hidden" asp-for="tbForUpsert.Id" />
             <input type="hidden" asp-for="tbForUpsert.TransactionHeaderId" />
+            <input type="hidden" asp-for="tbForUpsert.PartId" id="selectedPartId" />
+            @if (Model.tbForUpsert.Id != 0)
+            {
+                <input type="hidden" asp-for="tbForUpsert.Status" />
+            }
             <div class="row">
                 <div class="col-12">
                     <div class="border p-3">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        @if(Model.tbForUpsert.Id == 0)
+                        {
+                            <!-- Status Selection -->
+                            <div class="form-floating py-2 col-12">
+                            <select asp-for="tbForUpsert.Status" class="form-control border-0 shadow" id="statusSelect">
+                                <option value="">Select Status</option>
+                                <option value="@SD.Status_Part_Pending_Repair">Pending Repair</option>
+                                <option value="@SD.Status_Part_Pending_Replace">Pending Replace</option>
+                            </select>
+                            <label asp-for="tbForUpsert.Status">Broken Part Status</label>
+                            <span asp-validation-for="tbForUpsert.Status" class="text-danger"></span>
+                            </div>
+                        }
+                        
+                        
+
+                        <!-- Broken Part Information -->
                         <div class="form-floating py-2 col-12">
-                            <input asp-for="tbForUpsert.PartName" class="form-control border-0 shadow" />
-                            <label asp-for="tbForUpsert.PartName"></label>
-                            <span asp-validation-for="tbForUpsert.PartName" class="text-danger"></span>
+                            <input asp-for="tbForUpsert.BrokenPartName" class="form-control border-0 shadow" 
+                                   placeholder="Enter the name of the broken part"/>
+                            <label asp-for="tbForUpsert.BrokenPartName">Broken Part Name</label>
+                            <span asp-validation-for="tbForUpsert.BrokenPartName" class="text-danger"></span>
+                            <small class="text-muted">Enter the name of the part that needs repair/replacement</small>
                         </div>
+
+                        @if (Model.tbForUpsert.Id == 0)
+                        {
+                            <!-- Replacement Part Selection (Only shown for Pending Replace) -->
+                            <div id="replacementSection" class="card mb-3 d-none">
+                                <div class="card-header bg-light">
+                                    <h6 class="mb-0">Replacement Part Selection</h6>
+                                    <small class="text-muted">Select a replacement part from inventory</small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <select id="categorySelect" class="form-select border-0 shadow">
+                                                    <option value="">Select Category</option>
+                                                    @foreach (var category in Model.Categories)
+                                                    {
+                                                        <option value="@category">@category</option>
+                                                    }
+                                                </select>
+                                                <label for="categorySelect">Category</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating">
+                                                <select id="partSelect" class="form-select border-0 shadow" disabled>
+                                                    <option value="">Select Replacement Part</option>
+                                                </select>
+                                                <label for="partSelect">Replacement Part</label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Selected Replacement Part Info -->
+                                    <div id="partInfo" class="alert alert-info mt-3 d-none">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <strong>Part:</strong> <span id="partNameDisplay"></span>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>Available:</strong> <span id="partQuantity"></span>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>Price:</strong> $<span id="partPrice"></span>
+                                            </div>
+                                            <div class="col-md-2">
+                                                <button type="button" id="clearPartBtn" class="btn btn-sm btn-outline-secondary">Clear</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
                         <div class="row pt-2">
                             <div class="col-6 col-md-3">
                                 @if (Model.tbForUpsert.Id != 0)
@@ -51,10 +129,105 @@
     </div>
 </div>
 
-
-
 @section Scripts {
     @{
         <partial name="_ValidationScriptsPartial" />
     }
+    <script>
+        $(document).ready(function() {
+            const statusSelect = $('#statusSelect');
+            const replacementSection = $('#replacementSection');
+            const categorySelect = $('#categorySelect');
+            const partSelect = $('#partSelect');
+            const partInfo = $('#partInfo');
+            const partNameDisplay = $('#partNameDisplay');
+            const partQuantity = $('#partQuantity');
+            const partPrice = $('#partPrice');
+            const selectedPartId = $('#selectedPartId');
+            const clearPartBtn = $('#clearPartBtn');
+
+            // Show/hide replacement section based on status
+            statusSelect.change(function() {
+                const status = $(this).val();
+                if (status === '@SD.Status_Part_Pending_Replace') {
+                    replacementSection.removeClass('d-none');
+                } else {
+                    replacementSection.addClass('d-none');
+                    resetPartInfo();
+                }
+            });
+
+            // Set initial state based on current status
+            if (statusSelect.val() === '@SD.Status_Part_Pending_Replace') {
+                replacementSection.removeClass('d-none');
+            }
+
+            // When category changes, load parts for that category
+            categorySelect.change(function() {
+                const category = $(this).val();
+                if (category) {
+                    loadPartsByCategory(category);
+                    partSelect.prop('disabled', false);
+                } else {
+                    partSelect.prop('disabled', true).html('<option value="">Select Replacement Part</option>');
+                    resetPartInfo();
+                }
+            });
+
+            // When part is selected, show part info
+            partSelect.change(function() {
+                const partId = $(this).val();
+                if (partId) {
+                    loadPartDetails(partId);
+                } else {
+                    resetPartInfo();
+                }
+            });
+
+            // Clear selected replacement part
+            clearPartBtn.click(function() {
+                resetPartInfo();
+                categorySelect.val('');
+                partSelect.val('').prop('disabled', true);
+            });
+
+            function loadPartsByCategory(category) {
+                $.get(`/User/TransactionBodies/Upsert?handler=PartsByCategory&category=${encodeURIComponent(category)}`)
+                    .done(function(parts) {
+                        partSelect.html('<option value="">Select Replacement Part</option>');
+                        parts.forEach(function(part) {
+                            partSelect.append(new Option(part.name, part.id));
+                        });
+                    })
+                    .fail(function() {
+                        alert('Error loading parts');
+                    });
+            }
+
+            function loadPartDetails(partId) {
+                $.get(`/User/TransactionBodies/Upsert?handler=PartDetails&id=${partId}`)
+                    .done(function(part) {
+                        if (part) {
+                            partNameDisplay.text(part.name);
+                            partQuantity.text(part.quantity);
+                            partPrice.text(part.price || '0.00');
+                            selectedPartId.val(part.id);
+                            partInfo.removeClass('d-none');
+                        }
+                    })
+                    .fail(function() {
+                        alert('Error loading part details');
+                    });
+            }
+
+            function resetPartInfo() {
+                partInfo.addClass('d-none');
+                partNameDisplay.text('');
+                partQuantity.text('');
+                partPrice.text('');
+                selectedPartId.val('');
+                partSelect.val('');
+            }
+        });
+    </script>
 }

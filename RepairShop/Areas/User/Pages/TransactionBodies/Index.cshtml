@@ -4,7 +4,7 @@
 }
 <div class="page-wrapper position-relative">
     <div class="d-flex justify-content-center">
-        <div class="card shadow border-0 mt-4" style="width: 75%; margin: 0 auto;">
+        <div class="card shadow border-0 mt-4" style="width: 90%; margin: 0 auto;">
             <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
                 <div class="row">
                     <div class="col-12 text-center">
@@ -21,9 +21,12 @@
                         <input hidden asp-for="HeaderId" id="HeaderId" />
                     </div>
                     <div class="col-6 text-end">
-                        <a asp-page="Upsert" asp-route-headerId="@Model.HeaderId" class="btn btn-primary">
+                        @if (User.IsInRole(SD.Role_User))
+                        {
+                            <a asp-page="Upsert" asp-route-headerId="@Model.HeaderId" class="btn btn-primary">
                             <i class="bi bi-plus-circle"></i> Add New Part
-                        </a>
+                            </a>
+                        }
                         <a asp-page="../TransactionHeaders/Index" class="btn btn-outline-primary">
                             Back to Transactions
                         </a>
@@ -33,8 +36,9 @@
                     <table id="tblData" class="table table-bordered table-striped" style="width:100%">
                         <thead>
                             <tr class="table-primary">
-                                <th>Part Name</th>
+                                <th>Broken Part Name</th>
                                 <th>Status</th>
+                                <th>Replacement Part Name</th>
                                 <th></th>
                             </tr>
                         </thead>

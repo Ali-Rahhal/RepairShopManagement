@@ -14,12 +14,10 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly AppDbContext _db;
 
-        public IndexModel(IUnitOfWork unitOfWork, AppDbContext db)
+        public IndexModel(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _db = db;
         }
 
         [BindProperty(SupportsGet = true)]
@@ -37,7 +35,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
         //API CALLS for getting all TBs in Json format for DataTables
         public async Task<JsonResult> OnGetAll(int headerId)//The route is /User/TransactionBodies/Index?handler=All&headerId=1
         {
-            var TBList = (await _unitOfWork.TransactionBody.GetAllAsy(t => t.IsActive == true && t.TransactionHeaderId == headerId)).ToList();
+            var TBList = (await _unitOfWork.TransactionBody.GetAllAsy(t => t.IsActive == true && t.TransactionHeaderId == headerId, includeProperties: "Part")).ToList();
             return new JsonResult(new { data = TBList });//We return JsonResult because we will call this method using AJAX
         }
 
@@ -50,28 +48,38 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                 return new JsonResult(new { success = false, message = "Error while changing status" });
             }
 
-            if(choice == 1)
+            // Handle different choices
+            switch (choice)
             {
-                TB.Status = SD.Status_Part_Fixed;
+                case 0: // Not Repairable
+                    TB.Status = SD.Status_Part_NotRepairable;
+                    break;
+                case 1: // Fixed
+                    TB.Status = SD.Status_Part_Fixed;
+                    break;
+                case 2: // Not Replaceable
+                    TB.Status = SD.Status_Part_NotReplaceable;
+
+                    // If not replaceable and a part was selected, increment inventory
+                    if (TB.PartId.HasValue)
+                    {
+                        var replacementPart = await _unitOfWork.Part.GetAsy(p => p.Id == TB.PartId.Value);
+                        if (replacementPart != null && replacementPart.Quantity >= 0)
+                        {
+                            replacementPart.Quantity++;
+                            await _unitOfWork.Part.UpdateAsy(replacementPart);
+                        }
+                    }
+                    break;
+                case 3: // Replaced
+                    TB.Status = SD.Status_Part_Replaced;
+                    break;
+                default:
+                    return new JsonResult(new { success = false, message = "Invalid choice" });
             }
-            else
-            {
-                TB.Status = SD.Status_Part_NotRepairable;
-            }
-            
+
             await _unitOfWork.TransactionBody.UpdateAsy(TB);
             await _unitOfWork.SaveAsy();
-
-            _db.Entry(TB).State = EntityState.Detached;
-            //Updates the status of the TransactionHeader if all its Parts are not in a 'pending' status.
-            TransactionHeader Header = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == TB.TransactionHeaderId, includeProperties: "Parts");
-            var unFinishedParts = Header.Parts.Where(p => p.Status == SD.Status_Part_Pending && p.IsActive == true);
-            if (unFinishedParts.Count() == 0)
-            {
-                Header.Status = SD.Status_Job_Completed;
-                await _unitOfWork.TransactionHeader.UpdateAsy(Header);
-                await _unitOfWork.SaveAsy();
-            }
 
             return new JsonResult(new { success = true, message = "Status changed successfully" });
         }
@@ -83,6 +91,23 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             if (TBToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
+            }
+            if (TBToBeDeleted.Status != SD.Status_Part_Pending_Repair && TBToBeDeleted.Status != SD.Status_Part_Pending_Replace)
+            {
+                return new JsonResult(new { success = false, message = "You can only delete pending parts" });
+            }
+            if (TBToBeDeleted.Status == SD.Status_Part_Pending_Replace)
+            {
+                // If not replaceable and a part was selected, increment inventory
+                if (TBToBeDeleted.PartId.HasValue)
+                {
+                    var replacementPart = await _unitOfWork.Part.GetAsy(p => p.Id == TBToBeDeleted.PartId.Value);
+                    if (replacementPart != null && replacementPart.Quantity >= 0)
+                    {
+                        replacementPart.Quantity++;
+                        await _unitOfWork.Part.UpdateAsy(replacementPart);
+                    }
+                }
             }
 
             await _unitOfWork.TransactionBody.RemoveAsy(TBToBeDeleted);
