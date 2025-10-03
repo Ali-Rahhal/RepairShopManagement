@@ -16,6 +16,7 @@
         <div class="row pb-3">
             <div class="col-6">
                 <div class="row mb-3">
+                    <input hidden id="isAdmin" value="@User.IsInRole(SD.Role_Admin).ToString()" />
                     <div class="col-md-3">
                         <label>From:</label>
                         <input type="date" id="minDate" class="form-control" />
@@ -52,12 +53,14 @@
             <table id="tblData" class="table table-bordered table-striped" style="width:100%">
                 <thead>
                     <tr class="table-primary">
+                        <th>User Name</th><!-- (Admin only) -->
                         <th>Model</th>
                         <th>Serial Number</th>
                         <th>Status</th>
                         <th>Client Name</th>
                         <th>Created Date</th>
-                        <th></th>
+                        <th></th><!-- Parts (Admin Only) -->
+                        <th></th><!-- Parts, Edit, Delete, Cancel (User Only) -->
                     </tr>
                 </thead>
             </table>

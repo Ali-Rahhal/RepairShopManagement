@@ -87,6 +87,10 @@ function initializeCustomMultiSelect() {
     }
 }
 
+function isAdmin() {//function to check if the user is admin
+    return document.getElementById("isAdmin").value === "True";
+}
+
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": {
@@ -106,6 +110,11 @@ function loadDataTable() {
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "columns": [
+            {
+                data: 'user.userName',
+                visible: isAdmin(),//this column is only visible to admin users
+                "width": "10%"
+            },
             { data: 'model', "width": "25%" },
             { data: 'serialNumber', "width": "15%" },
             {
@@ -147,6 +156,17 @@ function loadDataTable() {
             },
             {
                 data: 'id',
+                visible: isAdmin(),//this column is only visible to non-admin users
+                "render": function (data) {
+                    return `<div class="w-75 d-flex" role="group">
+                    <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a>
+                    </div>`;
+                },
+                "width": "5%"
+            },
+            {
+                data: 'id',
+                visible: !isAdmin(),//this column is only visible to non-admin users
                 "render": function (data) {
                     return `<div class="w-75 d-flex" role="group">
                     <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a> 

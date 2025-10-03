@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using System.Security.Claims;
@@ -24,13 +25,29 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
         //API CALLS for getting all THs in Json format for DataTables
         public async Task<JsonResult> OnGetAll()//The route is /User/TransactionHeaders/Index?handler=All
         {
-            var claimsIdentity = (ClaimsIdentity)User.Identity;// Get the user's identity. Explanation: User.Identity contains
-                                                               // information about the currently logged-in user.
-            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;// Get the user's ID. Explanation: ClaimTypes.NameIdentifier is a
-                                                                                   // standard claim type that represents the unique identifier of the user.
+            var THList = new List<TransactionHeader>();
+            // Get the user's identity. Explanation: User.Identity contains
+            // information about the currently logged-in user.
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
 
+            // Get the user's role. Explanation: ClaimTypes.Role
+            // is a standard claim type that represents the role of the user.
+            var userRole = claimsIdentity.FindFirst(ClaimTypes.Role).Value;
+            if(userRole == SD.Role_Admin)//If the user is an admin get all transactions
+            {
+                THList = (await _unitOfWork.TransactionHeader
+                    .GetAllAsy(t => t.IsActive == true, includeProperties: "Client,User")).ToList();
+            }
+            else//If the user is not an admin get only their transactions
+            {
+                // Get the user's ID. Explanation: ClaimTypes.NameIdentifier is a
+                // standard claim type that represents the unique identifier of the user.
+                var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-            var THList = (await _unitOfWork.TransactionHeader.GetAllAsy(t => t.IsActive == true && t.UserId == userId, includeProperties: "Client")).ToList();
+                THList = (await _unitOfWork.TransactionHeader
+                    .GetAllAsy(t => t.IsActive == true && t.UserId == userId, includeProperties: "Client")).ToList();
+            }
+            
             return new JsonResult(new { data = THList });//We return JsonResult because we will call this method using AJAX
         }
 

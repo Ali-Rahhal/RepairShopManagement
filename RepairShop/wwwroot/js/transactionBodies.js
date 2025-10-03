@@ -5,6 +5,10 @@ $(document).ready(function () {
     loadDataTable();
 });
 
+function isAdmin() {//function to check if the user is admin
+    return document.getElementById("isAdmin").value === "True";
+}
+
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": { url: `/User/TransactionBodies/Index?handler=All&headerId=${hId}` },//this url will call the OnGetAll method in the page model which returns all the TBs of the selected TH in json format.
@@ -29,6 +33,7 @@ function loadDataTable() {
             },
             {
                 data: 'id',
+                visible: !isAdmin(),//only show this column if the user is not admin
                 "render": function (data) {//this is to render the edit and delete buttons in the last column.
                     return `<div class="w-100 d-flex justify-content-center" role="group">
                     <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
