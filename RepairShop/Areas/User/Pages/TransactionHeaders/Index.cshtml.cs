@@ -83,19 +83,42 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             return new JsonResult(new { success = true, message = "Transaction deleted successfully" });
         }
 
-        //API CALL for canceling a TH
-        public async Task<IActionResult> OnGetCancel(int? id)//The route is /User/TransactionHeaders/Index?handler=Cancel&id=1
+        ////API CALL for canceling a TH
+        //public async Task<IActionResult> OnGetCancel(int? id)//The route is /User/TransactionHeaders/Index?handler=Cancel&id=1
+        //{
+        //    var THToBeDeleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id);
+        //    if (THToBeDeleted == null)
+        //    {
+        //        return new JsonResult(new { success = false, message = "Error while cancelling" });
+        //    }
+
+        //    THToBeDeleted.Status = SD.Status_Job_Cancelled;
+        //    await _unitOfWork.TransactionHeader.UpdateAsy(THToBeDeleted);
+        //    await _unitOfWork.SaveAsy();
+        //    return new JsonResult(new { success = true, message = "Transaction cancelled successfully" });
+        //}
+
+        //API CALL for completing the transaction
+        public async Task<IActionResult> OnGetCompleteStatus(int? id)//The route is /User/TransactionHeaders/Index?handler=CompleteStatus&id=1
         {
-            var THToBeDeleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id);
-            if (THToBeDeleted == null)
+            var THToBeCompleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id, includeProperties: "BrokenParts");
+            if (THToBeCompleted == null)
             {
-                return new JsonResult(new { success = false, message = "Error while cancelling" });
+                return new JsonResult(new { success = false, message = "Error while completing" });
             }
 
-            THToBeDeleted.Status = SD.Status_Job_Cancelled;
-            await _unitOfWork.TransactionHeader.UpdateAsy(THToBeDeleted);
+            //Check if there are any pending parts
+            var pendingParts = THToBeCompleted.BrokenParts.Where(o => (o.Status == SD.Status_Part_Pending_Repair || o.Status == SD.Status_Part_Pending_Replace) && o.IsActive == true).ToList();
+            if (pendingParts.Count > 0)
+            {
+                return new JsonResult(new { success = false, message = "You have pending parts" });
+            }
+
+            THToBeCompleted.Status = SD.Status_Job_Completed;
+            await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
             await _unitOfWork.SaveAsy();
-            return new JsonResult(new { success = true, message = "Transaction cancelled successfully" });
+            return new JsonResult(new { success = true, message = "Transaction completed successfully" });
         }
+
     }
 }

@@ -1,6 +1,7 @@
 ﻿//code needed for datatable to work in TH index page
 var dataTable;
 let hId = document.getElementById("HeaderId").value;
+let hStatus = document.getElementById("HeaderStatus").value;
 
 $(document).ready(function () {
     loadDataTable();
@@ -14,8 +15,8 @@ function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "ajax": { url: `/User/TransactionBodies/Index?handler=All&headerId=${hId}` },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        "columns": [//defining the columns of the datatable and mapping them to the properties of the TB model.
-            { data: 'partName', "width": "25%" },//dont forget the names should match the property names.
+        "columns": [
+            { data: 'brokenPartName', "width": "25%" },//dont forget the names should match the property names.
             {
                 data: 'status',
                 "render": function (data) {
@@ -41,22 +42,22 @@ function loadDataTable() {
             { data: 'part.name', "width": "25%" },//dont forget the names should match the property names.
             {
                 data: 'id',
-                visible: !isAdmin(),//only show this column if the user is not admin
-                "render": function (data, type, row) {//this is to render the edit and delete buttons in the last column.
+                visible: !isAdmin() && hStatus !== "Completed",//only show this column if the user is not admin status is not completed
+                "render": function (data, type, row) {
                     return `<div class="w-100 d-flex justify-content-center" role="group">
                     <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit Name" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
                     <!--onclick is for initiating Delete function and passing the url with id-->
                     <a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                     <a onClick="ChangeStatus(${data}, '${row.status}')" title="Change Status" class="btn btn-warning mx-2"><i class="bi bi-gear"></i></a>
-                    </div>`//using `` for multi-line string and ${} for variable interpolation.
-                },//anchors only work with Get requests.
+                    </div>`
+                },
                 "width": "30%"
             }
         ]
     });
 }
 
-//function for sweet alert delete confirmation
+
 function Delete(url) {
     Swal.fire({
         title: "Are you sure?",

@@ -88,6 +88,13 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                     return NotFound();
                 }
 
+                if (tbForUpsert.Status == SD.Status_Part_Pending_Replace && tbForUpsert.PartId == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Please select a replacement part.");
+                    await LoadCategories();
+                    return Page();
+                }
+
                 if (tbForUpsert.Id == 0)
                 {
                     // CREATE MODE

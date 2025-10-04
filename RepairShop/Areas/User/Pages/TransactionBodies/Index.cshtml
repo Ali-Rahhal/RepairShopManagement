@@ -18,10 +18,11 @@
                 <div class="row pb-3">
                     <div class="col-6">
                         <input hidden id="isAdmin" value="@User.IsInRole(SD.Role_Admin).ToString()" />
+                        <input hidden id="HeaderStatus" value="@Model.HeaderStatus" />
                         <input hidden asp-for="HeaderId" id="HeaderId" />
                     </div>
                     <div class="col-6 text-end">
-                        @if (User.IsInRole(SD.Role_User))
+                        @if (User.IsInRole(SD.Role_User) && Model.HeaderStatus != SD.Status_Job_Completed)
                         {
                             <a asp-page="Upsert" asp-route-headerId="@Model.HeaderId" class="btn btn-primary">
                             <i class="bi bi-plus-circle"></i> Add New Part
@@ -47,19 +48,19 @@
             </div>
         </div>
 
-        @if (Model.HeaderStatus == SD.Status_Job_Cancelled)
-            {
-                <div class="overlay">
-                    <div class="text-center">
-                        <div class="overlay-text mb-3">
-                            ❌ This transaction has been cancelled
-                        </div>
-                            <a asp-page="../TransactionHeaders/Index" type="button" class="btn btn-outline-primary">
-                            Back to List
-                        </a>
+        @* @if (Model.HeaderStatus == SD.Status_Job_Cancelled)
+        {
+            <div class="overlay">
+                <div class="text-center">
+                    <div class="overlay-text mb-3">
+                        ❌ This transaction has been cancelled
                     </div>
+                    <a asp-page="../TransactionHeaders/Index" type="button" class="btn btn-outline-primary">
+                        Back to List
+                    </a>
                 </div>
-            }
+            </div>
+        } *@
     </div>
 </div>
 @section Scripts {

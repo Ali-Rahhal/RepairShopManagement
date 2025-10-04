@@ -43,6 +43,13 @@ namespace RepairShop.Areas.Admin.Pages.Users
                 return new JsonResult(new { success = false, message = "User cannot be deleted because it has related transactions" });
             }
 
+            //Check if user is last admin
+            var admins = await _unitOfWork.AppUser.GetAllAsy(o => o.Role == SD.Role_Admin && o.IsActive == true);
+            if (admins.Count() == 1 && admins.First().Id == userToBeDeleted.Id)
+            {
+                return new JsonResult(new { success = false, message = "Cannot delete last admin" });
+            }
+
             await _unitOfWork.AppUser.RemoveAsy(userToBeDeleted);
             await _unitOfWork.SaveAsy();
             return new JsonResult(new { success = true, message = "User deleted successfully" });
