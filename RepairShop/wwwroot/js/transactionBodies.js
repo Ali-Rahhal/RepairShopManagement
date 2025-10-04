@@ -68,7 +68,7 @@ function loadDataTable() {
             },
             {
                 data: 'id',
-                visible: !isAdmin() && hStatus !== "Completed",//only show this column if the user is not admin status is not completed
+                visible: !isAdmin() && hStatus !== "Completed",//only show this column if the user is not admin and status is not completed
                 "render": function (data, type, row) {
                     if (row.status === "WaitingForPart") {
                         return `<div class="w-100 d-flex justify-content-center" role="group">
@@ -110,7 +110,7 @@ function CheckPartAvailable(url) {
 
 function Delete(url) {
     Swal.fire({
-        title: "Are you sure?",
+        title: "Are you sure you want to delete this part?",
         text: "You won't be able to revert this!",
         icon: "warning",
         showCancelButton: true,
@@ -135,6 +135,7 @@ function Delete(url) {
     });
 }
 
+// Function to change the status
 function ChangeStatus(id, currentStatus) {
     let confirmButtonText, denyButtonText;
     let confirmUrl, denyUrl;

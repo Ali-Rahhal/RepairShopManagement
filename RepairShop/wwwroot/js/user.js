@@ -27,10 +27,10 @@ function loadDataTable() {
     });
 }
 
-//function for sweet alert delete confirmation
+
 function Delete(url) {
     Swal.fire({
-        title: "Are you sure?",
+        title: "Are you sure you want to delete this user?",
         text: "You won't be able to revert this!",
         icon: "warning",
         showCancelButton: true,
@@ -38,16 +38,16 @@ function Delete(url) {
         cancelButtonColor: "#d33",
         confirmButtonText: "Yes, delete it!"
     }).then((result) => {
-        if (result.isConfirmed) {//if user clicks on yes, delete it button
+        if (result.isConfirmed) {
             $.ajax({
-                url: url,//url is passed from the Delete function call in the datatable render method.
-                success: function (data) {//data is the json returned from the OnGetDelete method in the page model.
+                url: url,
+                success: function (data) {
                     if (data.success) {
-                        dataTable.ajax.reload();//reload the datatable to reflect the changes.
-                        toastr.success(data.message);//show success message using toastr.
+                        dataTable.ajax.reload();
+                        toastr.success(data.message);
                     }
                     else {
-                        toastr.error(data.message);//show error message using toastr.
+                        toastr.error(data.message);
                     }
                 }
             })

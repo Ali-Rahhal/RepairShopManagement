@@ -119,7 +119,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
         private async Task LoadCategories()
         {
             Categories = (await _unitOfWork.Part.GetAllAsy())
-                .Where(p => p.IsActive && p.Quantity > 0)
+                .Where(p => p.IsActive && p.Quantity >= 0)
                 .Select(p => p.Category)
                 .Distinct()
                 .OrderBy(c => c)

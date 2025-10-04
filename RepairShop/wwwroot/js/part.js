@@ -29,7 +29,7 @@ function loadDataTable() {
 
 function Delete(url) {
     Swal.fire({
-        title: "Are you sure?",
+        title: "Are you sure you want to delete this?",
         text: "This action cannot be undone!",
         icon: "warning",
         showCancelButton: true,

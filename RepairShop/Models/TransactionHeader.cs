@@ -12,8 +12,7 @@ namespace RepairShop.Models
         public string Model { get; set; }
         [Required]
         public string SerialNumber { get; set; }
-        [Required]
-        public string Description { get; set; }
+        public string? Description { get; set; }
         [Required]
         public string Status { get; set; } = SD.Status_Job_New;
         public DateTime CreatedDate { get; set; } = DateTime.Now;

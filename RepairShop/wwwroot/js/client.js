@@ -11,10 +11,10 @@ function isAdmin() {//function to check if the user is admin
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "ajax": { url: '/User/Clients/Index?handler=All' },//this url will call the OnGetAll method in the page model which returns all the clients in json format.
+        "ajax": { url: '/User/Clients/Index?handler=All' },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        "columns": [//defining the columns of the datatable and mapping them to the properties of the client model.
-            { data: 'name', "width": "20%" },//dont forget the names should match the property names.
+        "columns": [
+            { data: 'name', "width": "20%" },
             { data: 'phone', "width": "20%" },
             { data: 'email', "width": "20%" },
             { data: 'address', "width": "20%" },
@@ -26,18 +26,18 @@ function loadDataTable() {
                     <a href="/User/Clients/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
                     <!--onclick is for initiating Delete function and passing the url with id-->
                     <a onClick="Delete('/User/Clients/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                    </div>`//using `` for multi-line string and ${} for variable interpolation.
-                },//anchors only work with Get requests.
+                    </div>`
+                },
                 "width": "20%"
             }
         ]
     });
 }
 
-//function for sweet alert delete confirmation
+
 function Delete(url) {
     Swal.fire({
-        title: "Are you sure?",
+        title: "Are you sure you want to delete?",
         text: "You won't be able to revert this!",
         icon: "warning",
         showCancelButton: true,

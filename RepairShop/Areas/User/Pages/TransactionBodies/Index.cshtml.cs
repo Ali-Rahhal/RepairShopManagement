@@ -32,14 +32,14 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             HeaderStatus = _unitOfWork.TransactionHeader.GetAsy(o => o.Id == HeaderId).Result.Status;
         }
 
-        //API CALLS for getting all TBs in Json format for DataTables
+        //AJAX CALLS for getting all TBs in Json format for DataTables
         public async Task<JsonResult> OnGetAll(int headerId)//The route is /User/TransactionBodies/Index?handler=All&headerId=1
         {
             var TBList = (await _unitOfWork.TransactionBody.GetAllAsy(t => t.IsActive == true && t.TransactionHeaderId == headerId, includeProperties: "Part")).ToList();
             return new JsonResult(new { data = TBList });//We return JsonResult because we will call this method using AJAX
         }
 
-        //API CALL for checking if part is availabe and change status
+        //AJAX CALL for checking if part is availabe and change status
         public async Task<IActionResult> OnGetCheckPart(int? id)
         {
             var TB = await _unitOfWork.TransactionBody.GetAsy(tb => tb.Id == id);
@@ -57,7 +57,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             return new JsonResult(new { success = false, message = "Part is still not available" });
         }//The route is /User/TransactionBodies/Index?handler=CheckPart&id=1
 
-        //API CALL for changing TB status
+        //AJAX CALL for changing TB status
         public async Task<IActionResult> OnGetStatus(int? id, int? choice)//The route is /User/TransactionBodies/Index?handler=Status&id=1
         {
             var TB = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == id);
@@ -102,7 +102,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             return new JsonResult(new { success = true, message = "Status changed successfully" });
         }
 
-        //API CALL for deleting a TB
+        //AJAX CALL for deleting a TB
         public async Task<IActionResult> OnGetDelete(int? id)//The route is /User/TransactionBodies/Index?handler=Delete&id=1
         {
             var TBToBeDeleted = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == id);
@@ -110,6 +110,8 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
+
+            // Only pending parts can be deleted
             if (TBToBeDeleted.Status != SD.Status_Part_Pending_Repair 
                 && TBToBeDeleted.Status != SD.Status_Part_Pending_Replace 
                 && TBToBeDeleted.Status != SD.Status_Part_Waiting_Part)

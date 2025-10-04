@@ -19,14 +19,14 @@ namespace RepairShop.Areas.User.Pages.Clients
         {
         }
 
-        //API CALLS for getting all clients in Json format for DataTables
+        //AJAX CALLS for getting all clients in Json format for DataTables
         public async Task<JsonResult> OnGetAll()//The route is /User/Clients/Index?handler=All
         {
             var clientList = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true)).ToList();
             return new JsonResult(new { data = clientList });//We return JsonResult because we will call this method using AJAX
         }
 
-        //API CALL for deleting a client//Didnt use OnPostDelete because it needs the link to send a form and it causes issues with DataTables
+        //AJAX CALL for deleting a client
         public async Task<IActionResult> OnGetDelete(int? id)//The route is /User/Clients/Index?handler=Delete&id=1
         {
             var clientToBeDeleted = await _unitOfWork.Client.GetAsy(o => o.Id == id);

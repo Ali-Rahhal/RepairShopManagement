@@ -49,9 +49,18 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                     return NotFound();
                 }
 
-                // tinyMce saves text inside <p> tags, so we need to remove them before saving to db
-                thForUpsert.Description = TextCleaner.CleanText(thForUpsert.Description);
+                if(thForUpsert.ClientId == 0)
+                {
+                    ModelState.AddModelError(string.Empty, "Please select a client");
+                    return Page();
+                }
 
+                // tinyMce saves text inside <p> tags, so we need to remove them before saving to db
+                if(thForUpsert.Description != null)
+                {
+                    thForUpsert.Description = TextCleaner.CleanText(thForUpsert.Description);
+                }
+               
                 if (thForUpsert.Id == 0)
                 {
                     await _unitOfWork.TransactionHeader.AddAsy(thForUpsert);
