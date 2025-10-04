@@ -187,7 +187,7 @@ function loadDataTable() {
                     //show status change button if status is "New" 
                     if (row.status === "New") {
                         return `<div class="w-75 d-flex" role="group">
-                                    <a onClick="changeStatusToInProgress('/User/TransactionHeaders/Index?handler=ChangeStatus&id=${data}')" title="Start Work" class="btn btn-success mx-2"><i class="bi bi-play-circle"></i></a>
+                                    <a onClick="ChangeStatusToInProgress('/User/TransactionHeaders/Index?handler=ChangeStatus&id=${data}')" title="Start Work" class="btn btn-success mx-2"><i class="bi bi-play-circle"></i></a>
                                     <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
                                     <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                                     <!-- <a onClick="Cancel('/User/TransactionHeaders/Index?handler=Cancel&id=${data}')" title="Cancel" class="btn btn-warning mx-2"><i class="bi bi-x-circle"></i></a> -->
@@ -280,13 +280,13 @@ function loadDataTable() {
 }
 
 // Function to change status from "New" to "InProgress"
-function changeStatusToInProgress(url) {
+function ChangeStatusToInProgress(url) {
     $.ajax({
         url: url,
         success: function (data) {
             if (data.success) {
-                toastr.success(data.message);
                 dataTable.ajax.reload(); // Reload to reflect the status change
+                toastr.success(data.message);
             } else {
                 toastr.error(data.message);
             }

@@ -14,6 +14,7 @@ namespace RepairShop.Models
         public string BrokenPartName { get; set; }
         [Required]
         public string Status { get; set; } // Pending, Fixed, Replaced
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
         public bool IsActive { get; set; } = true;
 
         public int TransactionHeaderId { get; set; }

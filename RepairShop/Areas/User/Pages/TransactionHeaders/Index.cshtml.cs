@@ -108,7 +108,10 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             }
 
             //Check if there are any pending parts
-            var pendingParts = THToBeCompleted.BrokenParts.Where(o => (o.Status == SD.Status_Part_Pending_Repair || o.Status == SD.Status_Part_Pending_Replace) && o.IsActive == true).ToList();
+            var pendingParts = THToBeCompleted.BrokenParts
+                .Where(o => (o.Status == SD.Status_Part_Pending_Repair 
+                                || o.Status == SD.Status_Part_Pending_Replace 
+                                || o.Status == SD.Status_Part_Waiting_Part) && o.IsActive == true).ToList();
             if (pendingParts.Count > 0)
             {
                 return new JsonResult(new { success = false, message = "You have pending parts" });

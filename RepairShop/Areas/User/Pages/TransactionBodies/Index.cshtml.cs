@@ -39,6 +39,24 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             return new JsonResult(new { data = TBList });//We return JsonResult because we will call this method using AJAX
         }
 
+        //API CALL for checking if part is availabe and change status
+        public async Task<IActionResult> OnGetCheckPart(int? id)
+        {
+            var TB = await _unitOfWork.TransactionBody.GetAsy(tb => tb.Id == id);
+            var part = await _unitOfWork.Part.GetAsy(p => p.Id == TB.PartId);
+            if (part.Quantity > 0)
+            {
+                part.Quantity--;
+                await _unitOfWork.Part.UpdateAsy(part);
+                TB.Status = SD.Status_Part_Pending_Replace;
+                await _unitOfWork.TransactionBody.UpdateAsy(TB);
+                await _unitOfWork.SaveAsy();
+                return new JsonResult(new { success = true, message = "Part is available and it has been selected for replacement" });
+            }
+            
+            return new JsonResult(new { success = false, message = "Part is still not available" });
+        }//The route is /User/TransactionBodies/Index?handler=CheckPart&id=1
+
         //API CALL for changing TB status
         public async Task<IActionResult> OnGetStatus(int? id, int? choice)//The route is /User/TransactionBodies/Index?handler=Status&id=1
         {
@@ -92,7 +110,9 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
-            if (TBToBeDeleted.Status != SD.Status_Part_Pending_Repair && TBToBeDeleted.Status != SD.Status_Part_Pending_Replace)
+            if (TBToBeDeleted.Status != SD.Status_Part_Pending_Repair 
+                && TBToBeDeleted.Status != SD.Status_Part_Pending_Replace 
+                && TBToBeDeleted.Status != SD.Status_Part_Waiting_Part)
             {
                 return new JsonResult(new { success = false, message = "You can only delete pending parts" });
             }

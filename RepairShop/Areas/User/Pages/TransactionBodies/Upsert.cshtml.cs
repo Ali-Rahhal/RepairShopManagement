@@ -49,36 +49,6 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             }
         }
 
-        // AJAX handler to get parts by category
-        public async Task<IActionResult> OnGetPartsByCategory(string category)
-        {
-            var parts = (await _unitOfWork.Part.GetAllAsy())
-                .Where(p => p.IsActive && p.Quantity > 0 && p.Category == category)
-                .Select(p => new { p.Id, p.Name })
-                .OrderBy(p => p.Name)
-                .ToList();
-
-            return new JsonResult(parts);
-        }
-
-        // AJAX handler to get part details
-        public async Task<IActionResult> OnGetPartDetails(int id)
-        {
-            var part = await _unitOfWork.Part.GetAsy(p => p.Id == id && p.IsActive);
-            if (part == null)
-            {
-                return new JsonResult(null);
-            }
-
-            return new JsonResult(new
-            {
-                part.Id,
-                part.Name,
-                part.Quantity,
-                part.Price
-            });
-        }
-
         public async Task<IActionResult> OnPost()
         {
             if (ModelState.IsValid)
@@ -108,19 +78,19 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                             // Decrement part quantity
                             selectedPart.Quantity--;
                             await _unitOfWork.Part.UpdateAsy(selectedPart);
+                            TempData["success"] = "Part Added successfully";
                         }
                         else
                         {
-                            ModelState.AddModelError(string.Empty, "Selected replacement part is out of stock.");
-                            await LoadCategories();
-                            return Page();
+                            tbForUpsert.Status = SD.Status_Part_Waiting_Part;
+                            TempData["info"] = "Part Not Available but can be added later";
                         }
                     }
 
                     await _unitOfWork.TransactionBody.AddAsy(tbForUpsert);
 
                     await _unitOfWork.SaveAsy();
-                    TempData["success"] = "Part Added successfully";
+                    
                 }
                 else
                 {
@@ -154,6 +124,36 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                 .Distinct()
                 .OrderBy(c => c)
                 .ToList();
+        }
+
+        // AJAX handler to get parts by category
+        public async Task<IActionResult> OnGetPartsByCategory(string category)
+        {
+            var parts = (await _unitOfWork.Part.GetAllAsy())
+                .Where(p => p.IsActive && p.Quantity >= 0 && p.Category == category)
+                .Select(p => new { p.Id, p.Name })
+                .OrderBy(p => p.Name)
+                .ToList();
+
+            return new JsonResult(parts);
+        }
+
+        // AJAX handler to get part details
+        public async Task<IActionResult> OnGetPartDetails(int id)
+        {
+            var part = await _unitOfWork.Part.GetAsy(p => p.Id == id && p.IsActive);
+            if (part == null)
+            {
+                return new JsonResult(null);
+            }
+
+            return new JsonResult(new
+            {
+                part.Id,
+                part.Name,
+                part.Quantity,
+                part.Price
+            });
         }
     }
 }

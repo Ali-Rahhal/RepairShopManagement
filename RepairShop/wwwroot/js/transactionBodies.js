@@ -16,7 +16,7 @@ function loadDataTable() {
         "ajax": { url: `/User/TransactionBodies/Index?handler=All&headerId=${hId}` },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "columns": [
-            { data: 'brokenPartName', "width": "25%" },//dont forget the names should match the property names.
+            { data: 'brokenPartName', "width": "20%" },//dont forget the names should match the property names.
             {
                 data: 'status',
                 "render": function (data) {
@@ -25,6 +25,8 @@ function loadDataTable() {
                             return `<span class="badge bg-info p-2 fs-5">${data}</span>`;
                         case "PendingForReplacement":
                             return `<span class="badge bg-warning p-2 fs-5">${data}</span>`;
+                        case "WaitingForPart":
+                            return `<span class="badge bg-primary p-2 fs-5">${data}</span>`;
                         case "Fixed":
                             return `<span class="badge bg-success p-2 fs-5">${data}</span>`;
                         case "Replaced":
@@ -39,21 +41,69 @@ function loadDataTable() {
                 },
                 "width": "20%"
             },
-            { data: 'part.name', "width": "25%" },//dont forget the names should match the property names.
+            { data: 'part.name', "width": "20%" },//dont forget the names should match the property names.
+            {
+                data: 'createdDate',
+                "width": "15%",
+                "render": function (data, type, row) {
+                    if (data) {
+                        // Convert to Date object and format as dd-MM-yyyy HH:mm tt
+                        const date = new Date(data);
+
+                        // When DataTables needs to sort or order, return a numeric timestamp
+                        if (type === 'sort' || type === 'order') {
+                            return date.getTime();
+                        }
+
+                        return date.toLocaleDateString('en-GB')
+                            .split('/').join('-') + ' ' +
+                            date.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                    }
+                    return '';
+                }
+            },
             {
                 data: 'id',
                 visible: !isAdmin() && hStatus !== "Completed",//only show this column if the user is not admin status is not completed
                 "render": function (data, type, row) {
-                    return `<div class="w-100 d-flex justify-content-center" role="group">
-                    <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit Name" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                    <!--onclick is for initiating Delete function and passing the url with id-->
-                    <a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                    <a onClick="ChangeStatus(${data}, '${row.status}')" title="Change Status" class="btn btn-warning mx-2"><i class="bi bi-gear"></i></a>
-                    </div>`
+                    if (row.status === "WaitingForPart") {
+                        return `<div class="w-100 d-flex justify-content-center" role="group">
+                                    <a onClick="CheckPartAvailable('/User/TransactionBodies/Index?handler=CheckPart&id=${data}')" title="Check if Part is Available" class="btn btn-info mx-2"><i class="bi bi-box-seam"></i></a>
+                                    <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit Name" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
+                                    <!--onclick is for initiating Delete function and passing the url with id-->
+                                    <a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                                </div>`
+                    } else {
+                        return `<div class="w-100 d-flex justify-content-center" role="group">
+                                    <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit Name" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
+                                    <!--onclick is for initiating Delete function and passing the url with id-->
+                                    <a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                                    <a onClick="ChangeStatus(${data}, '${row.status}')" title="Change Status" class="btn btn-warning mx-2"><i class="bi bi-gear"></i></a>
+                                </div>`
+                    } 
                 },
-                "width": "30%"
+                "width": "25%"
             }
         ]
+    });
+}
+
+// Function to check if the part is available and update the status
+function CheckPartAvailable(url) {
+    $.ajax({
+        url: url,
+        success: function (data) {
+            if (data.success) {
+                dataTable.ajax.reload(); // Reload to reflect the status change
+                toastr.success(data.message);
+            } else {
+                toastr.error(data.message);
+            }
+        }
     });
 }
 

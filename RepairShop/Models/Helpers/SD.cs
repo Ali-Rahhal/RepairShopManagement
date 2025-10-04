@@ -12,6 +12,7 @@
 
         public const string Status_Part_Pending_Repair = "PendingForRepair";
         public const string Status_Part_Pending_Replace = "PendingForReplacement";
+        public const string Status_Part_Waiting_Part = "WaitingForPart";
         public const string Status_Part_Fixed = "Fixed";
         public const string Status_Part_Replaced = "Replaced";
         public const string Status_Part_NotRepairable = "NotRepairable";
