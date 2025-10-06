@@ -93,4 +93,14 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        //when user logs in it resets saved states of datatables
+        $('#login-submit').on('click', function () {
+            for (let key in localStorage) {
+                if (key.startsWith("DataTables_")) {
+                    localStorage.removeItem(key);
+                }
+            }
+        });
+    </script>
 }

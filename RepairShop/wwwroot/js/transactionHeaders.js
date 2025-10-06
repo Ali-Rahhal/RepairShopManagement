@@ -87,12 +87,18 @@ function initializeCustomMultiSelect() {
     }
 }
 
+$('#clearFilters').on('click', function () {
+    dataTable.state.clear();
+    location.reload();
+});
+
 function isAdmin() {//function to check if the user is admin
     return document.getElementById("isAdmin").value === "True";
 }
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
+        "stateSave": true,
         "ajax": {
             url: '/User/TransactionHeaders/Index?handler=All',
             dataSrc: function (json) {

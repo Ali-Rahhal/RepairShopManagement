@@ -120,6 +120,13 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 return new JsonResult(new { success = false, message = "You have pending parts" });
             }
 
+            //check if there are any active parts
+            var partCount = THToBeCompleted.BrokenParts.Count(o => o.IsActive == true);
+            if (partCount == 0)
+            {
+                return new JsonResult(new { success = false, message = "You have no parts to complete" });
+            }
+
             THToBeCompleted.Status = SD.Status_Job_Completed;
             await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
             await _unitOfWork.SaveAsy();

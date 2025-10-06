@@ -18,13 +18,16 @@ namespace RepairShop.Areas.Admin.Pages.Users
     {
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly UserManager<AppUser> _userManager;
+        private readonly IUnitOfWork _unitOfWork;
 
         public EditModel(
             RoleManager<IdentityRole> roleManager,
-            UserManager<AppUser> userManager)
+            UserManager<AppUser> userManager,
+            IUnitOfWork unitOfWork)
         {
             _roleManager = roleManager;
             _userManager = userManager;
+            _unitOfWork = unitOfWork;
         }
 
         public AppUser? userForUpdate { get; set; }
@@ -101,6 +104,14 @@ namespace RepairShop.Areas.Admin.Pages.Users
                     if (user != null && !user.Id.Equals(userForUpdate.Id))
                     {
                         ModelState.AddModelError(string.Empty, "UserCode already exists. Please choose a different UserCode.");
+                        break;
+                    }
+
+                    // Checks if the user's Role has been changed to Admin and has related transactions
+                    var transactionCount = (await _unitOfWork.TransactionHeader.GetAllAsy(t => t.IsActive == true && t.UserId == userForUpdate.Id)).Count();
+                    if (transactionCount > 0 && Input.Role == SD.Role_Admin)
+                    {
+                        ModelState.AddModelError(string.Empty, "User cannot be changed to Admin because it has related transactions");
                         break;
                     }
 

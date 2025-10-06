@@ -13,6 +13,7 @@ function isAdmin() {//function to check if the user is admin
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
+        "stateSave": true,
         "ajax": { url: `/User/TransactionBodies/Index?handler=All&headerId=${hId}` },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "columns": [

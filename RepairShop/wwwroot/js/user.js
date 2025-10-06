@@ -7,6 +7,7 @@ $(document).ready(function () {
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
+        "stateSave": true,
         "ajax": { url: '/Admin/Users/Index?handler=All' },//this url will call the OnGetAll method in the page model which returns all the users in json format.
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "columns": [//defining the columns of the datatable and mapping them to the properties of the user model.
