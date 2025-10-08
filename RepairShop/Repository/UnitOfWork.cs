@@ -16,6 +16,12 @@ namespace RepairShop.Repository
         public IClientRepository Client { get; private set; }
         public IAppUserRepository AppUser { get; private set; }
         public IPartRepository Part { get; private set; }
+        public IModelRepository Model { get; private set; }
+        public ISerialNumberRepository SerialNumber { get; private set; }
+        public IWarrantyRepository Warranty { get; private set; }
+        public IMaintenanceContractRepository MaintenanceContract { get; private set; }
+        public IDefectiveUnitRepository DefectiveUnit { get; private set; }
+
 
 
         public UnitOfWork(AppDbContext db)
@@ -26,6 +32,11 @@ namespace RepairShop.Repository
             Client = new ClientRepository(_db);
             AppUser = new AppUserRepository(_db);
             Part = new PartRepository(_db);
+            Model = new ModelRepository(_db);
+            SerialNumber = new SerialNumberRepository(_db);
+            Warranty = new WarrantyRepository(_db);
+            MaintenanceContract = new MaintenanceContractRepository(_db);
+            DefectiveUnit = new DefectiveUnitRepository(_db);
         }
 
         public async Task SaveAsy()

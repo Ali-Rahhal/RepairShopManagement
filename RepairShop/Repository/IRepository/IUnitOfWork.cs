@@ -14,6 +14,12 @@ namespace RepairShop.Repository.IRepository
         IClientRepository Client { get; }
         IAppUserRepository AppUser { get; }
         IPartRepository Part { get; }
+        IModelRepository Model { get; }
+        ISerialNumberRepository SerialNumber { get; }
+        IWarrantyRepository Warranty { get; }
+        IMaintenanceContractRepository MaintenanceContract { get; }
+        IDefectiveUnitRepository DefectiveUnit { get; }
+        
 
 
         Task SaveAsy();

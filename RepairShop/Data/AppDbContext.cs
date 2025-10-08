@@ -15,6 +15,12 @@ namespace RepairShop.Data
         public DbSet<TransactionBody> TransactionBodies { get; set; }
         public DbSet<AppUser> AppUsers { get; set; }
         public DbSet<Part> Parts { get; set; }
+        public DbSet<Model> Models { get; set; }
+        public DbSet<SerialNumber> SerialNumbers { get; set; }
+        public DbSet<Warranty> Warranties { get; set; }
+        public DbSet<MaintenanceContract> MaintenanceContracts { get; set; }
+        public DbSet<DefectiveUnit> DefectiveUnits { get; set; }
+        
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

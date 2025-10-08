@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RepairShop.Data;
 
@@ -11,9 +12,11 @@ using RepairShop.Data;
 namespace RepairShop.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251007134818_addedWarrantyAndMaintenanceContractAndModelAndSerialNumberTablesAndRelationshipsBtwThemAndClient")]
+    partial class addedWarrantyAndMaintenanceContractAndModelAndSerialNumberTablesAndRelationshipsBtwThemAndClient
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -258,54 +261,6 @@ namespace RepairShop.Migrations
                     b.ToTable("Clients");
                 });
 
-            modelBuilder.Entity("RepairShop.Models.DefectiveUnit", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsResolved")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("MaintenanceContractId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("ReportedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("ResolvedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("SerialNumberId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("WarrantyId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MaintenanceContractId");
-
-                    b.HasIndex("SerialNumberId");
-
-                    b.HasIndex("WarrantyId");
-
-                    b.ToTable("DefectiveUnits");
-                });
-
             modelBuilder.Entity("RepairShop.Models.MaintenanceContract", b =>
                 {
                     b.Property<int>("Id")
@@ -320,15 +275,8 @@ namespace RepairShop.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -344,9 +292,6 @@ namespace RepairShop.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -397,9 +342,6 @@ namespace RepairShop.Migrations
 
                     b.Property<int>("ClientId")
                         .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
 
                     b.Property<int?>("MaintenanceContractId")
                         .HasColumnType("int");
@@ -515,18 +457,11 @@ namespace RepairShop.Migrations
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
                     b.Property<int>("SerialNumberId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -584,29 +519,6 @@ namespace RepairShop.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("RepairShop.Models.DefectiveUnit", b =>
-                {
-                    b.HasOne("RepairShop.Models.MaintenanceContract", "MaintenanceContract")
-                        .WithMany()
-                        .HasForeignKey("MaintenanceContractId");
-
-                    b.HasOne("RepairShop.Models.SerialNumber", "SerialNumber")
-                        .WithMany()
-                        .HasForeignKey("SerialNumberId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RepairShop.Models.Warranty", "Warranty")
-                        .WithMany()
-                        .HasForeignKey("WarrantyId");
-
-                    b.Navigation("MaintenanceContract");
-
-                    b.Navigation("SerialNumber");
-
-                    b.Navigation("Warranty");
                 });
 
             modelBuilder.Entity("RepairShop.Models.MaintenanceContract", b =>
