@@ -1,4 +1,6 @@
-﻿namespace RepairShop.Models
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+
+namespace RepairShop.Models
 {
     public class Warranty
     {
@@ -10,6 +12,7 @@
 
 
         public int SerialNumberId { get; set; }
+        [ValidateNever]
         public SerialNumber SerialNumber { get; set; } // covers a serial number
     }
 }

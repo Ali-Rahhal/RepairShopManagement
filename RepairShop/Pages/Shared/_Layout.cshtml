@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/RepairShop.styles.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.11/css/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" href="~/lib/toastr/toastr.min.css"/>
+    <link rel="stylesheet" href="~/lib/datatables/jquery.dataTables.min.css"/>
 </head>
 <body>
     <header>
@@ -48,6 +48,12 @@
                             }
                             </ul>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="Admin" asp-page="/Models/Index">Models</a>
+                        </li>
+                        <li class="nav-item">
+                        <a class="nav-link" asp-area="Admin" asp-page="/SerialNumbers/Index">SerialNumbers</a>
+                        </li>
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>
@@ -71,11 +77,9 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
-    <script src="https://cdn.datatables.net/1.13.11/js/jquery.dataTables.min.js" asp-append-version="true"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
-    <script src="https://cdn.tiny.cloud/1/buojaam4hz40afqgl2h5w0b579g9dmpd4xzcav6zeyvekehb/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>
-
+    <script src="~/lib/datatables/jquery.dataTables.min.js" asp-append-version="true"></script>
+    <script src="~/lib/sweetalert/sweetalert2@11.js"></script>
+    <script src="~/lib/toastr/toastr.min.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

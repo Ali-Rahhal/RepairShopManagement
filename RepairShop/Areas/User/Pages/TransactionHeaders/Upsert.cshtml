@@ -3,124 +3,91 @@
 @{
 }
 
-<div class="page-wrapper position-relative">
-    
-    <div class="card shadow border-0 my-4">
-        <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
-            <div class="row">
-                <div class="col-12 text-center">
-                    <h2 class="text-white py-2">
-                        @(Model.thForUpsert.Id != 0 ? "Edit" : "Create") Transaction
-                    </h2>
-                </div>
+<div class="card shadow border-0 my-4">
+    <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">
+                    @(Model.thForUpsert.Id != 0 ? "Edit" : "Create") Transaction
+                </h2>
             </div>
         </div>
-        <div class="card-body p-4">
-            <form method="post" class="row" ">
-                <input type="hidden" asp-for="thForUpsert.Id" />
-                @if (Model.thForUpsert.Id != 0)
-                {
-                    <input type="hidden" asp-for="thForUpsert.UserId" />
-                    <input type="hidden" asp-for="thForUpsert.ClientId" />
-                    <input type="hidden" asp-for="thForUpsert.Status" />
-                }
-                <div class="row">
-                    <div class="col-12">
-                        <div class="border p-3">
-                            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                            @if (Model.thForUpsert.Id == 0)
-                            {
-                                <!-- This code injects the SignInManager service and uses it to get the current user's ID.
-                                It then sets the UserId property of the thForUpsert object to the current user's ID. -->
-                                @inject Microsoft.AspNetCore.Identity.SignInManager<AppUser> SignInManager;
-                                <input hidden asp-for="thForUpsert.UserId" value="@SignInManager.UserManager.GetUserId(User)" />
+    </div>
+    <div class="card-body p-4">
+        <form method="post" class="row" ">
+            <input type="hidden" asp-for="thForUpsert.Id" />
+            @if (Model.thForUpsert.Id != 0)
+            {
+                <input type="hidden" asp-for="thForUpsert.UserId" />
+                <input type="hidden" asp-for="thForUpsert.ClientId" />
+                <input type="hidden" asp-for="thForUpsert.Status" />
+            }
+            <div class="row">
+                <div class="col-12">
+                    <div class="border p-3">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        @if (Model.thForUpsert.Id == 0)
+                        {
+                            <!-- This code injects the SignInManager service and uses it to get the current user's ID.
+                            It then sets the UserId property of the thForUpsert object to the current user's ID. -->
+                            @inject Microsoft.AspNetCore.Identity.SignInManager<AppUser> SignInManager;
+                            <input hidden asp-for="thForUpsert.UserId" value="@SignInManager.UserManager.GetUserId(User)" />
 
-                                <!-- This section is for searching and selecting a client -->
-                                <!-- It consists of an input field for searching clients,
-                                a hidden input field for storing the selected client's ID,
-                                and a list for displaying search results -->
-                                <div class="py-2 col-12">
-                                    <label asp-for="thForUpsert.ClientId" class="ms-2 text-muted">Search Client</label>
-                                    <input type="text" id="clientSearch" class="form-control border-0 shadow" placeholder="Type client name..." autocomplete="off" />
-                                    <input hidden asp-for="thForUpsert.ClientId" id="clientId" />
-                                    <ul id="clientResults" class="list-group"></ul>
-                                </div>
-                            }
-                            <div class="form-floating py-2 col-12">
-                                <input asp-for="thForUpsert.Model" class="form-control border-0 shadow" />
-                                <label asp-for="thForUpsert.Model"></label>
-                                <span asp-validation-for="thForUpsert.Model" class="text-danger"></span>
-                            </div>
-                            <div class="form-floating py-2 col-12">
-                                <input asp-for="thForUpsert.SerialNumber" class="form-control border-0 shadow" />
-                                <label asp-for="thForUpsert.SerialNumber"></label>
-                                <span asp-validation-for="thForUpsert.SerialNumber" class="text-danger"></span>
-                            </div>
+                            <!-- This section is for searching and selecting a client -->
+                            <!-- It consists of an input field for searching clients,
+                            a hidden input field for storing the selected client's ID,
+                            and a list for displaying search results -->
                             <div class="py-2 col-12">
-                                <label asp-for="thForUpsert.Description" class="ms-2 text-muted">Description(Optional):</label>
-                                <textarea asp-for="thForUpsert.Description" class="form-control border-0 shadow"></textarea>
+                                <label asp-for="thForUpsert.ClientId" class="ms-2 text-muted">Search Client</label>
+                                <input type="text" id="clientSearch" class="form-control border-0 shadow" placeholder="Type client name..." autocomplete="off" />
+                                <input hidden asp-for="thForUpsert.ClientId" id="clientId" />
+                                <ul id="clientResults" class="list-group"></ul>
                             </div>
-                            <div class="row pt-2">
-                                <div class="col-6 col-md-3">
-                                    @if (Model.thForUpsert.Id != 0)
-                                    {
-                                        <button type="submit" class="btn btn-primary form-control">Update</button>
-                                    }
-                                    else
-                                    {
-                                        <button type="submit" class="btn btn-primary form-control">Create</button>
-                                    }
-                                </div>
-                                <div class="col-6 col-md-3">
-                                    <a asp-page="Index" class="btn btn-outline-primary form-control">
-                                        Back to List
-                                    </a>
-                                </div>
+                        }
+                        <div class="form-floating py-2 col-12">
+                            <input asp-for="thForUpsert.Model" class="form-control border-0 shadow" />
+                            <label asp-for="thForUpsert.Model"></label>
+                            <span asp-validation-for="thForUpsert.Model" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating py-2 col-12">
+                            <input asp-for="thForUpsert.SerialNumber" class="form-control border-0 shadow" />
+                            <label asp-for="thForUpsert.SerialNumber"></label>
+                            <span asp-validation-for="thForUpsert.SerialNumber" class="text-danger"></span>
+                        </div>
+                        <div class="py-2 col-12">
+                            <label asp-for="thForUpsert.Description" class="ms-2 text-muted">Description(Optional):</label>
+                            <textarea asp-for="thForUpsert.Description" class="form-control border-0 shadow"></textarea>
+                        </div>
+                        <div class="row pt-2">
+                            <div class="col-6 col-md-3">
+                                @if (Model.thForUpsert.Id != 0)
+                                {
+                                    <button type="submit" class="btn btn-primary form-control">Update</button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-primary form-control">Create</button>
+                                }
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a asp-page="Index" class="btn btn-outline-primary form-control">
+                                    Back to List
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
-            </form>
-        </div>
-    </div>
-
-    @* @if (Model.thForUpsert.Status == SD.Status_Job_Cancelled)
-    {
-        <div class="overlay">
-            <div class="text-center">
-                <div class="overlay-text mb-3">
-                    ❌ This transaction has been cancelled
-                </div>
-                <a asp-page="Index" type="button" class="btn btn-outline-primary">
-                    Back to List
-                </a>
             </div>
-        </div>
-    } *@
-
+        </form>
+    </div>
 </div>
+
+
 
 
 
 @section Scripts {
     <script>
-        tinymce.init({
-          selector: 'textarea',
-          plugins: [
-            // Core editing features
-            'anchor', 'autolink', 'charmap', 'codesample', 'emoticons', 'lists', 'table', 'visualblocks', 'wordcount'
-          ],
-          toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | addcomment showcomments | spellcheckdialog a11ycheck typography uploadcare | align lineheight | checklist numlist bullist indent outdent',
-          tinycomments_mode: 'embedded',
-          tinycomments_author: 'Author name',
-          mergetags_list: [
-            { value: 'First.Name', title: 'First Name' },
-            { value: 'Email', title: 'Email' },
-          ],
-          ai_request: (request, respondWith) => respondWith.string(() => Promise.reject('See docs to implement AI Assistant')),
-          uploadcare_public_key: 'f8f6108a1202e58f2dd6',
-        });
-
        /**
         * This function listens for keyup events on the 'clientSearch' element.
         * It performs a search for clients in the backend when at least 2 characters are typed.

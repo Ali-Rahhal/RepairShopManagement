@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Repository.IRepository;
-using RepairShop.Services.Helper;
-using System.Text.RegularExpressions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace RepairShop.Areas.User.Pages.TransactionHeaders
 {
@@ -53,12 +50,6 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 {
                     ModelState.AddModelError(string.Empty, "Please select a client");
                     return Page();
-                }
-
-                // tinyMce saves text inside <p> tags, so we need to remove them before saving to db
-                if(thForUpsert.Description != null)
-                {
-                    thForUpsert.Description = TextCleaner.CleanText(thForUpsert.Description);
                 }
                
                 if (thForUpsert.Id == 0)

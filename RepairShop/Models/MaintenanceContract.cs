@@ -1,4 +1,6 @@
-﻿namespace RepairShop.Models
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+
+namespace RepairShop.Models
 {
     public class MaintenanceContract
     {
@@ -9,6 +11,7 @@
         public bool IsActive { get; set; } = true;
 
         public int ClientId { get; set; }
+        [ValidateNever]
         public Client Client { get; set; } // belongs to client
     }
 }

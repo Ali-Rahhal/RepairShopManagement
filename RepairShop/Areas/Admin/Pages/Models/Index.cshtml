@@ -1,0 +1,56 @@
+﻿@page
+@model RepairShop.Areas.Admin.Pages.Models.IndexModel
+@{
+}
+<div class="card shadow border-0 my-4">
+    <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">Device Models</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="row pb-3">
+            <div class="col-6">
+                <!-- Category Filter -->
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <label for="categoryFilter" class="col-form-label fw-bold">Filter by Category:</label>
+                    </div>
+                    <div class="col-auto">
+                        <select id="categoryFilter" class="form-select form-select-sm">
+                            <option value="All">All Categories</option>
+                            <!-- Categories will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-sm btn-warning" onclick="clearCategoryFilter()">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 text-end">
+                <a asp-page="Upsert" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Add New Model
+                </a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table id="tblData" class="table table-bordered table-striped" style="width:100%">
+                <thead>
+                    <tr class="table-primary">
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th></th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/model.js"></script>
+}

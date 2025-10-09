@@ -1,0 +1,126 @@
+﻿@page
+@model RepairShop.Areas.Admin.Pages.SerialNumbers.UpsertModel
+@{
+}
+
+<div class="card shadow border-0 my-4">
+    <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">
+                    @(Model.SerialNumberForUpsert.Id != 0 ? "Edit" : "Add") Serial Number
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <form method="post" class="row">
+            <input type="hidden" asp-for="SerialNumberForUpsert.Id" id="SNId"/>
+            <div class="row">
+                <div class="col-12">
+                    <div class="border p-3">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="form-floating py-2 col-12">
+                            <input asp-for="SerialNumberForUpsert.Value" class="form-control border-0 shadow" />
+                            <label asp-for="SerialNumberForUpsert.Value" class="ms-2"></label>
+                            <span asp-validation-for="SerialNumberForUpsert.Value" class="text-danger"></span>
+                        </div>
+
+                        <div class="py-2 col-12">
+                            <label asp-for="SerialNumberForUpsert.ModelId" class="ms-2 text-muted"></label>
+                            <select asp-for="SerialNumberForUpsert.ModelId" asp-items="@Model.ModelList" class="form-select border-0 shadow">
+                                <option disabled selected>--Select Model--</option>
+                            </select>
+                            <span asp-validation-for="SerialNumberForUpsert.ModelId" class="text-danger"></span>
+                        </div>
+
+                        <div class="py-2 col-12">
+                            <label asp-for="SerialNumberForUpsert.ClientId" class="ms-2 text-muted"></label>
+                            <select asp-for="SerialNumberForUpsert.ClientId" asp-items="@Model.ClientList" class="form-select border-0 shadow" id="clientDropdown">
+                                <option disabled selected>--Select Client--</option>
+                            </select>
+                            <span asp-validation-for="SerialNumberForUpsert.ClientId" class="text-danger"></span>
+                        </div>
+
+                        <div class="py-2 col-12">
+                            <label asp-for="SerialNumberForUpsert.MaintenanceContractId" class="ms-2 text-muted"></label>
+                            <select asp-for="SerialNumberForUpsert.MaintenanceContractId" asp-items="@Model.MaintenanceContractList" class="form-select border-0 shadow" id="contractDropdown">
+                                <option value="">--Select Maintenance Contract (Optional)--</option>
+                            </select>
+                            <span asp-validation-for="SerialNumberForUpsert.MaintenanceContractId" class="text-danger"></span>
+                        </div>
+
+                        <div class="row pt-2">
+                            <div class="col-6 col-md-3">
+                                @if (Model.SerialNumberForUpsert.Id != 0)
+                                {
+                                    <button type="submit" class="btn btn-primary form-control">Update</button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-primary form-control">Create</button>
+                                }
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a asp-page="Index" class="btn btn-outline-primary form-control">
+                                    Back to List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+    <script>
+        $(document).ready(function () {
+            // When client selection changes
+            $('#clientDropdown').change(function () {
+                var clientId = $(this).val();
+                var contractDropdown = $('#contractDropdown');
+
+                if (clientId && clientId !== '') {
+                    // Show loading state
+                    contractDropdown.html('<option value="">Loading contracts...</option>');
+
+                    // Fetch contracts for the selected client
+                    $.get('/Admin/SerialNumbers/Upsert?handler=ContractsByClient&clientId=' + clientId)
+                        .done(function (data) {
+                            if (data && data.length > 0) {
+                                var options = '<option value="">--Select Maintenance Contract (Optional)--</option>';
+                                $.each(data, function (index, contract) {
+                                    options += '<option value="' + contract.id + '">' + contract.text + '</option>';
+                                });
+                                contractDropdown.html(options);
+                            } else {
+                                contractDropdown.html('<option value="">No contracts available for this client</option>');
+                            }
+                        })
+                        .fail(function () {
+                            contractDropdown.html('<option value="">Error loading contracts</option>');
+                        });
+                } else {
+                    // Reset contracts dropdown if no client selected
+                    contractDropdown.html('<option value="">--Select a client first--</option>');
+                }
+            });
+
+
+            // If editing and client is already selected, trigger the change event on page load
+            var snid = document.getElementById("SNId").value;
+            var cid = document.getElementById("clientDropdown").value;
+            if(snid != 0 && cid > 0){
+                setTimeout(function() {
+                    $('#clientDropdown').trigger('change');
+                }, 100);
+            }
+        });
+    </script>
+}
