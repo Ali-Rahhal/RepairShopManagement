@@ -86,21 +86,6 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             return new JsonResult(new { success = true, message = "Transaction deleted successfully" });
         }
 
-        ////API CALL for canceling a TH
-        //public async Task<IActionResult> OnGetCancel(int? id)//The route is /User/TransactionHeaders/Index?handler=Cancel&id=1
-        //{
-        //    var THToBeDeleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id);
-        //    if (THToBeDeleted == null)
-        //    {
-        //        return new JsonResult(new { success = false, message = "Error while cancelling" });
-        //    }
-
-        //    THToBeDeleted.Status = SD.Status_Job_Cancelled;
-        //    await _unitOfWork.TransactionHeader.UpdateAsy(THToBeDeleted);
-        //    await _unitOfWork.SaveAsy();
-        //    return new JsonResult(new { success = true, message = "Transaction cancelled successfully" });
-        //}
-
         //AJAX CALL for completing the transaction
         public async Task<IActionResult> OnGetCompleteStatus(int? id)//The route is /User/TransactionHeaders/Index?handler=CompleteStatus&id=1
         {
@@ -127,10 +112,22 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 return new JsonResult(new { success = false, message = "You have no parts to complete" });
             }
 
-            THToBeCompleted.Status = SD.Status_Job_Completed;
-            await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
-            await _unitOfWork.SaveAsy();
-            return new JsonResult(new { success = true, message = "Transaction completed successfully" });
+            //check if there are non-repairable parts
+            var nonRepairableParts = THToBeCompleted.BrokenParts.Count(o => o.Status == SD.Status_Part_NotReplaceable);
+            if (nonRepairableParts > 0)
+            {
+                THToBeCompleted.Status = SD.Status_Job_OutOfService;
+                await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
+                await _unitOfWork.SaveAsy();
+                return new JsonResult(new { success = true, message = "Transaction is out of service" });
+            }
+            else
+            {
+                THToBeCompleted.Status = SD.Status_Job_Completed;
+                await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
+                await _unitOfWork.SaveAsy();
+                return new JsonResult(new { success = true, message = "Transaction completed successfully" });
+            }
         }
 
     }

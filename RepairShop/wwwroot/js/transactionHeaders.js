@@ -116,7 +116,7 @@ function loadDataTable() {
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "order": [
-            [3, "asc"],   // Status: New -> InProgress -> Completed -> Cancelled
+            [3, "asc"],   // Status: New -> InProgress -> Completed -> OutOfService
             [5, "desc"]   // Then by creation date: newest first
         ],
         "columnDefs": [
@@ -143,7 +143,7 @@ function loadDataTable() {
                             return `<span class="badge bg-warning p-2 fs-5">${data}</span>`;
                         case "Completed":
                             return `<span class="badge bg-success p-2 fs-5">${data}</span>`;
-                        case "Cancelled":
+                        case "OutOfService":
                             return `<span class="badge bg-danger p-2 fs-5">${data}</span>`;
                         default:
                             return `<p>${data}</p>`;
@@ -182,6 +182,7 @@ function loadDataTable() {
                 "render": function (data) {
                     return `<div class="w-75 d-flex" role="group">
                     <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a>
+                    <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                     </div>`;
                 },
                 "width": "5%"
@@ -195,24 +196,18 @@ function loadDataTable() {
                         return `<div class="w-75 d-flex" role="group">
                                     <a onClick="ChangeStatusToInProgress('/User/TransactionHeaders/Index?handler=ChangeStatus&id=${data}')" title="Start Work" class="btn btn-success mx-2"><i class="bi bi-play-circle"></i></a>
                                     <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                                    <!-- <a onClick="Cancel('/User/TransactionHeaders/Index?handler=Cancel&id=${data}')" title="Cancel" class="btn btn-warning mx-2"><i class="bi bi-x-circle"></i></a> -->
                                     <a title="Complete(Transaction needs to be in progress)" class="btn btn-dark mx-2"><i class="bi bi-check-circle"></i></a>
                                 </div>`;
-                    } else if (row.status !== "Completed") {
+                    } else if (row.status !== "Completed" && row.status !== "OutOfService") {
                         return `<div class="w-75 d-flex" role="group">
                                     <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a> 
                                     <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                                    <!-- <a onClick="Cancel('/User/TransactionHeaders/Index?handler=Cancel&id=${data}')" title="Cancel" class="btn btn-warning mx-2"><i class="bi bi-x-circle"></i></a> -->
                                     <a onClick="ToCompleted('/User/TransactionHeaders/Index?handler=CompleteStatus&id=${data}')" title="Complete" class="btn btn-success mx-2"><i class="bi bi-check-circle"></i></a>
                                 </div>`;
                     }else {
                         return `<div class="w-75 d-flex" role="group">
                                     <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a> 
                                     <a title="Edit(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a title="Delete(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-trash-fill"></i></a>
-                                    <!-- <a title="Cancel(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-x-circle"></i></a> -->
                                     <a title="Complete(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-check-circle"></i></a>
                                 </div>`;
                     }
@@ -242,7 +237,7 @@ function loadDataTable() {
             case 'new': return 1;
             case 'inprogress': return 2;
             case 'completed': return 3;
-            case 'cancelled': return 4;
+            case 'outofservice': return 4;
             default: return 5;
         }
     };
@@ -327,34 +322,6 @@ function Delete(url) {
         }
     });
 }
-
-////function for sweet alert cancel confirmation
-//function Cancel(url) {
-//    Swal.fire({
-//        title: "Are you sure you want to cancel this transaction?",
-//        text: "You won't be able to revert this!",
-//        icon: "warning",
-//        showCancelButton: true,
-//        confirmButtonColor: "#3085d6",
-//        cancelButtonColor: "#d33",
-//        confirmButtonText: "Yes, Cancel Transaction!"
-//    }).then((result) => {
-//        if (result.isConfirmed) {//if user clicks on yes, cancel it button
-//            $.ajax({
-//                url: url,//url is passed from the Cancel function call in the datatable render method.
-//                success: function (data) {//data is the json returned from the OnGetDelete method in the page model.
-//                    if (data.success) {
-//                        dataTable.ajax.reload();//reload the datatable to reflect the changes.
-//                        toastr.success(data.message);//show success message using toastr.
-//                    }
-//                    else {
-//                        toastr.error(data.message);//show error message using toastr.
-//                    }
-//                }
-//            })
-//        }
-//    });
-//}
 
 function ToCompleted(url) {
     Swal.fire({

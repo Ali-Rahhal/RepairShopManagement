@@ -72,10 +72,12 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
         // API for Models (for filter dropdown)
         public async Task<JsonResult> OnGetModels()
         {
-            var models = (await _unitOfWork.Model.GetAllAsy(m => m.IsActive == true))
-                .Select(m => new { id = m.Id, name = m.Name })
-                .OrderBy(m => m.name)
-                .ToList();
+            var models = (await _unitOfWork.Model.GetAllAsy(m => m.IsActive == true 
+                            && m.SerialNumbers.Any(sn => sn.IsActive == true), 
+                            includeProperties: "SerialNumbers"))
+                                .Select(m => new { id = m.Id, name = m.Name })
+                                .OrderBy(m => m.name)
+                                .ToList();
 
             return new JsonResult(new { models });
         }
@@ -83,10 +85,12 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
         // API for Clients (for filter dropdown)
         public async Task<JsonResult> OnGetClients()
         {
-            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true))
-                .Select(c => new { id = c.Id, name = c.Name })
-                .OrderBy(c => c.name)
-                .ToList();
+            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true 
+                            && c.SerialNumbers.Any(sn => sn.IsActive == true),
+                            includeProperties: "SerialNumbers"))
+                                .Select(c => new { id = c.Id, name = c.Name })
+                                .OrderBy(c => c.name)
+                                .ToList();
 
             return new JsonResult(new { clients });
         }
