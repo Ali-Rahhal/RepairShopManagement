@@ -120,11 +120,6 @@ function Delete(url) {
                     if (data.success) {
                         dataTable.ajax.reload();
                         toastr.success(data.message);
-
-                        //// Re-populate category filter after deletion
-                        //setTimeout(function () {
-                        //    dataTable.ajax.reload(null, false); // false means don't reset paging
-                        //}, 100);
                     }
                     else {
                         toastr.error(data.message);
