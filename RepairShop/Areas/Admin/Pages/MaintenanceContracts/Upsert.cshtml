@@ -1,0 +1,89 @@
+﻿@page
+@model RepairShop.Areas.Admin.Pages.MaintenanceContracts.UpsertModel
+
+<div class="card shadow border-0 my-4">
+    <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">
+                    @(Model.MaintenanceContractForUpsert.Id != 0 ? "Edit" : "Create") Maintenance Contract
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <form method="post" class="row">
+            <input type="hidden" asp-for="MaintenanceContractForUpsert.Id" />
+            <div class="row">
+                <div class="col-12 col-md-8 mx-auto">
+                    <div class="border p-4">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="MaintenanceContractForUpsert.ClientId" class="form-label fw-bold"></label>
+                            <select asp-for="MaintenanceContractForUpsert.ClientId" asp-items="@Model.ClientList" class="form-select">
+                                <option disabled selected>-- Select Client --</option>
+                            </select>
+                            <span asp-validation-for="MaintenanceContractForUpsert.ClientId" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="MaintenanceContractForUpsert.StartDate" class="form-label fw-bold"></label>
+                                    <input asp-for="MaintenanceContractForUpsert.StartDate" type="date" class="form-control" />
+                                    <span asp-validation-for="MaintenanceContractForUpsert.StartDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="MaintenanceContractForUpsert.EndDate" class="form-label fw-bold"></label>
+                                    <input asp-for="MaintenanceContractForUpsert.EndDate" type="date" class="form-control" />
+                                    <span asp-validation-for="MaintenanceContractForUpsert.EndDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.MaintenanceContractForUpsert.Id != 0)
+                        {
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Contract Number</label>
+                                <input type="text" class="form-control" value="CONTRACT-@Model.MaintenanceContractForUpsert.Id.ToString("D4")" readonly />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Status</label>
+                                <input type="text" class="form-control" value="@Model.MaintenanceContractForUpsert.Status" readonly />
+                                <small class="form-text text-muted">Status is automatically calculated based on end date.</small>
+                            </div>
+                        }
+
+                        <div class="row pt-3">
+                            <div class="col-6">
+                                @if (Model.MaintenanceContractForUpsert.Id != 0)
+                                {
+                                    <button type="submit" class="btn btn-primary form-control">Update</button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-primary form-control">Create</button>
+                                }
+                            </div>
+                            <div class="col-6">
+                                <a asp-page="Index" class="btn btn-outline-primary form-control">
+                                    Back to List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+}

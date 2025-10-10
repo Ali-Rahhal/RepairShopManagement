@@ -8,23 +8,16 @@ function loadDataTable() {
     dataTable = new DataTable('#tblData', {
         stateSave: true,
         ajax: {
-            url: '/Admin/Warranties/Index?handler=All',
+            url: '/Admin/MaintenanceContracts/Index?handler=All',
             dataSrc: 'data'
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         columns: [
             {
-                data: 'serialNumber',
-                width: "15%",
+                data: 'contractNumber',
+                width: "10%",
                 render: function (data) {
-                    return data || 'N/A';
-                }
-            },
-            {
-                data: 'modelName',
-                width: "15%",
-                render: function (data) {
-                    return data || 'N/A';
+                    return `<strong>${data}</strong>`;
                 }
             },
             {
@@ -36,11 +29,11 @@ function loadDataTable() {
             },
             {
                 data: 'startDate',
-                width: "12%",
+                width: "10%",
                 render: function (data) {
                     if (data == null) {
                         return 'N/A';
-                    }
+                    } 
 
                     const date = new Date(data);
                     const options = {
@@ -55,7 +48,7 @@ function loadDataTable() {
             },
             {
                 data: 'endDate',
-                width: "12%",
+                width: "10%",
                 render: function (data) {
                     if (data == null) {
                         return 'N/A';
@@ -76,7 +69,7 @@ function loadDataTable() {
                 data: 'daysRemaining',
                 width: "12%",
                 render: function (data, type, row) {
-                    if (row.isExpired) {//isExpired is defined in the json sent from index
+                    if (row.isExpired) {
                         return '<span class="badge bg-danger p-2 fs-5">Expired</span>';
                     } else if (data < 30) {
                         return `<span class="badge bg-warning p-2 fs-5">${data} days</span>`;
@@ -87,7 +80,7 @@ function loadDataTable() {
             },
             {
                 data: 'status',
-                width: "9%",
+                width: "8%",
                 render: function (data) {
                     if (data === 'Active') {
                         return '<span class="badge bg-success p-2 fs-5">Active</span>';
@@ -100,22 +93,23 @@ function loadDataTable() {
                 data: 'id',
                 render: function (data) {
                     return `<div class="w-100 d-flex justify-content-center" role="group">
-                        <a href="/Admin/Warranties/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2">
+                        <a href="/Admin/MaintenanceContracts/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2">
                             <i class="bi bi-pencil-square"></i>
                         </a>
-                        <a onclick="Delete('/Admin/Warranties/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2">
+                        <a onclick="Delete('/Admin/MaintenanceContracts/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2">
                             <i class="bi bi-trash-fill"></i>
                         </a>
                     </div>`;
                 },
-                width: "10%",
+                width: "13%",
                 orderable: false
             }
         ],
         language: {
-            emptyTable: "No warranties found",
-            zeroRecords: "No matching warranties found"
-        }
+            emptyTable: "No maintenance contracts found",
+            zeroRecords: "No matching contracts found"
+        },
+        order: [[0, 'desc']] // Sort by contract number descending
     });
 
     // Add event listener for status filter
@@ -129,9 +123,9 @@ function applyStatusFilter() {
     const status = document.getElementById('statusFilter').value;
 
     if (status === 'All') {
-        dataTable.column(6).search('').draw(); // Status column
+        dataTable.column(5).search('').draw(); // Status column (index 7)
     } else {
-        dataTable.column(6).search('^' + status + '$', true, false).draw();
+        dataTable.column(5).search('^' + status + '$', true, false).draw();
     }
 }
 
@@ -147,7 +141,7 @@ function clearFilters() {
 
 function Delete(url) {
     Swal.fire({
-        title: "Are you sure you want to delete this warranty?",
+        title: "Are you sure you want to delete this maintenance contract?",
         text: "This action cannot be undone!",
         icon: "warning",
         showCancelButton: true,

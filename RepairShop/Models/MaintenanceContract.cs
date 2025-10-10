@@ -7,6 +7,7 @@ namespace RepairShop.Models
         public int Id { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
+        [ValidateNever]
         public string Status { get; set; }// active or expired
         public bool IsActive { get; set; } = true;
 

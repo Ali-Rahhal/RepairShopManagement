@@ -56,8 +56,8 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
             var formattedData = warrantyList.Select(w => new
             {
                 id = w.Id,
-                startDate = w.StartDate.ToString("yyyy-MM-dd"),
-                endDate = w.EndDate.ToString("yyyy-MM-dd"),
+                startDate = w.StartDate,
+                endDate = w.EndDate,
                 status = w.Status,
                 serialNumber = w.SerialNumber?.Value ?? "N/A",
                 modelName = w.SerialNumber?.Model?.Name ?? "N/A",
