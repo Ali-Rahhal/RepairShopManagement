@@ -1,0 +1,78 @@
+﻿@page
+@model RepairShop.Areas.Admin.Pages.DefectiveUnits.IndexModel
+@{
+    ViewData["Title"] = "Defective Units";
+}
+
+<div class="card shadow border-0 my-4">
+    <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">Defective Units Reports</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="row pb-3">
+            <div class="col-6">
+                <!-- Filters -->
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <label for="statusFilter" class="col-form-label fw-bold">Filter by Status:</label>
+                    </div>
+                    <div class="col-auto">
+                        <select id="statusFilter" class="form-select form-select-sm">
+                            <option value="All">All Statuses</option>
+                            <option value="Reported">Reported</option>
+                            <option value="UnderRepair">Under Repair</option>
+                            <option value="Fixed">Fixed</option>
+                            <option value="OutOfService">Out of Service</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <label for="resolvedFilter" class="col-form-label fw-bold">Resolution:</label>
+                    </div>
+                    <div class="col-auto">
+                        <select id="resolvedFilter" class="form-select form-select-sm">
+                            <option value="All">All</option>
+                            <option value="Resolved">Resolved</option>
+                            <option value="Unresolved">Unresolved</option>
+                        </select>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" class="btn btn-sm btn-warning" onclick="clearFilters()">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 text-end">
+                <a asp-page="Upsert" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Report Defective Unit
+                </a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table id="tblData" class="table table-bordered table-striped" style="width:100%">
+                <thead>
+                    <tr class="table-primary">
+                        <th>Serial Number</th>
+                        <th>Model</th>
+                        <th>Client</th>
+                        <th>Reported Date</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Days Since</th>
+                        <th>Coverage</th>
+                        <th>Resolved Date</th>
+                        <th></th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/defectiveunit.js"></script>
+}

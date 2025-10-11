@@ -1,0 +1,300 @@
+﻿@page
+@model RepairShop.Areas.Admin.Pages.DefectiveUnits.UpsertModel
+@{
+    ViewData["Title"] = Model.DefectiveUnitForUpsert.Id != 0 ? "Edit Defective Unit" : "Report Defective Unit";
+}
+
+<div class="card shadow border-0 my-4">
+    <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">
+                    @(Model.DefectiveUnitForUpsert.Id != 0 ? "Edit" : "Report") Defective Unit
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <form method="post" class="row">
+            <input type="hidden" asp-for="DefectiveUnitForUpsert.Id" id="duId"/>
+            <div class="row">
+                <div class="col-12 col-md-10 mx-auto">
+                    <div class="border p-4">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <!-- Serial Number Search Section -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Search Serial Number *</label>
+                            <div class="input-group">
+                                <input type="text" id="serialNumberSearch" class="form-control"
+                                       placeholder="Search by serial number, model, or client name...">
+                                <button type="button" class="btn btn-outline-primary" onclick="searchSerialNumbers()">
+                                    <i class="bi bi-search"></i> Search
+                                </button>
+                            </div>
+                            <div id="searchResults" class="mt-2" style="display: none;">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">Search Results</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div id="searchResultsList" class="list-group">
+                                            <!-- Results will be populated here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Selected Serial Number Details -->
+                        <div id="selectedSerialInfo" class="mb-4 p-3 border rounded" style="display: none;">
+                            <h6>Selected Device Information</h6>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>Serial Number:</strong> <span id="selectedSerialValue"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Model:</strong> <span id="selectedModelName"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Client:</strong> <span id="selectedClientName"></span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Warranty:</strong>
+                                    <span id="warrantyStatus" class="badge bg-secondary">Checking...</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Maintenance Contract:</strong>
+                                    <span id="contractStatus" class="badge bg-secondary">Checking...</span>
+                                </div>
+                            </div>
+                            <input type="hidden" asp-for="DefectiveUnitForUpsert.SerialNumberId" id="selectedSerialId" />
+                            <input type="hidden" asp-for="DefectiveUnitForUpsert.WarrantyId" id="selectedWarrantyId" />
+                            <input type="hidden" asp-for="DefectiveUnitForUpsert.MaintenanceContractId" id="selectedContractId" />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="DefectiveUnitForUpsert.ReportedDate" class="form-label fw-bold"></label>
+                                    <input asp-for="DefectiveUnitForUpsert.ReportedDate" type="date" class="form-control" />
+                                    <span asp-validation-for="DefectiveUnitForUpsert.ReportedDate" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label asp-for="DefectiveUnitForUpsert.Status" class="form-label fw-bold"></label>
+                                    <select asp-for="DefectiveUnitForUpsert.Status" class="form-select">
+                                        <option value="Reported">Reported</option>
+                                        <option value="UnderRepair">Under Repair</option>
+                                        <option value="Fixed">Fixed</option>
+                                        <option value="OutOfService">Out of Service</option>
+                                    </select>
+                                    <span asp-validation-for="DefectiveUnitForUpsert.Status" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="DefectiveUnitForUpsert.Description" class="form-label fw-bold"></label>
+                            <textarea asp-for="DefectiveUnitForUpsert.Description" class="form-control" rows="4"
+                                      placeholder="Describe the issue (e.g., 'Screen flickering', 'Power failure', 'No boot')"></textarea>
+                            <span asp-validation-for="DefectiveUnitForUpsert.Description" class="text-danger"></span>
+                        </div>
+
+                        @if (Model.DefectiveUnitForUpsert.Id != 0)
+                        {
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Resolved</label>
+                                        <input type="text" class="form-control" value="@(Model.DefectiveUnitForUpsert.IsResolved ? "Yes" : "No")" readonly />
+                                    </div>
+                                </div>
+                                @if (Model.DefectiveUnitForUpsert.ResolvedDate.HasValue)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Resolved Date</label>
+                                            <input type="text" class="form-control" value="@Model.DefectiveUnitForUpsert.ResolvedDate.Value.ToString("yyyy-MM-dd")" readonly />
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+
+                        <div class="row pt-3">
+                            <div class="col-6">
+                                @if (Model.DefectiveUnitForUpsert.Id != 0)
+                                {
+                                    <button type="submit" class="btn btn-primary form-control">Update Report</button>
+                                }
+                                else
+                                {
+                                    <button type="submit" class="btn btn-primary form-control" id="submitBtn" disabled>Report Defective Unit</button>
+                                }
+                            </div>
+                            <div class="col-6">
+                                <a asp-page="Index" class="btn btn-outline-primary form-control">
+                                    Back to List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date as default for reported date
+            const reportedDate = document.getElementById('DefectiveUnitForUpsert_ReportedDate');
+            if (!reportedDate.value) {
+                const today = new Date().toISOString().split('T')[0];
+                reportedDate.value = today;
+            }
+
+            // Enable enter key for search
+            const searchInput = document.getElementById('serialNumberSearch');
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchSerialNumbers();
+                }
+            });
+
+            // If editing, load the existing serial number details
+            let defectiveUnitId = document.getElementById('duId').value;
+            let serialNumberId = document.getElementById('selectedSerialId').value;
+            if (defectiveUnitId != 0 && serialNumberId > 0)
+            {
+                loadSerialNumberDetails(serialNumberId); 
+            }
+        });
+
+        // This function is called when the search button is clicked or the enter key is pressed.
+        // It trims the search term, checks if it has at least 2 characters, and then fetches the data.
+        function searchSerialNumbers() {
+            const searchTerm = document.getElementById('serialNumberSearch').value.trim();
+            if (searchTerm.length < 2) {
+                toastr.warning('Please enter at least 2 characters to search');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('searchResults');
+            const resultsList = document.getElementById('searchResultsList');
+
+            resultsList.innerHTML = '<div class="text-center p-3"><div class="spinner-border" role="status"></div></div>';
+            resultsDiv.style.display = 'block';
+
+            fetch(`/Admin/DefectiveUnits/Upsert?handler=SearchSerialNumbers&searchTerm=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsList.innerHTML = '';
+
+                    if (data.length === 0) {
+                        resultsList.innerHTML = '<div class="text-center p-3 text-muted">No serial numbers found</div>';
+                        return;
+                    }
+
+                    // Create a new list item for each search result
+                    data.forEach(item => {
+                        const listItem = document.createElement('button');
+                        listItem.type = 'button';
+                        listItem.className = 'list-group-item list-group-item-action';
+                        listItem.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>${item.value}</strong><br>
+                                    <small class="text-muted">Model: ${item.modelName} | Client: ${item.clientName}</small>
+                                </div>
+                                <div class="text-end">
+                                    ${item.hasWarranty ? '<span class="badge bg-success me-1">Warranty</span>' : ''}
+                                    ${item.hasContract ? '<span class="badge bg-info">Contract</span>' : ''}
+                                </div>
+                            </div>
+                        `;
+                        // When a search result is clicked, select that serial number
+                        listItem.onclick = function() {
+                            selectSerialNumber(item.id);
+                        };
+                        resultsList.appendChild(listItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    resultsList.innerHTML = '<div class="text-center p-3 text-danger">Error loading results</div>';
+                });
+        }
+
+        // This function is called when a search result is clicked.
+        // It updates the UI with the selected serial number's details.
+        function selectSerialNumber(serialNumberId) {
+            document.getElementById('searchResults').style.display = 'none';
+            loadSerialNumberDetails(serialNumberId);
+        }
+
+        // This function is called to load the details of a selected serial number.
+        // It fetches the data and updates the UI accordingly.
+        function loadSerialNumberDetails(serialNumberId) {
+            const infoDiv = document.getElementById('selectedSerialInfo');
+            infoDiv.style.display = 'block';
+
+            fetch(`/Admin/DefectiveUnits/Upsert?handler=SerialNumberDetails&id=${serialNumberId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the UI with the serial number's details
+                        document.getElementById('selectedSerialValue').textContent = data.serialNumberValue;
+                        document.getElementById('selectedModelName').textContent = data.modelName;
+                        document.getElementById('selectedClientName').textContent = data.clientName;
+
+                        // Update warranty status
+                        const warrantyBadge = document.getElementById('warrantyStatus');
+                        if (data.hasActiveWarranty) {
+                            warrantyBadge.textContent = 'Active';
+                            warrantyBadge.className = 'badge bg-success';
+                            document.getElementById('selectedWarrantyId').value = data.warrantyId;
+                        } else {
+                            warrantyBadge.textContent = 'No Active Warranty';
+                            warrantyBadge.className = 'badge bg-secondary';
+                            document.getElementById('selectedWarrantyId').value = '';
+                        }
+
+                        // Update contract status
+                        const contractBadge = document.getElementById('contractStatus');
+                        if (data.hasActiveContract) {
+                            contractBadge.textContent = 'Active';
+                            contractBadge.className = 'badge bg-info';
+                            document.getElementById('selectedContractId').value = data.maintenanceContractId;
+                        } else {
+                            contractBadge.textContent = 'No Active Contract';
+                            contractBadge.className = 'badge bg-secondary';
+                            document.getElementById('selectedContractId').value = '';
+                        }
+
+                        // Set the serial number ID
+                        document.getElementById('selectedSerialId').value = data.serialNumberId;
+
+                        // Enable submit button(need to check if null because it is null when editing)
+                        let submit = document.getElementById('submitBtn');
+                        if (submit) {
+                            submit.disabled = false;
+                        }
+                    } else {
+                        toastr.error('Error loading serial number details');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error('Error loading serial number details');
+                });
+        }
+    </script>
+}
