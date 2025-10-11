@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.EntityFrameworkCore;
 using RepairShop.Models.Helpers;
 using System.ComponentModel.DataAnnotations;
 
@@ -9,9 +10,11 @@ namespace RepairShop.Models
         public int Id { get; set; }
 
         [Required]
-        public string Model { get; set; }
-        [Required]
-        public string SerialNumber { get; set; }
+        public int DefectiveUnitId { get; set; }
+        [ValidateNever]
+        [DeleteBehavior(DeleteBehavior.Restrict)] // Add this to prevent cascade issues
+        public DefectiveUnit DefectiveUnit { get; set; } //belongs to defective unit
+
         public string? Description { get; set; }
         [Required]
         public string Status { get; set; } = SD.Status_Job_New;

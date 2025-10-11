@@ -81,18 +81,6 @@
                                     <span asp-validation-for="DefectiveUnitForUpsert.ReportedDate" class="text-danger"></span>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label asp-for="DefectiveUnitForUpsert.Status" class="form-label fw-bold"></label>
-                                    <select asp-for="DefectiveUnitForUpsert.Status" class="form-select">
-                                        <option value="Reported">Reported</option>
-                                        <option value="UnderRepair">Under Repair</option>
-                                        <option value="Fixed">Fixed</option>
-                                        <option value="OutOfService">Out of Service</option>
-                                    </select>
-                                    <span asp-validation-for="DefectiveUnitForUpsert.Status" class="text-danger"></span>
-                                </div>
-                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -105,12 +93,6 @@
                         @if (Model.DefectiveUnitForUpsert.Id != 0)
                         {
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label fw-bold">Resolved</label>
-                                        <input type="text" class="form-control" value="@(Model.DefectiveUnitForUpsert.IsResolved ? "Yes" : "No")" readonly />
-                                    </div>
-                                </div>
                                 @if (Model.DefectiveUnitForUpsert.ResolvedDate.HasValue)
                                 {
                                     <div class="col-md-6">
@@ -170,11 +152,11 @@
             });
 
             // If editing, load the existing serial number details
-            let defectiveUnitId = document.getElementById('duId').value;
-            let serialNumberId = document.getElementById('selectedSerialId').value;
-            if (defectiveUnitId != 0 && serialNumberId > 0)
+            @if (Model.DefectiveUnitForUpsert.Id != 0 && Model.DefectiveUnitForUpsert.SerialNumberId > 0)
             {
-                loadSerialNumberDetails(serialNumberId); 
+                <text>
+                loadSerialNumberDetails(@Model.DefectiveUnitForUpsert.SerialNumberId);
+                </text>
             }
         });
 

@@ -4,6 +4,10 @@ $(document).ready(function () {
     loadDataTable();
 });
 
+function isAdmin() {//function to check if the user is admin
+    return document.getElementById("isAdmin").value === "True";
+}
+
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         stateSave: true,
@@ -100,35 +104,22 @@ function loadDataTable() {
             {
                 data: 'id',
                 render: function (data, type, row) {
-                    let statusButtons = '';
 
-                    if (row.status !== 'Fixed' && row.status !== 'OutOfService') {
-                        if (row.status === 'Reported') {
-                            statusButtons = `
-                                <button onclick="updateStatus(${data}, 'UnderRepair')" class="btn btn-warning btn-sm mx-1" title="Mark as Under Repair">
-                                    <i class="bi bi-tools"></i>
-                                </button>
-                            `;
-                        } else if (row.status === 'UnderRepair') {
-                            statusButtons = `
-                                <button onclick="updateStatus(${data}, 'Fixed')" class="btn btn-success btn-sm mx-1" title="Mark as Fixed">
-                                    <i class="bi bi-check-circle"></i>
-                                </button>
-                                <button onclick="updateStatus(${data}, 'OutOfService')" class="btn btn-danger btn-sm mx-1" title="Mark as Out of Service">
-                                    <i class="bi bi-exclamation-triangle"></i>
-                                </button>
-                            `;
-                        }
+                    if (isAdmin()) {
+                        return `<div class="d-flex justify-content-center" role="group">
+                        <a href="/Admin/DefectiveUnits/Upsert?id=${data}" title="Edit" class="btn btn-primary btn-sm mx-1">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <button onclick="Delete(${data})" title="Delete" class="btn btn-danger btn-sm mx-1">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </div>`;
                     }
 
                     return `<div class="d-flex justify-content-center" role="group">
                         <a href="/Admin/DefectiveUnits/Upsert?id=${data}" title="Edit" class="btn btn-primary btn-sm mx-1">
                             <i class="bi bi-pencil-square"></i>
                         </a>
-                        ${statusButtons}
-                        <button onclick="Delete(${data})" title="Delete" class="btn btn-danger btn-sm mx-1">
-                            <i class="bi bi-trash-fill"></i>
-                        </button>
                     </div>`;
                 },
                 width: "12%",
@@ -146,15 +137,10 @@ function loadDataTable() {
     $('#statusFilter').on('change', function () {
         applyFilters();
     });
-
-    $('#resolvedFilter').on('change', function () {
-        applyFilters();
-    });
 }
 
 function applyFilters() {
     const statusFilter = $('#statusFilter').val();
-    const resolvedFilter = $('#resolvedFilter').val();
 
     // Clear all column searches first
     dataTable.columns().search('');
@@ -164,56 +150,14 @@ function applyFilters() {
         dataTable.column(5).search('^' + statusFilter + '$', true, false); // Status column
     }
 
-    // Apply resolved filter
-    if (resolvedFilter !== 'All') {
-        if (resolvedFilter === 'Resolved') {
-            dataTable.column(8).search('^(?!.*Pending).*$', true, false); // Not "Pending" in resolved date
-        } else if (resolvedFilter === 'Unresolved') {
-            dataTable.column(8).search('^Pending$', true, false); // "Pending" in resolved date
-        }
-    }
-
     dataTable.draw();
 }
 
 function clearFilters() {
     $('#statusFilter').val('All');
-    $('#resolvedFilter').val('All');
     dataTable.columns().search('').draw();
 
     toastr.info('All filters cleared');
-}
-
-function updateStatus(id, newStatus) {
-    const statusText = newStatus === 'UnderRepair' ? 'Under Repair' :
-        newStatus === 'OutOfService' ? 'Out of Service' : newStatus;
-
-    Swal.fire({
-        title: `Update status to ${statusText}?`,
-        text: "This will update the defective unit status.",
-        icon: "question",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, update it!"
-    }).then((result) => {
-        if (result.isConfirmed) {
-            fetch(`/Admin/DefectiveUnits/Index?handler=UpdateStatus&id=${id}&status=${newStatus}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        dataTable.ajax.reload();
-                        toastr.success(data.message);
-                    } else {
-                        toastr.error(data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    toastr.error('Error updating status');
-                });
-        }
-    });
 }
 
 function Delete(id) {

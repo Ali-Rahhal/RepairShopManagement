@@ -78,14 +78,6 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
 
-            // Check if warranty is referenced in any transactions
-            var isReferenced = warrantyToBeDeleted.SerialNumber.IsActive; // Add your business logic checks here
-
-            if (isReferenced)
-            {
-                return new JsonResult(new { success = false, message = "Warranty cannot be deleted because it has an active serial number" });
-            }
-
             await _unitOfWork.Warranty.RemoveAsy(warrantyToBeDeleted);
             await _unitOfWork.SaveAsy();
             return new JsonResult(new { success = true, message = "Warranty deleted successfully" });

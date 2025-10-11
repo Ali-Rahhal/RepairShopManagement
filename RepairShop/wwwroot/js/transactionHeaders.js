@@ -3,93 +3,6 @@ var dataTable;
 
 $(document).ready(function () {
     loadDataTable();
-
-    /**
-    * This code block sets up event listeners for the apply filters button
-    */
-    $('#applyFilters').on('click', function () {
-        dataTable.draw();
-    });
-
-    // Initialize custom multi-select
-    initializeCustomMultiSelect();
-});
-
-function initializeCustomMultiSelect() {
-    const toggle = document.getElementById('customMultiSelectToggle');
-    const dropdown = document.getElementById('customMultiSelectDropdown');
-    const selectedValuesInput = document.getElementById('selectedValues');
-
-    let selectedValues = [];
-
-    // Toggle dropdown
-    toggle.addEventListener('click', function () {
-        dropdown.classList.toggle('show');
-    });
-
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function (event) {
-        if (!event.target.closest('.custom-multiselect')) {
-            dropdown.classList.remove('show');
-        }
-    });
-
-    function updateSelectedValues() {
-        selectedValuesInput.value = selectedValues.map(v => v.value).join(',');
-    }
-
-    function updateToggleText() {
-        if (selectedValues.length === 0) {
-            toggle.textContent = 'Select clients...';
-        } else {
-            const selectedText = selectedValues.map(v => v.text).join(', ');
-            toggle.textContent = selectedText.length > 30
-                ? `${selectedValues.length} client(s) selected`
-                : selectedText;
-        }
-    }
-
-    // Function to populate dropdown options
-    window.populateClientDropdown = function (clientNames) {
-        dropdown.innerHTML = ''; // Clear existing options
-
-        clientNames.forEach(clientName => {
-            const option = document.createElement('div');
-            option.className = 'multiselect-option';
-            option.setAttribute('data-value', clientName);
-            option.textContent = clientName;
-
-            option.addEventListener('click', function () {
-                const value = this.getAttribute('data-value');
-                const text = this.textContent;
-
-                if (this.classList.contains('selected')) {
-                    // Remove selection
-                    this.classList.remove('selected');
-                    selectedValues = selectedValues.filter(v => v.value !== value);
-                } else {
-                    // Add selection
-                    this.classList.add('selected');
-                    selectedValues.push({ value, text });
-                }
-
-                updateSelectedValues();
-                updateToggleText();
-            });
-
-            dropdown.appendChild(option);
-        });
-    }
-
-    // Function to get selected client values
-    window.getSelectedClients = function () {
-        return selectedValues.map(v => v.value);
-    }
-}
-
-$('#clearFilters').on('click', function () {
-    dataTable.state.clear();
-    location.reload();
 });
 
 function isAdmin() {//function to check if the user is admin
@@ -102,14 +15,9 @@ function loadDataTable() {
         "ajax": {
             url: '/User/TransactionHeaders/Index?handler=All',
             dataSrc: function (json) {
-                // Populate custom multi-select dropdown dynamically
-                var uniqueClients = [...new Set(json.data.map(item => item.client.name))];
-                uniqueClients.sort();
-
-                // Populate the custom multi-select dropdown
-                if (typeof window.populateClientDropdown === 'function') {
-                    window.populateClientDropdown(uniqueClients);
-                }
+                // Extract unique clients for the filter
+                var clients = [...new Set(json.data.map(item => item.client.name))];
+                populateClientFilter(clients);
 
                 return json.data;
             }
@@ -131,8 +39,20 @@ function loadDataTable() {
                 visible: isAdmin(),//this column is only visible to admin users
                 "width": "10%"
             },
-            { data: 'model', "width": "25%" },
-            { data: 'serialNumber', "width": "15%" },
+            {
+                data: 'model',
+                "width": "20%",
+                render: function (data) {
+                    return data || 'N/A';
+                }
+            },
+            {
+                data: 'serialNumber',
+                "width": "15%",
+                render: function (data) {
+                    return data || 'N/A';
+                }
+            },
             {
                 data: 'status',
                 "render": function (data) {
@@ -151,7 +71,13 @@ function loadDataTable() {
                 },
                 "width": "10%"
             },
-            { data: 'client.name', "width": "15%" },
+            {
+                data: 'client.name',
+                "width": "15%",
+                render: function (data) {
+                    return data || 'N/A';
+                }
+            },
             {
                 data: 'createdDate',
                 "width": "15%",
@@ -204,7 +130,7 @@ function loadDataTable() {
                                     <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
                                     <a onClick="ToCompleted('/User/TransactionHeaders/Index?handler=CompleteStatus&id=${data}')" title="Complete" class="btn btn-success mx-2"><i class="bi bi-check-circle"></i></a>
                                 </div>`;
-                    }else {
+                    } else {
                         return `<div class="w-75 d-flex" role="group">
                                     <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a> 
                                     <a title="Edit(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-pencil-square"></i></a>
@@ -214,7 +140,28 @@ function loadDataTable() {
                 },
                 "width": "20%"
             }
-        ]
+        ],
+        "language": {
+            "emptyTable": "No transactions found",
+            "zeroRecords": "No matching transactions found"
+        }
+    });
+
+    // Add event listeners for filters
+    $('#clientFilter').on('change', function () {
+        applyFilters();
+    });
+
+    $('#statusFilter').on('change', function () {
+        applyFilters();
+    });
+
+    $('#minDate').on('change', function () {
+        applyFilters();
+    });
+
+    $('#maxDate').on('change', function () {
+        applyFilters();
     });
 
     // robust status-priority sorter (register before DataTable init) -----
@@ -242,20 +189,18 @@ function loadDataTable() {
         }
     };
 
-    // Custom filtering function for date + custom multi-select client
+    // Custom filtering function for date + client + status
     $.fn.dataTable.ext.search.push(
         function (settings, data, dataIndex) {
             var min = $('#minDate').val();
             var max = $('#maxDate').val();
-
-            // Get selected clients from custom multi-select
-            var selectedClients = typeof window.getSelectedClients === 'function'
-                ? window.getSelectedClients()
-                : [];
+            var clientFilter = $('#clientFilter').val();
+            var statusFilter = $('#statusFilter').val();
 
             var rowData = dataTable.row(dataIndex).data();
             var createdDate = new Date(rowData.createdDate);
             var clientName = rowData.client.name;
+            var status = rowData.status;
 
             // Date filter
             if (min) {
@@ -269,15 +214,47 @@ function loadDataTable() {
                 if (createdDate > maxDate) return false;
             }
 
-            // Custom multi-select client filter
-            if (selectedClients && selectedClients.length > 0) {
-                // Check if client name is in selected clients
-                if (!selectedClients.includes(clientName)) return false;
+            // Client filter
+            if (clientFilter !== 'All') {
+                if (clientName !== clientFilter) return false;
+            }
+
+            // Status filter
+            if (statusFilter !== 'All') {
+                if (status !== statusFilter) return false;
             }
 
             return true;
         }
     );
+}
+
+function populateClientFilter(clients) {
+    var select = $('#clientFilter');
+    select.empty();
+    select.append('<option value="All">All Clients</option>');
+
+    // Sort clients alphabetically
+    clients.sort().forEach(function (client) {
+        select.append('<option value="' + client + '">' + client + '</option>');
+    });
+}
+
+function applyFilters() {
+    // The filtering is handled by the custom search function
+    dataTable.draw();
+}
+
+function clearFilters() {
+    $('#clientFilter').val('All');
+    $('#statusFilter').val('All');
+    $('#minDate').val('');
+    $('#maxDate').val('');
+    dataTable.columns().search('').draw();
+
+    if (typeof toastr !== 'undefined') {
+        toastr.info('All filters cleared');
+    }
 }
 
 // Function to change status from "New" to "InProgress"

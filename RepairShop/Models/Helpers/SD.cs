@@ -17,5 +17,10 @@
         public const string Status_Part_Replaced = "Replaced";
         public const string Status_Part_NotRepairable = "NotRepairable";
         public const string Status_Part_NotReplaceable = "NotReplaceable";
+
+        public const string Status_DU_Reported = "Reported";
+        public const string Status_DU_UnderRepair = "UnderRepair";
+        public const string Status_DU_Fixed = "Fixed";
+        public const string Status_DU_OutOfService = "OutOfService";
     }
 }

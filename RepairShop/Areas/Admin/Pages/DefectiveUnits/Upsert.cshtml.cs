@@ -8,7 +8,7 @@ using RepairShop.Repository.IRepository;
 
 namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 {
-    [Authorize(Roles = SD.Role_Admin)]
+    [Authorize]
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -29,8 +29,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         {
             DefectiveUnitForUpsert = new DefectiveUnit
             {
-                ReportedDate = DateTime.Now,
-                Status = "Reported"
+                ReportedDate = DateTime.Now
             };
 
             // Load available serial numbers
@@ -74,21 +73,6 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 if (DefectiveUnitForUpsert == null)
                 {
                     return NotFound();
-                }
-
-                // Set resolved status based on status
-                if (DefectiveUnitForUpsert.Status == "Fixed" || DefectiveUnitForUpsert.Status == "OutOfService")
-                {
-                    DefectiveUnitForUpsert.IsResolved = true;
-                    if (!DefectiveUnitForUpsert.ResolvedDate.HasValue)
-                    {
-                        DefectiveUnitForUpsert.ResolvedDate = DateTime.Now;
-                    }
-                }
-                else
-                {
-                    DefectiveUnitForUpsert.IsResolved = false;
-                    DefectiveUnitForUpsert.ResolvedDate = null;
                 }
 
                 if (DefectiveUnitForUpsert.Id == 0)

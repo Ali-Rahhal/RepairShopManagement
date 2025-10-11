@@ -6,7 +6,7 @@ using RepairShop.Repository.IRepository;
 
 namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 {
-    [Authorize(Roles = SD.Role_Admin)]
+    [Authorize]
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -35,7 +35,6 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 reportedDate = du.ReportedDate.ToString("yyyy-MM-dd"),
                 description = du.Description,
                 status = du.Status,
-                isResolved = du.IsResolved,
                 resolvedDate = du.ResolvedDate?.ToString("yyyy-MM-dd") ?? "Not resolved",
                 serialNumber = du.SerialNumber?.Value ?? "N/A",
                 modelName = du.SerialNumber?.Model?.Name ?? "N/A",
@@ -57,35 +56,17 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
 
+            var relatedTransactionHeaders = (await _unitOfWork.TransactionHeader.GetAllAsy(th => th.IsActive == true && th.DefectiveUnitId == id)).ToList();
+            if (relatedTransactionHeaders.Count > 0)
+            {
+                return new JsonResult(new { success = false, message = "Cannot delete this report because it has related transaction headers" });
+            }
+
             await _unitOfWork.DefectiveUnit.RemoveAsy(defectiveUnitToBeDeleted);
             await _unitOfWork.SaveAsy();
             return new JsonResult(new { success = true, message = "Defective unit report deleted successfully" });
         }
 
-        // API for Status Update
-        public async Task<IActionResult> OnGetUpdateStatus(int? id, string status)
-        {
-            var defectiveUnit = await _unitOfWork.DefectiveUnit.GetAsy(du => du.Id == id);
-            if (defectiveUnit == null)
-            {
-                return new JsonResult(new { success = false, message = "Defective unit not found" });
-            }
-
-            defectiveUnit.Status = status;
-            if (status == "Fixed")
-            {
-                defectiveUnit.IsResolved = true;
-                defectiveUnit.ResolvedDate = DateTime.Now;
-            }
-            else if (status == "OutOfService")
-            {
-                defectiveUnit.IsResolved = true;
-                defectiveUnit.ResolvedDate = DateTime.Now;
-            }
-
-            await _unitOfWork.DefectiveUnit.UpdateAsy(defectiveUnit);
-            await _unitOfWork.SaveAsy();
-            return new JsonResult(new { success = true, message = $"Status updated to {status}" });
-        }
+        
     }
 }

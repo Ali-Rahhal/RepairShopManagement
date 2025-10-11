@@ -14,12 +14,12 @@
         </div>
     </div>
     <div class="card-body p-4">
-        <form method="post" class="row" ">
+        <form method="post" class="row">
             <input type="hidden" asp-for="thForUpsert.Id" />
+            <input type="hidden" asp-for="thForUpsert.ClientId" />
             @if (Model.thForUpsert.Id != 0)
             {
                 <input type="hidden" asp-for="thForUpsert.UserId" />
-                <input type="hidden" asp-for="thForUpsert.ClientId" />
                 <input type="hidden" asp-for="thForUpsert.Status" />
             }
             <div class="row">
@@ -33,30 +33,89 @@
                             @inject Microsoft.AspNetCore.Identity.SignInManager<AppUser> SignInManager;
                             <input hidden asp-for="thForUpsert.UserId" value="@SignInManager.UserManager.GetUserId(User)" />
 
-                            <!-- This section is for searching and selecting a client -->
-                            <!-- It consists of an input field for searching clients,
-                            a hidden input field for storing the selected client's ID,
-                            and a list for displaying search results -->
-                            <div class="py-2 col-12">
-                                <label asp-for="thForUpsert.ClientId" class="ms-2 text-muted">Search Client</label>
-                                <input type="text" id="clientSearch" class="form-control border-0 shadow" placeholder="Type client name..." autocomplete="off" />
-                                <input hidden asp-for="thForUpsert.ClientId" id="clientId" />
-                                <ul id="clientResults" class="list-group"></ul>
+                            <!-- Defective Unit Search Section -->
+                            <div class="mb-4">
+                                <label class="form-label fw-bold">Search Defective Unit *</label>
+                                <div class="input-group">
+                                    <input type="text" id="defectiveUnitSearch" class="form-control"
+                                           placeholder="Search by serial number, model, or client name..." autocomplete="off" />
+                                    <button type="button" class="btn btn-outline-primary" onclick="searchDefectiveUnits()">
+                                        <i class="bi bi-search"></i> Search
+                                    </button>
+                                </div>
+                                <div id="searchResults" class="mt-2" style="display: none;">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Search Results</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="searchResultsList" class="list-group">
+                                                <!-- Results will be populated here -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Selected Defective Unit Details -->
+                            <div id="selectedDefectiveUnitInfo" class="mb-4 p-3 border rounded" style="display: none;">
+                                <h6>Selected Defective Unit Information</h6>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <strong>Serial Number:</strong> <span id="selectedSerialNumber"></span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Model:</strong> <span id="selectedModel"></span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Client:</strong> <span id="selectedClientName"></span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Issue Description:</strong> <span id="selectedDescription"></span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Status:</strong> <span id="selectedStatus" class="badge"></span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Reported Date:</strong> <span id="selectedReportedDate"></span>
+                                    </div>
+                                </div>
+                                <input type="hidden" asp-for="thForUpsert.DefectiveUnitId" id="selectedDefectiveUnitId" />
                             </div>
                         }
-                        <div class="form-floating py-2 col-12">
-                            <input asp-for="thForUpsert.Model" class="form-control border-0 shadow" />
-                            <label asp-for="thForUpsert.Model"></label>
-                            <span asp-validation-for="thForUpsert.Model" class="text-danger"></span>
-                        </div>
-                        <div class="form-floating py-2 col-12">
-                            <input asp-for="thForUpsert.SerialNumber" class="form-control border-0 shadow" />
-                            <label asp-for="thForUpsert.SerialNumber"></label>
-                            <span asp-validation-for="thForUpsert.SerialNumber" class="text-danger"></span>
-                        </div>
+                        else
+                        {
+                            <!-- Show defective unit info when editing existing transaction -->
+                            <div class="mb-4 p-3 border rounded">
+                                <h6>Defective Unit Information</h6>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <strong>Serial Number:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.SerialNumber?.Value ?? "N/A")</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Model:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.SerialNumber?.Model?.Name ?? "N/A")</span>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Client:</strong> <span>@(Model.thForUpsert.Client?.Name ?? "N/A")</span>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Issue Description:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.Description ?? "N/A")</span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Status:</strong> <span class="badge @GetStatusBadgeClass(Model.thForUpsert.DefectiveUnit?.Status)">@(Model.thForUpsert.DefectiveUnit?.Status ?? "N/A")</span>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Reported Date:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.ReportedDate.ToString("yyyy-MM-dd") ?? "N/A")</span>
+                                    </div>
+                                </div>
+                                <input type="hidden" asp-for="thForUpsert.DefectiveUnitId" />
+                            </div>
+                        }
+
                         <div class="py-2 col-12">
-                            <label asp-for="thForUpsert.Description" class="ms-2 text-muted">Description(Optional):</label>
-                            <textarea asp-for="thForUpsert.Description" class="form-control border-0 shadow"></textarea>
+                            <label asp-for="thForUpsert.Description" class="ms-2 text-muted">Additional Notes (Optional):</label>
+                            <textarea asp-for="thForUpsert.Description" class="form-control border-0 shadow"
+                                      placeholder="Add any additional notes about this transaction..."></textarea>
                         </div>
                         <div class="row pt-2">
                             <div class="col-6 col-md-3">
@@ -66,7 +125,7 @@
                                 }
                                 else
                                 {
-                                    <button type="submit" class="btn btn-primary form-control">Create</button>
+                                    <button type="submit" class="btn btn-primary form-control" id="submitBtn" disabled>Create Transaction</button>
                                 }
                             </div>
                             <div class="col-6 col-md-3">
@@ -82,48 +141,147 @@
     </div>
 </div>
 
-
-
-
+@functions {
+    private string GetStatusBadgeClass(string status)
+    {
+        switch (status)
+        {
+            case "Reported": return "bg-info";
+            case "UnderRepair": return "bg-warning";
+            case "Fixed": return "bg-success";
+            case "OutOfService": return "bg-danger";
+            default: return "bg-secondary";
+        }
+    }
+}
 
 @section Scripts {
     <script>
-       /**
-        * This function listens for keyup events on the 'clientSearch' element.
-        * It performs a search for clients in the backend when at least 2 characters are typed.
-        * The search results are displayed in the 'clientResults' list.
-        * When a client is clicked, the client's name is filled in the 'clientSearch' input,
-        * the client's id is filled in the 'clientId' input, and the search results are cleared.
-        */
-        document.getElementById("clientSearch").addEventListener("keyup", async function () {
-            let term = this.value;
-            let resultsList = document.getElementById("clientResults");
-            resultsList.innerHTML = "";
-
-            // Only perform the search if at least 2 characters are typed
-            if (term.length < 2) return;
-
-            // Send an AJAX request to the server to perform the search
-            let response = await fetch(`/User/TransactionHeaders/Upsert?handler=SearchClients&term=${encodeURIComponent(term)}`);
-            // Parse the JSON response
-            let jsonResponse = await response.json();
-            let clients = jsonResponse.data;
-
-            // Create a list item for each client and add it to the results list
-            clients.forEach(c => {
-                let li = document.createElement("li");
-                li.classList.add("list-group-item", "list-group-item-action");
-                li.textContent = c.name;
-
-                // When a client is clicked, update the inputs and clear the results list
-                li.addEventListener("click", () => {
-                    document.getElementById("clientSearch").value = c.name;
-                    document.getElementById("clientId").value = c.id;
-                    resultsList.innerHTML = "";
+        document.addEventListener('DOMContentLoaded', function() {
+            // Enable enter key for search
+            const searchInput = document.getElementById('defectiveUnitSearch');
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        searchDefectiveUnits();
+                    }
                 });
-                resultsList.appendChild(li);
-            });
+            }
+
+            // If editing existing transaction, disable the search functionality
+            @if (Model.thForUpsert.Id != 0)
+            {
+                        <text>
+                        if (document.getElementById('defectiveUnitSearch')) {
+                            document.getElementById('defectiveUnitSearch').disabled = true;
+                            document.querySelector('button[onclick="searchDefectiveUnits()"]').disabled = true;
+                        }
+                        </text>
+            }
         });
+
+        function searchDefectiveUnits() {
+            const searchTerm = document.getElementById('defectiveUnitSearch').value.trim();
+            if (searchTerm.length < 2) {
+                toastr.warning('Please enter at least 2 characters to search');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('searchResults');
+            const resultsList = document.getElementById('searchResultsList');
+
+            resultsList.innerHTML = '<div class="text-center p-3"><div class="spinner-border" role="status"></div></div>';
+            resultsDiv.style.display = 'block';
+
+            fetch(`/User/TransactionHeaders/Upsert?handler=SearchDefectiveUnits&term=${encodeURIComponent(searchTerm)}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultsList.innerHTML = '';
+
+                    if (data.data.length === 0) {
+                        resultsList.innerHTML = '<div class="text-center p-3 text-muted">No defective units found</div>';
+                        return;
+                    }
+
+                    data.data.forEach(item => {
+                        const listItem = document.createElement('button');
+                        listItem.type = 'button';
+                        listItem.className = 'list-group-item list-group-item-action';
+                        listItem.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>${item.serialNumber}</strong> - ${item.model}<br>
+                                    <small class="text-muted">Client: ${item.clientName} | Issue: ${item.description}</small><br>
+                                    <small class="text-muted">Reported: ${item.reportedDate} | Status: ${item.status}</small>
+                                </div>
+                            </div>
+                        `;
+                        listItem.onclick = function() {
+                            selectDefectiveUnit(item.id);
+                        };
+                        resultsList.appendChild(listItem);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    resultsList.innerHTML = '<div class="text-center p-3 text-danger">Error loading results</div>';
+                });
+        }
+
+        function selectDefectiveUnit(defectiveUnitId) {
+            document.getElementById('searchResults').style.display = 'none';
+            loadDefectiveUnitDetails(defectiveUnitId);
+        }
+
+        function loadDefectiveUnitDetails(defectiveUnitId) {
+            const infoDiv = document.getElementById('selectedDefectiveUnitInfo');
+            infoDiv.style.display = 'block';
+
+            fetch(`/User/TransactionHeaders/Upsert?handler=DefectiveUnitDetails&id=${defectiveUnitId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the display fields
+                        document.getElementById('selectedSerialNumber').textContent = data.serialNumber;
+                        document.getElementById('selectedModel').textContent = data.model;
+                        document.getElementById('selectedClientName').textContent = data.clientName;
+                        document.getElementById('selectedDescription').textContent = data.description;
+                        document.getElementById('selectedReportedDate').textContent = data.reportedDate;
+
+                        // Update status badge
+                        const statusBadge = document.getElementById('selectedStatus');
+                        statusBadge.textContent = data.status;
+                        statusBadge.className = 'badge ' + getStatusBadgeClass(data.status);
+
+                        // Set the hidden fields
+                        document.getElementById('selectedDefectiveUnitId').value = data.defectiveUnitId;
+                        document.getElementById('thForUpsert_ClientId').value = data.clientId;
+
+                        // Enable submit button
+                        let submit = document.getElementById('submitBtn');
+                        if (submit) {
+                            submit.disabled = false;
+                        }
+                    } else {
+                        toastr.error(data.message || 'Error loading defective unit details');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    toastr.error('Error loading defective unit details');
+                });
+        }
+
+        function getStatusBadgeClass(status) {
+            switch (status) {
+                case 'Reported': return 'bg-info';
+                case 'UnderRepair': return 'bg-warning';
+                case 'Fixed': return 'bg-success';
+                case 'OutOfService': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
     </script>
     @{
         <partial name="_ValidationScriptsPartial" />

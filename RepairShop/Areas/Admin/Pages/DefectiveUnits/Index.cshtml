@@ -17,6 +17,7 @@
             <div class="col-6">
                 <!-- Filters -->
                 <div class="row align-items-center">
+                    <input hidden id="isAdmin" value="@User.IsInRole(SD.Role_Admin).ToString()" />
                     <div class="col-auto">
                         <label for="statusFilter" class="col-form-label fw-bold">Filter by Status:</label>
                     </div>
@@ -27,16 +28,6 @@
                             <option value="UnderRepair">Under Repair</option>
                             <option value="Fixed">Fixed</option>
                             <option value="OutOfService">Out of Service</option>
-                        </select>
-                    </div>
-                    <div class="col-auto">
-                        <label for="resolvedFilter" class="col-form-label fw-bold">Resolution:</label>
-                    </div>
-                    <div class="col-auto">
-                        <select id="resolvedFilter" class="form-select form-select-sm">
-                            <option value="All">All</option>
-                            <option value="Resolved">Resolved</option>
-                            <option value="Unresolved">Unresolved</option>
                         </select>
                     </div>
                     <div class="col-auto">

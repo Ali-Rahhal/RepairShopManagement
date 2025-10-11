@@ -33,10 +33,11 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             // Get the user's role. Explanation: ClaimTypes.Role
             // is a standard claim type that represents the role of the user.
             var userRole = claimsIdentity.FindFirst(ClaimTypes.Role).Value;
-            if(userRole == SD.Role_Admin)//If the user is an admin get all transactions
+            if (userRole == SD.Role_Admin)//If the user is an admin get all transactions
             {
                 THList = (await _unitOfWork.TransactionHeader
-                    .GetAllAsy(t => t.IsActive == true, includeProperties: "Client,User")).ToList();
+                    .GetAllAsy(t => t.IsActive == true,
+                    includeProperties: "Client,User,DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model")).ToList();
             }
             else//If the user is not an admin get only their transactions
             {
@@ -45,22 +46,38 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
                 THList = (await _unitOfWork.TransactionHeader
-                    .GetAllAsy(t => t.IsActive == true && t.UserId == userId, includeProperties: "Client")).ToList();
+                    .GetAllAsy(t => t.IsActive == true && t.UserId == userId,
+                    includeProperties: "Client,DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model")).ToList();
             }
-            
-            return new JsonResult(new { data = THList });//We return JsonResult because we will call this method using AJAX
+
+            // Format the data for better display
+            var formattedData = THList.Select(t => new
+            {
+                id = t.Id,
+                user = t.User != null ? new { userName = t.User.UserName } : null,
+                model = t.DefectiveUnit?.SerialNumber?.Model?.Name ?? "N/A",
+                serialNumber = t.DefectiveUnit?.SerialNumber?.Value ?? "N/A",
+                status = t.Status,
+                client = t.Client != null ? new { name = t.Client.Name } : null,
+                createdDate = t.CreatedDate,
+                description = t.Description,
+                defectiveUnitId = t.DefectiveUnitId
+            });
+
+            return new JsonResult(new { data = formattedData });
         }
 
         //AJAX CALL for changing status from New to InProgress
         public async Task<IActionResult> OnGetChangeStatus(int? id)//The route is /User/TransactionHeaders/Index?handler=ChangeStatus&id=1
         {
-            var THToBeChanged = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id);
+            var THToBeChanged = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id, includeProperties: "DefectiveUnit");
             if (THToBeChanged == null)
             {
                 return new JsonResult(new { success = false, message = "Error while changing status" });
             }
 
             THToBeChanged.Status = SD.Status_Job_InProgress;
+            THToBeChanged.DefectiveUnit.Status = SD.Status_Part_Pending_Repair;
             await _unitOfWork.TransactionHeader.UpdateAsy(THToBeChanged);
             await _unitOfWork.SaveAsy();
             return new JsonResult(new { success = true, message = "Status changed successfully" });
@@ -89,7 +106,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
         //AJAX CALL for completing the transaction
         public async Task<IActionResult> OnGetCompleteStatus(int? id)//The route is /User/TransactionHeaders/Index?handler=CompleteStatus&id=1
         {
-            var THToBeCompleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id, includeProperties: "BrokenParts");
+            var THToBeCompleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id, includeProperties: "BrokenParts,DefectiveUnit");
             if (THToBeCompleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while completing" });
@@ -97,8 +114,8 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
 
             //Check if there are any pending parts
             var pendingParts = THToBeCompleted.BrokenParts
-                .Where(o => (o.Status == SD.Status_Part_Pending_Repair 
-                                || o.Status == SD.Status_Part_Pending_Replace 
+                .Where(o => (o.Status == SD.Status_Part_Pending_Repair
+                                || o.Status == SD.Status_Part_Pending_Replace
                                 || o.Status == SD.Status_Part_Waiting_Part) && o.IsActive == true).ToList();
             if (pendingParts.Count > 0)
             {
@@ -117,6 +134,8 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             if (nonRepairableParts > 0)
             {
                 THToBeCompleted.Status = SD.Status_Job_OutOfService;
+                THToBeCompleted.DefectiveUnit.Status = SD.Status_DU_OutOfService;
+                THToBeCompleted.DefectiveUnit.ResolvedDate = DateTime.Now;
                 await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
                 await _unitOfWork.SaveAsy();
                 return new JsonResult(new { success = true, message = "Transaction is out of service" });
@@ -125,10 +144,11 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             {
                 THToBeCompleted.Status = SD.Status_Job_Completed;
                 await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
+                THToBeCompleted.DefectiveUnit.Status = SD.Status_DU_Fixed;
+                THToBeCompleted.DefectiveUnit.ResolvedDate = DateTime.Now;
                 await _unitOfWork.SaveAsy();
                 return new JsonResult(new { success = true, message = "Transaction completed successfully" });
             }
         }
-
     }
 }
