@@ -24,6 +24,7 @@ function loadDataTable() {
                 visible: isAdmin(),//only show this column if the user is admin.
                 "render": function (data) {//this is to render the edit and delete buttons in the last column.
                     return `<div class="w-100 d-flex justify-content-center" role="group">
+                    <a href="/User/Clients/ClientSNIndex?id=${data}" title="View Serial Numbers" class="btn btn-info mx-2"><i class="bi bi-pencil-square"></i></a>
                     <a href="/User/Clients/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
                     <!--onclick is for initiating Delete function and passing the url with id-->
                     <a onClick="Delete('/User/Clients/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>

@@ -1,0 +1,37 @@
+﻿@page
+@model RepairShop.Areas.User.Pages.Clients.ClientSNIndexModel
+
+<div class="card shadow border-0 my-4">
+    <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">
+                    Client Serial Number List
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="row pb-3">
+            <div class="col-6">
+                <input type="hidden" value="@Model.ClientId" id="clientId" />
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table id="tblData" class="table table-bordered table-striped" style="width:100%">
+                <thead>
+                    <tr class="table-primary">
+                        <th>Serial Number</th>
+                        <th>Model Name</th>
+                        <th>Contract Number</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/clientSN.js"></script>
+}

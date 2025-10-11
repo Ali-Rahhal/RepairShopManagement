@@ -46,5 +46,7 @@ namespace RepairShop.Areas.User.Pages.Clients
             await _unitOfWork.SaveAsy();
             return new JsonResult(new { success = true, message = "Client deleted successfully" });
         }
+
+        
     }
 }
