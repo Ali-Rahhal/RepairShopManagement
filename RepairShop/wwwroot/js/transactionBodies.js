@@ -42,7 +42,7 @@ function loadDataTable() {
                 },
                 "width": "20%"
             },
-            { data: 'part.name', "width": "20%" },//dont forget the names should match the property names.
+            { data: 'partName', "width": "20%" },//dont forget the names should match the property names.
             {
                 data: 'createdDate',
                 "width": "15%",
@@ -68,29 +68,73 @@ function loadDataTable() {
                 }
             },
             {
-                data: 'id',
-                visible: !isAdmin() && hStatus !== "Completed",//only show this column if the user is not admin and status is not completed
+                data: 'id',//this column is only visible to non-admin users
                 "render": function (data, type, row) {
-                    if (row.status === "WaitingForPart") {
+                    console.log(isAdmin());
+
+                    return `<div class="w-100 d-flex justify-content-center" role="group">
+                                    <button class="btn btn-outline-primary mx-2" title="View History"
+                                        onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
+                                                                '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
+                                                                '${row.notRepairableDate}', '${row.notReplaceableDate}')">
+                                            <i class="bi bi-clock-history"></i>
+                                    </button>
+                                </div>`;
+                },
+                "width": "5%"
+            },
+            {
+                data: 'id',//this column is only visible to non-admin users
+                "render": function (data, type, row) {
+                    console.log(isAdmin());
+                    if (hStatus === "Completed" || hStatus === "OutOfService") {//only show this column if the header status is completed.
+                        return `<div class="w-100 d-flex justify-content-center" role="group">
+                                    <button class="btn btn-outline-primary mx-2" title="View History"
+                                        onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
+                                                                '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
+                                                                '${row.notRepairableDate}', '${row.notReplaceableDate}')">
+                                            <i class="bi bi-clock-history"></i>
+                                    </button>
+                                </div>`;
+                    }
+                    if (row.status === "WaitingForPart") {//only show this column if the part status is waiting for part.
                         return `<div class="w-100 d-flex justify-content-center" role="group">
                                     <a onClick="CheckPartAvailable('/User/TransactionBodies/Index?handler=CheckPart&id=${data}')" title="Check if Part is Available" class="btn btn-info mx-2"><i class="bi bi-box-seam"></i></a>
                                     <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit Name" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <!--onclick is for initiating Delete function and passing the url with id-->
                                     <a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                                </div>`
+                                    <button class="btn btn-outline-primary mx-2" title="View History"
+                                        onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
+                                                                '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
+                                                                '${row.notRepairableDate}', '${row.notReplaceableDate}')">
+                                            <i class="bi bi-clock-history"></i>
+                                    </button>
+                                </div>`;
                     } else {
                         return `<div class="w-100 d-flex justify-content-center" role="group">
                                     <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit Name" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <!--onclick is for initiating Delete function and passing the url with id-->
                                     <a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                                     <a onClick="ChangeStatus(${data}, '${row.status}')" title="Change Status" class="btn btn-warning mx-2"><i class="bi bi-gear"></i></a>
-                                </div>`
+                                    <button class="btn btn-outline-primary mx-2" title="View History"
+                                        onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
+                                                                '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
+                                                                '${row.notRepairableDate}', '${row.notReplaceableDate}')">
+                                            <i class="bi bi-clock-history"></i>
+                                    </button>
+                                </div>`;
                     } 
                 },
-                "width": "25%"
+                "width": "20%"
             }
         ]
     });
+
+    if (isAdmin()) {
+        dataTable.column(4).visible(true);   // show admin column
+        dataTable.column(5).visible(false);  // hide non-admin column
+    } else {
+        dataTable.column(4).visible(false);
+        dataTable.column(5).visible(true);
+    }
 }
 
 // Function to check if the part is available and update the status
@@ -212,5 +256,58 @@ function ChangeStatus(id, currentStatus) {
             })
         }
         // If result.isDismissed (Cancel or background click), nothing happens.
+    });
+}
+
+function showTBHistory(partName, created, waitingPart, fixed, replaced, notRepairable, notReplaceable) {
+    const formatDate = (d) => {
+        const date = new Date(d);
+        if (isNaN(date)) return '-';
+
+        return date.toLocaleDateString('en-GB')
+            .split('/').join('-') + ' ' +
+            date.toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+    };
+
+    let html = `
+    <div style="text-align:left;">
+        <p><strong>Broken Part:</strong> ${partName}</p>
+        <hr>
+        ${formatDate(created) !== '-'
+            ? `<p><strong>Created:</strong> ${formatDate(created)}</p>`
+            : ''
+        }
+        ${formatDate(waitingPart) !== '-'
+            ? `<p><strong>Waiting for Part:</strong> ${formatDate(waitingPart)}</p>`
+            : ''
+        }
+        ${formatDate(fixed) !== '-'
+            ? `<p><strong>Fixed:</strong> ${formatDate(fixed)}</p>`
+            : ''
+        }
+        ${formatDate(replaced) !== '-'
+            ? `<p><strong>Replaced:</strong> ${formatDate(replaced)}</p>`
+            : ''
+        }
+        ${formatDate(notRepairable) !== '-'
+            ? `<p><strong>Not Repairable:</strong> ${formatDate(notRepairable)}</p>`
+            : ''
+        }
+        ${formatDate(notReplaceable) !== '-'
+            ? `<p><strong>Not Replaceable:</strong> ${formatDate(notReplaceable)}</p>`
+            : ''
+        }
+    </div>`
+
+    Swal.fire({
+        title: `<i class="bi bi-clock-history"></i> Part History`,
+        html: html,
+        icon: 'info',
+        confirmButtonText: 'Close',
+        customClass: { popup: 'swal-wide' }
     });
 }

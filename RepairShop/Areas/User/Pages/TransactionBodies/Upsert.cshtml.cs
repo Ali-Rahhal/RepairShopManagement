@@ -82,6 +82,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                         else
                         {
                             tbForUpsert.Status = SD.Status_Part_Waiting_Part;
+                            tbForUpsert.WaitingPartDate = DateTime.Now;
                             TempData["info"] = "Part Not Available but can be added later";
                         }
                     }

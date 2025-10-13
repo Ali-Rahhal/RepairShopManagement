@@ -58,76 +58,7 @@ body {
     }
 }
 
-/*This is for the blurry overlay of canceled pages*/
-.page-wrapper {
-    position: relative;
-}
-
-    .page-wrapper .overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(255,255,255,0.6);
-        backdrop-filter: blur(2px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 10;
-    }
-
-.overlay-text {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #c00;
-    background: rgba(255, 255, 255, 0.85);
-    padding: 1rem 2rem;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.2);
-}
-
-
-
-
-.custom-multiselect {
-    position: relative;
-}
-
-.multiselect-dropdown {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid #ced4da;
-    border-radius: 0.375rem;
-    max-height: 200px;
-    overflow-y: auto;
-    z-index: 1000;
-    margin-top: 2px;
-}
-
-    .multiselect-dropdown.show {
-        display: block;
-    }
-
-.multiselect-option {
-    padding: 8px 12px;
-    cursor: pointer;
-    border-bottom: 1px solid #f8f9fa;
-}
-
-.multiselect-option:hover {
-    background-color: #f8f9fa;
-}
-
-.multiselect-option.selected {
-    background-color: #007bff;
-    color: white;
-}
-
-.multiselect-option:last-child {
-    border-bottom: none;
+/*for history button*/
+.swal-wide {
+    width: 400px !important;
 }

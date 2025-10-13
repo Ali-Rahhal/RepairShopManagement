@@ -15,6 +15,11 @@ namespace RepairShop.Models
         [Required]
         public string Status { get; set; } // Pending, Fixed, Replaced
         public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime? WaitingPartDate { get; set; }
+        public DateTime? FixedDate { get; set; }
+        public DateTime? ReplacedDate { get; set; }
+        public DateTime? NotRepairableDate { get; set; }
+        public DateTime? NotReplaceableDate { get; set; }
         public bool IsActive { get; set; } = true;
 
         public int TransactionHeaderId { get; set; }

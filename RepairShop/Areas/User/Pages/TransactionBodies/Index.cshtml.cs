@@ -36,7 +36,22 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
         public async Task<JsonResult> OnGetAll(int headerId)//The route is /User/TransactionBodies/Index?handler=All&headerId=1
         {
             var TBList = (await _unitOfWork.TransactionBody.GetAllAsy(t => t.IsActive == true && t.TransactionHeaderId == headerId, includeProperties: "Part")).ToList();
-            return new JsonResult(new { data = TBList });//We return JsonResult because we will call this method using AJAX
+
+            var formattedData = TBList.Select(tb => new 
+            {
+                id = tb.Id,
+                brokenPartName = tb.BrokenPartName,
+                status = tb.Status,
+                partName = tb.Part?.Name ?? "N/A",
+                createdDate = tb.CreatedDate,
+                waitingPartDate = tb.WaitingPartDate,
+                fixedDate = tb.FixedDate,
+                replacedDate = tb.ReplacedDate,
+                notRepairableDate = tb.NotRepairableDate,
+                notReplaceableDate = tb.NotReplaceableDate
+            });
+
+            return new JsonResult(new { data = formattedData });//We return JsonResult because we will call this method using AJAX
         }
 
         //AJAX CALL for checking if part is availabe and change status
@@ -71,12 +86,15 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             {
                 case 0: // Not Repairable
                     TB.Status = SD.Status_Part_NotRepairable;
+                    TB.NotRepairableDate = DateTime.Now;
                     break;
                 case 1: // Fixed
                     TB.Status = SD.Status_Part_Fixed;
+                    TB.FixedDate = DateTime.Now;
                     break;
                 case 2: // Not Replaceable
                     TB.Status = SD.Status_Part_NotReplaceable;
+                    TB.NotReplaceableDate = DateTime.Now;
 
                     // If not replaceable and a part was selected, increment inventory
                     if (TB.PartId.HasValue)
@@ -91,6 +109,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                     break;
                 case 3: // Replaced
                     TB.Status = SD.Status_Part_Replaced;
+                    TB.ReplacedDate = DateTime.Now;
                     break;
                 default:
                     return new JsonResult(new { success = false, message = "Invalid choice" });

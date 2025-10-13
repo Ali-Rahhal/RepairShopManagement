@@ -60,6 +60,8 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 status = t.Status,
                 client = t.Client != null ? new { name = t.Client.Name } : null,
                 createdDate = t.CreatedDate,
+                inProgressDate = t.InProgressDate,
+                completedOrOutOfServiceDate = t.CompletedOrOutOfServiceDate,
                 description = t.Description,
                 defectiveUnitId = t.DefectiveUnitId
             });
@@ -77,6 +79,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             }
 
             THToBeChanged.Status = SD.Status_Job_InProgress;
+            THToBeChanged.InProgressDate = DateTime.Now;
             THToBeChanged.DefectiveUnit.Status = SD.Status_Part_Pending_Repair;
             await _unitOfWork.TransactionHeader.UpdateAsy(THToBeChanged);
             await _unitOfWork.SaveAsy();
@@ -130,10 +133,12 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             }
 
             //check if there are non-repairable parts
-            var nonRepairableParts = THToBeCompleted.BrokenParts.Count(o => o.Status == SD.Status_Part_NotReplaceable);
+            var nonRepairableParts = THToBeCompleted.BrokenParts.Count(o => o.IsActive == true && (o.Status == SD.Status_Part_NotReplaceable 
+                                                                                                    || o.Status == SD.Status_Part_NotRepairable));
             if (nonRepairableParts > 0)
             {
                 THToBeCompleted.Status = SD.Status_Job_OutOfService;
+                THToBeCompleted.CompletedOrOutOfServiceDate = DateTime.Now;
                 THToBeCompleted.DefectiveUnit.Status = SD.Status_DU_OutOfService;
                 THToBeCompleted.DefectiveUnit.ResolvedDate = DateTime.Now;
                 await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
@@ -143,9 +148,10 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             else
             {
                 THToBeCompleted.Status = SD.Status_Job_Completed;
-                await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
+                THToBeCompleted.CompletedOrOutOfServiceDate = DateTime.Now;
                 THToBeCompleted.DefectiveUnit.Status = SD.Status_DU_Fixed;
                 THToBeCompleted.DefectiveUnit.ResolvedDate = DateTime.Now;
+                await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
                 await _unitOfWork.SaveAsy();
                 return new JsonResult(new { success = true, message = "Transaction completed successfully" });
             }
