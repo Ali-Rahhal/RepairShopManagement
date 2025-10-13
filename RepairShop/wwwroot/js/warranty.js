@@ -4,9 +4,15 @@ document.addEventListener('DOMContentLoaded', function () {
     loadDataTable();
 });
 
+function isAdmin() {//function to check if the user is admin
+    return document.getElementById("isAdmin").value === "True";
+}
+
 function loadDataTable() {
     dataTable = new DataTable('#tblData', {
-        stateSave: true,
+        "stateSave": true,
+        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
+        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
         ajax: {
             url: '/Admin/Warranties/Index?handler=All',
             dataSrc: 'data'
@@ -117,6 +123,12 @@ function loadDataTable() {
             zeroRecords: "No matching warranties found"
         }
     });
+
+    if (isAdmin()) {
+        dataTable.column(7).visible(true);   // show admin column
+    } else {
+        dataTable.column(7).visible(false);
+    }
 
     // Add event listener for status filter
     const statusFilter = document.getElementById('statusFilter');

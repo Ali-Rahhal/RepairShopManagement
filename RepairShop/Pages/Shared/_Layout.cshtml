@@ -22,47 +22,63 @@
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
                     <ul class="navbar-nav flex-grow-1 me-auto">
+                        <!-- Home -->
                         <li class="nav-item">
                             <a class="nav-link" asp-area="" asp-page="/Index">Home</a>
                         </li>
+
+                        <!-- User Section -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Content Management
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                               aria-haspopup="true" aria-expanded="false">
+                                Operations
                             </a>
                             <ul class="dropdown-menu" data-bs-theme="light">
-                                <li class="nav-item">
-                                    <a class="dropdown-item" asp-area="User" asp-page="/Clients/Index">Clients</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="dropdown-item" asp-area="User" asp-page="/TransactionHeaders/Index">Transactions</a>
-                                </li>
-                            @if (User.IsInRole(SD.Role_Admin))
-                            {
-                                <li><hr class="dropdown-divider"></li>
-                                <li class="nav-item">
-                                    <a class="dropdown-item" asp-area="Admin" asp-page="/Users/Index">Users</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="dropdown-item" asp-area="Admin" asp-page="/Parts/Index">Parts</a>
-                                </li>
-                            }
+                                <li><a class="dropdown-item" asp-area="Admin" asp-page="/DefectiveUnits/Index">Defective Units</a></li>
+                                <li><a class="dropdown-item" asp-area="User" asp-page="/TransactionHeaders/Index">Transactions</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-page="/Models/Index">Models</a>
+
+                        <!-- Assets Section -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                               aria-haspopup="true" aria-expanded="false">
+                                Assets & Inventory
+                            </a>
+                            <ul class="dropdown-menu" data-bs-theme="light">
+                                <li><a class="dropdown-item" asp-area="User" asp-page="/Clients/Index">Clients</a></li>
+                                <li><a class="dropdown-item" asp-area="Admin" asp-page="/Models/Index">Models</a></li>
+                                <li><a class="dropdown-item" asp-area="Admin" asp-page="/SerialNumbers/Index">Serial Numbers</a></li>
+                            </ul>
                         </li>
-                        <li class="nav-item">
-                        <a class="nav-link" asp-area="Admin" asp-page="/SerialNumbers/Index">Serial Numbers</a>
+
+                        <!-- Maintenance Section -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                               aria-haspopup="true" aria-expanded="false">
+                                Maintenance & Warranty
+                            </a>
+                            <ul class="dropdown-menu" data-bs-theme="light">
+                                <li><a class="dropdown-item" asp-area="Admin" asp-page="/Warranties/Index">Warranties</a></li>
+                                <li><a class="dropdown-item" asp-area="Admin" asp-page="/MaintenanceContracts/Index">Maintenance Contracts</a></li>
+                            </ul>
                         </li>
-                        <li class="nav-item">
-                        <a class="nav-link" asp-area="Admin" asp-page="/Warranties/Index">Warranties</a>
-                        </li>
-                        <li class="nav-item">
-                        <a class="nav-link" asp-area="Admin" asp-page="/MaintenanceContracts/Index">Maintenance Contracts</a>
-                        </li>
-                        <li class="nav-item">
-                        <a class="nav-link" asp-area="Admin" asp-page="/DefectiveUnits/Index">Receive Defective Units</a>
-                        </li>
+
+                        <!-- Admin Section -->
+                        @if (User.IsInRole(SD.Role_Admin))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle text-warning" href="#" role="button" data-bs-toggle="dropdown"
+                                   aria-haspopup="true" aria-expanded="false">
+                                    Admin
+                                </a>
+                                <ul class="dropdown-menu" data-bs-theme="light">
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-page="/Users/Index">Manage Users</a></li>
+                                    <li><hr class="dropdown-divider" /></li>
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-page="/Parts/Index">Manage Parts</a></li>
+                                </ul>
+                            </li>
+                        }
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

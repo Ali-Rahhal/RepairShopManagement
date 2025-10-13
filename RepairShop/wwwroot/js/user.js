@@ -8,6 +8,8 @@ $(document).ready(function () {
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "stateSave": true,
+        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
+        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
         "ajax": { url: '/Admin/Users/Index?handler=All' },//this url will call the OnGetAll method in the page model which returns all the users in json format.
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "columns": [//defining the columns of the datatable and mapping them to the properties of the user model.

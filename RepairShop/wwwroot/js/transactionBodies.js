@@ -14,8 +14,13 @@ function isAdmin() {//function to check if the user is admin
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "stateSave": true,
+        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
+        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
         "ajax": { url: `/User/TransactionBodies/Index?handler=All&headerId=${hId}` },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
+        "order": [
+            [3, "desc"]   // Then by creation date: newest first
+        ],
         "columns": [
             { data: 'brokenPartName', "width": "20%" },//dont forget the names should match the property names.
             {
@@ -51,18 +56,18 @@ function loadDataTable() {
                         // Convert to Date object and format as dd-MM-yyyy HH:mm tt
                         const date = new Date(data);
 
-                        // When DataTables needs to sort or order, return a numeric timestamp
-                        if (type === 'sort' || type === 'order') {
-                            return date.getTime();
+                        if (type === 'display') {
+                            // Only format for display
+                            return date.toLocaleDateString('en-GB').split('/').join('-') + ' ' +
+                                date.toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    hour12: true
+                                });
                         }
 
-                        return date.toLocaleDateString('en-GB')
-                            .split('/').join('-') + ' ' +
-                            date.toLocaleTimeString('en-US', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: true
-                            });
+                        // For all other types (including sort), return the timestamp
+                        return date.getTime();
                     }
                     return '';
                 }
@@ -70,8 +75,6 @@ function loadDataTable() {
             {
                 data: 'id',//this column is only visible to non-admin users
                 "render": function (data, type, row) {
-                    console.log(isAdmin());
-
                     return `<div class="w-100 d-flex justify-content-center" role="group">
                                     <button class="btn btn-outline-primary mx-2" title="View History"
                                         onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
@@ -86,7 +89,6 @@ function loadDataTable() {
             {
                 data: 'id',//this column is only visible to non-admin users
                 "render": function (data, type, row) {
-                    console.log(isAdmin());
                     if (hStatus === "Completed" || hStatus === "OutOfService") {//only show this column if the header status is completed.
                         return `<div class="w-100 d-flex justify-content-center" role="group">
                                     <button class="btn btn-outline-primary mx-2" title="View History"
@@ -137,6 +139,15 @@ function loadDataTable() {
     }
 }
 
+function resetSorting() {
+    // Reset to default ordering: [3, "desc"] (createdDate column, newest first)
+    dataTable.order([[3, 'desc']]).draw();
+
+    if (typeof toastr !== 'undefined') {
+        toastr.info('Sorting reset to default order');
+    }
+}
+
 // Function to check if the part is available and update the status
 function CheckPartAvailable(url) {
     $.ajax({
@@ -151,7 +162,6 @@ function CheckPartAvailable(url) {
         }
     });
 }
-
 
 function Delete(url) {
     Swal.fire({

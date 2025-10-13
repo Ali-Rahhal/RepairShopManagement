@@ -2,6 +2,7 @@
 var dataTable;
 
 $(document).ready(function () {
+    sessionStorage.clear();
     loadDataTable();
 });
 
@@ -12,6 +13,8 @@ function isAdmin() {//function to check if the user is admin
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "stateSave": true,
+        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
+        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
         "ajax": {
             url: '/User/TransactionHeaders/Index?handler=All',
             dataSrc: function (json) {
@@ -266,10 +269,14 @@ function clearFilters() {
     $('#statusFilter').val('All');
     $('#minDate').val('');
     $('#maxDate').val('');
-    dataTable.columns().search('').draw();
+    // Reset to initial ordering: [3, "asc"], [5, "desc"]
+    dataTable.order([[3, 'asc'], [5, 'desc']]).draw();
+
+    // Clear any search filters
+    dataTable.search('').columns().search('').draw();
 
     if (typeof toastr !== 'undefined') {
-        toastr.info('All filters cleared');
+        toastr.info('All filters and sorting reset');
     }
 }
 

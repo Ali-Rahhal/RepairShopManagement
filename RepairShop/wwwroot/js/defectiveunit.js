@@ -10,7 +10,9 @@ function isAdmin() {//function to check if the user is admin
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        stateSave: true,
+        "stateSave": true,
+        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
+        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
         ajax: {
             url: '/Admin/DefectiveUnits/Index?handler=All',
             dataSrc: 'data'

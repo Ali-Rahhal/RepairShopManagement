@@ -4,9 +4,15 @@ $(function () {
     loadDataTable();
 });
 
+function isAdmin() {//function to check if the user is admin
+    return document.getElementById("isAdmin").value === "True";
+}
+
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        stateSave: true,
+        "stateSave": true,
+        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
+        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
         ajax: {
             url: '/Admin/Models/Index?handler=All',
             dataSrc: function (json) {
@@ -17,6 +23,9 @@ function loadDataTable() {
             }
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
+        "order": [
+            [1, "asc"]   // Then by creation date: newest first
+        ],
         columns: [
             {
                 data: 'name',
@@ -49,6 +58,12 @@ function loadDataTable() {
             zeroRecords: "No matching models found"
         }
     });
+
+    if (isAdmin()) {
+        dataTable.column(2).visible(true);   // show admin column
+    } else {
+        dataTable.column(2).visible(false);
+    }
 
     // Add event listener for category filter
     $('#categoryFilter').on('change', function () {
@@ -96,6 +111,7 @@ function applyCategoryFilter() {
 
 function clearCategoryFilter() {
     $('#categoryFilter').val('All');
+    dataTable.order([[1, 'asc']]).draw();
     dataTable.column(1).search('').draw();
 
     // Show success message

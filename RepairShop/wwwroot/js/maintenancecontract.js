@@ -4,9 +4,15 @@ document.addEventListener('DOMContentLoaded', function () {
     loadDataTable();
 });
 
+function isAdmin() {//function to check if the user is admin
+    return document.getElementById("isAdmin").value === "True";
+}
+
 function loadDataTable() {
     dataTable = new DataTable('#tblData', {
-        stateSave: true,
+        "stateSave": true,
+        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
+        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
         ajax: {
             url: '/Admin/MaintenanceContracts/Index?handler=All',
             dataSrc: 'data'
@@ -90,7 +96,7 @@ function loadDataTable() {
                 }
             },
             {
-                data: 'id',
+                data: 'id',//visible for admins only
                 render: function (data) {
                     return `<div class="w-100 d-flex justify-content-center" role="group">
                         <a href="/Admin/MaintenanceContracts/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2">
@@ -111,6 +117,12 @@ function loadDataTable() {
         },
         order: [[0, 'desc']] // Sort by contract number descending
     });
+
+    if (isAdmin()) {
+        dataTable.column(6).visible(true);   // show admin column
+    } else {
+        dataTable.column(6).visible(false);
+    }
 
     // Add event listener for status filter
     const statusFilter = document.getElementById('statusFilter');

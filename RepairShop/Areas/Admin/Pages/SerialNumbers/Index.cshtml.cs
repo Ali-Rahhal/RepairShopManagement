@@ -6,7 +6,7 @@ using RepairShop.Repository.IRepository;
 
 namespace RepairShop.Areas.Admin.Pages.SerialNumbers
 {
-    [Authorize(Roles = SD.Role_Admin)]
+    [Authorize]
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;

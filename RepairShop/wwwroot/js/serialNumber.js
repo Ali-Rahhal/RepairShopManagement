@@ -5,6 +5,10 @@ $(function() {
     loadDataTable();
 });
 
+function isAdmin() {//function to check if the user is admin
+    return document.getElementById("isAdmin").value === "True";
+}
+
 function loadFilters() {
     // Load models for filter
     $.ajax({
@@ -28,6 +32,8 @@ function loadFilters() {
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "stateSave": true,
+        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
+        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
         "ajax": {
             url: '/Admin/SerialNumbers/Index?handler=All'
         },
@@ -78,6 +84,12 @@ function loadDataTable() {
             "zeroRecords": "No matching serial numbers found"
         }
     });
+
+    if (isAdmin()) {
+        dataTable.column(4).visible(true);   // show admin column
+    } else {
+        dataTable.column(4).visible(false);
+    }
 
     // Add event listeners for filters
     $('#modelFilter').on('change', function () {
