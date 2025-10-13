@@ -27,10 +27,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
         public async Task<IActionResult> OnGet(int? id)
         {
-            DefectiveUnitForUpsert = new DefectiveUnit
-            {
-                ReportedDate = DateTime.Now
-            };
+            DefectiveUnitForUpsert = new DefectiveUnit();
 
             // Load available serial numbers
             await LoadAvailableSerialNumbers();
@@ -73,6 +70,16 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 if (DefectiveUnitForUpsert == null)
                 {
                     return NotFound();
+                }
+
+                var duplicateReporetedDU = await _unitOfWork.DefectiveUnit.GetAsy(du => du.IsActive == true 
+                    && du.SerialNumberId == DefectiveUnitForUpsert.SerialNumberId 
+                    && du.Status == SD.Status_DU_Reported);
+                if(duplicateReporetedDU != null)
+                {
+                    ModelState.AddModelError(string.Empty, "You have already reported a defective unit for this serial number.");
+                    await LoadAvailableSerialNumbers();
+                    return Page();
                 }
 
                 if (DefectiveUnitForUpsert.Id == 0)

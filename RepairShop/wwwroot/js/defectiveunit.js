@@ -18,6 +18,16 @@ function loadDataTable() {
             dataSrc: 'data'
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
+        "order": [
+            [5, "asc"],   // Status: New -> InProgress -> Completed -> OutOfService
+            [3, "desc"]   // Then by creation date: newest first
+        ],
+        "columnDefs": [
+            {
+                "targets": 5, // Status column
+                "type": "status-priority"
+            }
+        ],
         columns: [
             {
                 data: 'serialNumber',
@@ -43,8 +53,25 @@ function loadDataTable() {
             {
                 data: 'reportedDate',
                 width: "8%",
-                render: function (data) {
-                    return data ? new Date(data).toLocaleDateString() : 'N/A';
+                render: function (data,type) {
+                    if (data) {
+                        // Convert to Date object and format as dd-MM-yyyy HH:mm tt
+                        const date = new Date(data);
+
+                        // When DataTables needs to sort or order, return a numeric timestamp
+                        if (type === 'sort' || type === 'order') {
+                            return date.getTime();
+                        }
+
+                        return date.toLocaleDateString('en-GB')
+                            .split('/').join('-') + ' ' +
+                            date.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                    }
+                    return '';
                 }
             },
             {
@@ -135,6 +162,31 @@ function loadDataTable() {
         order: [[3, 'desc']] // Sort by reported date descending
     });
 
+    // robust status-priority sorter (register before DataTable init) -----
+    $.fn.dataTable.ext.type.order['status-priority-pre'] = function (data) {
+        // handle null/undefined
+        if (data == null) return 99;
+
+        // if cell contains HTML (badge), strip tags -> get inner text
+        if (typeof data === 'string') {
+            // remove tags, unescape &nbsp; etc, trim whitespace
+            data = data.replace(/<[^>]*>/g, '').replace(/\u00A0/g, ' ').trim();
+        } else {
+            data = String(data);
+        }
+
+        // normalize: remove spaces and lowercase for robust comparison
+        var key = data.replace(/\s+/g, '').toLowerCase();
+
+        switch (key) {
+            case 'reported': return 1;
+            case 'underrepair': return 2;
+            case 'fixed': return 3;
+            case 'outofservice': return 4;
+            default: return 5;
+        }
+    };
+
     // Add event listeners for filters
     $('#statusFilter').on('change', function () {
         applyFilters();
@@ -157,6 +209,9 @@ function applyFilters() {
 
 function clearFilters() {
     $('#statusFilter').val('All');
+    // Reset to initial ordering: [5, "asc"], [3, "desc"]
+    dataTable.order([[5, 'asc'], [3, 'desc']]).draw();
+
     dataTable.columns().search('').draw();
 
     toastr.info('All filters cleared');

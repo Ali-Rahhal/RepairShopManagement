@@ -73,16 +73,6 @@
                             <input type="hidden" asp-for="DefectiveUnitForUpsert.MaintenanceContractId" id="selectedContractId" />
                         </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label asp-for="DefectiveUnitForUpsert.ReportedDate" class="form-label fw-bold"></label>
-                                    <input asp-for="DefectiveUnitForUpsert.ReportedDate" type="date" class="form-control" />
-                                    <span asp-validation-for="DefectiveUnitForUpsert.ReportedDate" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
                         <div class="mb-3">
                             <label asp-for="DefectiveUnitForUpsert.Description" class="form-label fw-bold"></label>
                             <textarea asp-for="DefectiveUnitForUpsert.Description" class="form-control" rows="4"
@@ -135,12 +125,6 @@
     }
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Set today's date as default for reported date
-            const reportedDate = document.getElementById('DefectiveUnitForUpsert_ReportedDate');
-            if (!reportedDate.value) {
-                const today = new Date().toISOString().split('T')[0];
-                reportedDate.value = today;
-            }
 
             // Enable enter key for search
             const searchInput = document.getElementById('serialNumberSearch');

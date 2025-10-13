@@ -80,7 +80,6 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
 
             THToBeChanged.Status = SD.Status_Job_InProgress;
             THToBeChanged.InProgressDate = DateTime.Now;
-            THToBeChanged.DefectiveUnit.Status = SD.Status_Part_Pending_Repair;
             await _unitOfWork.TransactionHeader.UpdateAsy(THToBeChanged);
             await _unitOfWork.SaveAsy();
             return new JsonResult(new { success = true, message = "Status changed successfully" });

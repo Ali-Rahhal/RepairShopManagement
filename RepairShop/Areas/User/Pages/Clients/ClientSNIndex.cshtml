@@ -16,6 +16,11 @@
             <div class="col-6">
                 <input type="hidden" value="@Model.ClientId" id="clientId" />
             </div>
+            <div class="col-6 text-end">
+                <a asp-page="./Index" class="btn btn-outline-primary">
+                    Back to Client List
+                </a>
+            </div>
         </div>
         <div class="table-responsive">
             <table id="tblData" class="table table-bordered table-striped" style="width:100%">

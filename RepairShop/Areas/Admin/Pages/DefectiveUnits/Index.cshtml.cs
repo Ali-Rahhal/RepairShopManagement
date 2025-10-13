@@ -32,7 +32,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             var formattedData = defectiveUnitList.Select(du => new
             {
                 id = du.Id,
-                reportedDate = du.ReportedDate.ToString("yyyy-MM-dd"),
+                reportedDate = du.ReportedDate,
                 description = du.Description,
                 status = du.Status,
                 resolvedDate = du.ResolvedDate?.ToString("yyyy-MM-dd") ?? "Not resolved",

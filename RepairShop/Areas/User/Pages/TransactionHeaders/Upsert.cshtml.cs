@@ -73,11 +73,8 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 // Set the ClientId from the defective unit's serial number
                 thForUpsert.ClientId = defectiveUnit.SerialNumber.ClientId;
 
-                if (defectiveUnit.Status != SD.Status_DU_Reported)
-                {
-                    ModelState.AddModelError(string.Empty, "Selected defective unit is already in use or has been completed");
-                    return Page();
-                }
+                defectiveUnit.Status = SD.Status_DU_UnderRepair;
+                await _unitOfWork.DefectiveUnit.UpdateAsy(defectiveUnit);
 
                 if (thForUpsert.Id == 0)
                 {
@@ -107,6 +104,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             // Search defective units by serial number, model, or client name
             var defectiveUnits = (await _unitOfWork.DefectiveUnit.GetAllAsy(
                 du => du.IsActive == true &&
+                      du.Status == SD.Status_DU_Reported &&
                      (du.SerialNumber.Value.Contains(term) ||
                       du.SerialNumber.Model.Name.Contains(term) ||
                       du.SerialNumber.Client.Name.Contains(term)),
