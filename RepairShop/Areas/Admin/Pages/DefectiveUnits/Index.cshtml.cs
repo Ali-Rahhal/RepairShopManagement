@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using System.Security.Claims;
 
 namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 {
@@ -67,6 +69,38 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             return new JsonResult(new { success = true, message = "Defective unit report deleted successfully" });
         }
 
-        
+        public async Task<IActionResult> OnGetAddToTransaction(int? DuId)
+        {
+            if (DuId == null || DuId == 0)
+            {
+                return new JsonResult(new { success = false, message = "Error while adding to transaction" });
+            }
+
+            var defectiveUnitToBeAdded = await _unitOfWork.DefectiveUnit.GetAsy(du => du.Id == DuId, includeProperties: "SerialNumber,SerialNumber.Client");
+
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (defectiveUnitToBeAdded == null || currentUserId == null)
+            {
+                return new JsonResult(new { success = false, message = "Error while adding to transaction" });
+            }
+
+            TransactionHeader thForDu = new TransactionHeader()
+            {
+                DefectiveUnitId = (int)DuId,
+                ClientId = defectiveUnitToBeAdded.SerialNumber.ClientId,
+                UserId = currentUserId
+            };
+
+            defectiveUnitToBeAdded.Status = SD.Status_DU_UnderRepair;
+            await _unitOfWork.DefectiveUnit.UpdateAsy(defectiveUnitToBeAdded);
+
+            await _unitOfWork.TransactionHeader.AddAsy(thForDu);
+
+            await _unitOfWork.SaveAsy();
+            return new JsonResult(new { success = true, message = "Defective unit added to transaction successfully" });
+        }
+
+
     }
 }

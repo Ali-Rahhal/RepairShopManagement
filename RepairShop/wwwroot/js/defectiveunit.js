@@ -149,11 +149,23 @@ function loadDataTable() {
                     </div>`;
                     }
 
-                    return `<div class="d-flex justify-content-center" role="group">
+                    if (row.status === 'Reported') {
+                        return `<div class="d-flex justify-content-center" role="group">
+                        <a href="/Admin/DefectiveUnits/Upsert?id=${data}" title="Edit" class="btn btn-primary btn-sm mx-1">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <a onclick="addToTransaction(${data})" title="Add to Transaction" class="btn btn-success btn-sm mx-1">
+                            <i class="bi bi-plus-circle"></i>
+                        </a>
+                    </div>`;
+                    } else {
+                        return `<div class="d-flex justify-content-center" role="group">
                         <a href="/Admin/DefectiveUnits/Upsert?id=${data}" title="Edit" class="btn btn-primary btn-sm mx-1">
                             <i class="bi bi-pencil-square"></i>
                         </a>
                     </div>`;
+                    }
+                    
                 },
                 width: "12%",
                 orderable: false
@@ -248,4 +260,21 @@ function Delete(id) {
                 });
         }
     });
+}
+
+function addToTransaction(id) {
+    fetch(`/Admin/DefectiveUnits/Index?handler=AddToTransaction&DuId=${id}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                dataTable.ajax.reload();
+                toastr.success(data.message);
+            } else {
+                toastr.error(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            toastr.error('Error deleting defective unit report');
+        });
 }
