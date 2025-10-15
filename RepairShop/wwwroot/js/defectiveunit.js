@@ -84,15 +84,19 @@ function loadDataTable() {
             {
                 data: 'status',
                 width: "10%",
-                render: function (data) {
-                    let badgeClass = 'bg-secondary';
-                    switch (data) {
-                        case 'Reported': badgeClass = 'bg-info'; break;
-                        case 'UnderRepair': badgeClass = 'bg-warning'; break;
-                        case 'Fixed': badgeClass = 'bg-success'; break;
-                        case 'OutOfService': badgeClass = 'bg-danger'; break;
+                render: function (data, type) {
+                    if (type === `display`) {
+                        let badgeClass = 'bg-secondary';
+                        switch (data) {
+                            case 'Reported': badgeClass = 'bg-info'; break;
+                            case 'UnderRepair': badgeClass = 'bg-warning'; break;
+                            case 'Fixed': badgeClass = 'bg-success'; break;
+                            case 'OutOfService': badgeClass = 'bg-danger'; break;
+                        }
+                        return `<span class="badge ${badgeClass}">${data}</span>`;
                     }
-                    return `<span class="badge ${badgeClass}">${data}</span>`;
+                    // For filtering/sorting, just return the plain value
+                    return data;
                 }
             },
             {

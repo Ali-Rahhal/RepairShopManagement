@@ -70,14 +70,14 @@
                                     <div class="col-md-4">
                                         <strong>Client:</strong> <span id="selectedClientName"></span>
                                     </div>
-                                    <div class="col-md-6">
-                                        <strong>Issue Description:</strong> <span id="selectedDescription"></span>
+                                    <div class="col-md-4">
+                                        <strong>Reported Date:</strong> <span id="selectedReportedDate"></span>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <strong>Status:</strong> <span id="selectedStatus" class="badge"></span>
                                     </div>
-                                    <div class="col-md-3">
-                                        <strong>Reported Date:</strong> <span id="selectedReportedDate"></span>
+                                    <div class="col-md-12">
+                                        <strong>Issue Description:</strong> <span id="selectedDescription"></span>
                                     </div>
                                 </div>
                                 <input type="hidden" asp-for="thForUpsert.DefectiveUnitId" id="selectedDefectiveUnitId" />
@@ -98,14 +98,14 @@
                                     <div class="col-md-4">
                                         <strong>Client:</strong> <span>@(Model.thForUpsert.Client?.Name ?? "N/A")</span>
                                     </div>
-                                    <div class="col-md-6">
-                                        <strong>Issue Description:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.Description ?? "N/A")</span>
+                                    <div class="col-md-4">
+                                        <strong>Reported Date:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.ReportedDate.ToString("yyyy-MM-dd") ?? "N/A")</span>
                                     </div>
-                                    <div class="col-md-3">
+                                    <div class="col-md-4">
                                         <strong>Status:</strong> <span class="badge @GetStatusBadgeClass(Model.thForUpsert.DefectiveUnit?.Status)">@(Model.thForUpsert.DefectiveUnit?.Status ?? "N/A")</span>
                                     </div>
-                                    <div class="col-md-3">
-                                        <strong>Reported Date:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.ReportedDate.ToString("yyyy-MM-dd") ?? "N/A")</span>
+                                    <div class="col-md-12">
+                                        <strong>Issue Description:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.Description ?? "N/A")</span>
                                     </div>
                                 </div>
                                 <input type="hidden" asp-for="thForUpsert.DefectiveUnitId" />

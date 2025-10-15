@@ -60,6 +60,9 @@
                                     <strong>Client:</strong> <span id="selectedClientName"></span>
                                 </div>
                                 <div class="col-md-6">
+                                    <strong>Received Date:</strong> <span id="SelectedReceivedDate"></span>
+                                </div>
+                                <div class="col-md-6">
                                     <strong>Warranty:</strong>
                                     <span id="warrantyStatus" class="badge bg-secondary">Checking...</span>
                                 </div>
@@ -220,6 +223,16 @@
                         document.getElementById('selectedSerialValue').textContent = data.serialNumberValue;
                         document.getElementById('selectedModelName').textContent = data.modelName;
                         document.getElementById('selectedClientName').textContent = data.clientName;
+
+                        const date = new Date(data.receivedDate);
+                        document.getElementById('SelectedReceivedDate').textContent = date.toLocaleDateString('en-GB')
+                            .split('/').join('-') + ' ' +
+                            date.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            });;
+
 
                         // Update warranty status
                         const warrantyBadge = document.getElementById('warrantyStatus');

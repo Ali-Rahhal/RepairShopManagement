@@ -151,7 +151,8 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 hasActiveWarranty = serialNumber.Warranty != null && serialNumber.Warranty.Status == "Active",
                 hasActiveContract = serialNumber.MaintenanceContract != null && serialNumber.MaintenanceContract.Status == "Active",
                 warrantyId = serialNumber.Warranty?.Id,
-                maintenanceContractId = serialNumber.MaintenanceContract?.Id
+                maintenanceContractId = serialNumber.MaintenanceContract?.Id,
+                receivedDate = serialNumber.ReceivedDate
             };
 
             return new JsonResult(result);

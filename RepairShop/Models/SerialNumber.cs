@@ -6,6 +6,7 @@ namespace RepairShop.Models
     {
         public int Id { get; set; }
         public string Value { get; set; }
+        public DateTime ReceivedDate { get; set; } = DateTime.Now;
         public bool IsActive { get; set; } = true;
 
         public int ModelId { get; set; }

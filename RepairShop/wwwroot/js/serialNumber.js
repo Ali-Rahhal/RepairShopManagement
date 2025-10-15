@@ -68,6 +68,30 @@ function loadDataTable() {
                 }
             },
             {
+                data: 'receivedDate',
+                "width": "15%",
+                "render": function (data, type, row) {
+                    if (data) {
+                        // Convert to Date object and format as dd-MM-yyyy HH:mm tt
+                        const date = new Date(data);
+
+                        // When DataTables needs to sort or order, return a numeric timestamp
+                        if (type === 'sort' || type === 'order') {
+                            return date.getTime();
+                        }
+
+                        return date.toLocaleDateString('en-GB')
+                            .split('/').join('-') + ' ' +
+                            date.toLocaleTimeString('en-US', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                hour12: true
+                            });
+                    }
+                    return '';
+                }
+            },
+            {
                 data: 'id',
                 "render": function (data) {
                     return `<div class="w-100 d-flex justify-content-center" role="group">
@@ -86,9 +110,9 @@ function loadDataTable() {
     });
 
     if (isAdmin()) {
-        dataTable.column(4).visible(true);   // show admin column
+        dataTable.column(5).visible(true);   // show admin column
     } else {
-        dataTable.column(4).visible(false);
+        dataTable.column(5).visible(false);
     }
 
     // Add event listeners for filters
