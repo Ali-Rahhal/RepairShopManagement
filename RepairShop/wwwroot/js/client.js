@@ -34,7 +34,11 @@ function loadDataTable() {
                 },
                 "width": "20%"
             }
-        ]
+        ],
+        "language": {
+            "emptyTable": "No clients found",
+            "zeroRecords": "No matching clients found"
+        }
     });
 }
 

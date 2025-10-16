@@ -35,7 +35,11 @@ function loadDataTable() {
                 "width": "25%"
             },
         ],
-        order: [[1, 'asc']]
+        order: [[1, 'asc']],
+        "language": {
+            "emptyTable": "No parts found",
+            "zeroRecords": "No matching parts found"
+        }
     });
 
     // Add event listener for category filter
