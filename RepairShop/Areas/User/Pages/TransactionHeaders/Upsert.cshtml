@@ -96,7 +96,7 @@
                                         <strong>Model:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.SerialNumber?.Model?.Name ?? "N/A")</span>
                                     </div>
                                     <div class="col-md-4">
-                                        <strong>Client:</strong> <span>@(Model.thForUpsert.Client?.Name ?? "N/A")</span>
+                                        <strong>Client:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.SerialNumber?.Client?.Name ?? "N/A")</span>
                                     </div>
                                     <div class="col-md-4">
                                         <strong>Reported Date:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.ReportedDate.ToString("yyyy-MM-dd") ?? "N/A")</span>

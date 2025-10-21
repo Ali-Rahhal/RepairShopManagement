@@ -109,14 +109,48 @@ function loadDataTable() {
                 data: 'id',
                 visible: isAdmin(),//this column is only visible to non-admin users
                 "render": function (data, type, row) {
-                    return `<div class="w-75 d-flex" role="group">
-                                <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a>
-                                <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                                <button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}')"
-                                    title="View History" class="btn btn-outline-primary mx-2"> 
-                                        <i class="bi bi-clock-history"></i>
-                                </button>
-                            </div>`;
+                    //return `<div class="w-75 d-flex" role="group">
+                    //            <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a>
+                    //            <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                    //            <button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}')"
+                    //                title="View History" class="btn btn-outline-primary mx-2">
+                    //                    <i class="bi bi-clock-history"></i>
+                    //            </button>
+                    //        </div>`;
+                    if (row.status === "New") {
+                        return `<div class="w-75 d-flex" role="group">
+                                    <a onClick="ChangeStatusToInProgress('/User/TransactionHeaders/Index?handler=ChangeStatus&id=${data}')" title="Start Work" class="btn btn-success mx-2"><i class="bi bi-play-circle"></i></a>
+                                    <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
+                                    <a title="Complete(Transaction needs to be in progress)" class="btn btn-dark mx-2"><i class="bi bi-check-circle"></i></a>
+                                    <button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}')"
+                                        title="View History" class="btn btn-outline-primary mx-2"> 
+                                            <i class="bi bi-clock-history"></i>
+                                    </button>
+                                    <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                                </div>`;
+                    } else if (row.status !== "Completed" && row.status !== "OutOfService") {
+                        return `<div class="w-75 d-flex" role="group">
+                                    <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a> 
+                                    <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
+                                    <a onClick="ToCompleted('/User/TransactionHeaders/Index?handler=CompleteStatus&id=${data}')" title="Complete" class="btn btn-success mx-2"><i class="bi bi-check-circle"></i></a>
+                                    <button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}')"
+                                        title="View History" class="btn btn-outline-primary mx-2"> 
+                                            <i class="bi bi-clock-history"></i>
+                                    </button>
+                                    <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                                </div>`;
+                    } else {
+                        return `<div class="w-75 d-flex" role="group">
+                                    <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a> 
+                                    <a title="Edit(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-pencil-square"></i></a>
+                                    <a title="Complete(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-check-circle"></i></a>
+                                    <button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}')"
+                                        title="View History" class="btn btn-outline-primary mx-2"> 
+                                            <i class="bi bi-clock-history"></i>
+                                    </button>
+                                    <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                                </div>`;
+                    }
                 },
                 "width": "5%"
             },

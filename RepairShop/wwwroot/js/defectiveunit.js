@@ -139,7 +139,28 @@ function loadDataTable() {
                 render: function (data, type, row) {
 
                     if (isAdmin()) {
-                        return `<div class="d-flex justify-content-center" role="group">
+                    //    return `<div class="d-flex justify-content-center" role="group">
+                    //    <a href="/Admin/DefectiveUnits/Upsert?id=${data}" title="Edit" class="btn btn-primary btn-sm mx-1">
+                    //        <i class="bi bi-pencil-square"></i>
+                    //    </a>
+                    //    <button onclick="Delete(${data})" title="Delete" class="btn btn-danger btn-sm mx-1">
+                    //        <i class="bi bi-trash-fill"></i>
+                    //    </button>
+                    //</div>`;
+                        if (row.status === 'Reported') {
+                            return `<div class="d-flex justify-content-center" role="group">
+                        <a href="/Admin/DefectiveUnits/Upsert?id=${data}" title="Edit" class="btn btn-primary btn-sm mx-1">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <a onclick="addToTransaction(${data})" title="Add to Transaction" class="btn btn-success btn-sm mx-1">
+                            <i class="bi bi-plus-circle"></i>
+                        </a>
+                        <button onclick="Delete(${data})" title="Delete" class="btn btn-danger btn-sm mx-1">
+                            <i class="bi bi-trash-fill"></i>
+                        </button>
+                    </div>`;
+                        } else {
+                            return `<div class="d-flex justify-content-center" role="group">
                         <a href="/Admin/DefectiveUnits/Upsert?id=${data}" title="Edit" class="btn btn-primary btn-sm mx-1">
                             <i class="bi bi-pencil-square"></i>
                         </a>
@@ -147,6 +168,7 @@ function loadDataTable() {
                             <i class="bi bi-trash-fill"></i>
                         </button>
                     </div>`;
+                        }
                     }
 
                     if (row.status === 'Reported') {

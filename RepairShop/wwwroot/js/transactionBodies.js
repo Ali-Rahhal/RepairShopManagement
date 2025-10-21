@@ -73,9 +73,18 @@ function loadDataTable() {
                 }
             },
             {
-                data: 'id',//this column is only visible to non-admin users
+                data: 'id',//this column is only visible to admins
                 "render": function (data, type, row) {
-                    return `<div class="w-100 d-flex justify-content-center" role="group">
+                    //return `<div class="w-100 d-flex justify-content-center" role="group">
+                    //                <button class="btn btn-outline-primary mx-2" title="View History"
+                    //                    onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
+                    //                                            '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
+                    //                                            '${row.notRepairableDate}', '${row.notReplaceableDate}')">
+                    //                        <i class="bi bi-clock-history"></i>
+                    //                </button>
+                    //            </div>`;
+                    if (hStatus === "Completed" || hStatus === "OutOfService") {//only show this column if the header status is completed.
+                        return `<div class="w-100 d-flex justify-content-center" role="group">
                                     <button class="btn btn-outline-primary mx-2" title="View History"
                                         onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
                                                                 '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
@@ -83,6 +92,32 @@ function loadDataTable() {
                                             <i class="bi bi-clock-history"></i>
                                     </button>
                                 </div>`;
+                    }
+                    if (row.status === "WaitingForPart") {//only show this column if the part status is waiting for part.
+                        return `<div class="w-100 d-flex justify-content-center" role="group">
+                                    <a onClick="CheckPartAvailable('/User/TransactionBodies/Index?handler=CheckPart&id=${data}')" title="Check if Part is Available" class="btn btn-info mx-2"><i class="bi bi-box-seam"></i></a>
+                                    <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit Name" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
+                                    <a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                                    <button class="btn btn-outline-primary mx-2" title="View History"
+                                        onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
+                                                                '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
+                                                                '${row.notRepairableDate}', '${row.notReplaceableDate}')">
+                                            <i class="bi bi-clock-history"></i>
+                                    </button>
+                                </div>`;
+                    } else {
+                        return `<div class="w-100 d-flex justify-content-center" role="group">
+                                    <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit Name" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
+                                    <a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                                    <a onClick="ChangeStatus(${data}, '${row.status}')" title="Change Status" class="btn btn-warning mx-2"><i class="bi bi-gear"></i></a>
+                                    <button class="btn btn-outline-primary mx-2" title="View History"
+                                        onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
+                                                                '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
+                                                                '${row.notRepairableDate}', '${row.notReplaceableDate}')">
+                                            <i class="bi bi-clock-history"></i>
+                                    </button>
+                                </div>`;
+                    }
                 },
                 "width": "5%"
             },
