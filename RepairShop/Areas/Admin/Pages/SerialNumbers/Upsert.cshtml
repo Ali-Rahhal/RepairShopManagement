@@ -81,6 +81,8 @@
     }
     <script>
         $(document).ready(function () {
+            // Store the selected contract ID when page loads
+            var selectedContractId = $('#contractDropdown').val();
             // When client selection changes
             $('#clientDropdown').change(function () {
                 var clientId = $(this).val();
@@ -94,9 +96,17 @@
                     $.get('/Admin/SerialNumbers/Upsert?handler=ContractsByClient&clientId=' + clientId)
                         .done(function (data) {
                             if (data && data.length > 0) {
-                                var options = '<option value="">--Select Maintenance Contract (Optional)--</option>';
+
+                                if(selectedContractId === null || selectedContractId === undefined || selectedContractId === ''){
+                                    var options = '<option value="">--Select Maintenance Contract (Optional)--</option>';
+                                }else {
+                                    var options = '<option value="">--No Contract--</option>';
+                                }
+                                
                                 $.each(data, function (index, contract) {
-                                    options += '<option value="' + contract.id + '">' + contract.text + '</option>';
+                                    // Check if this contract should be selected
+                                    var isSelected = (contract.id == selectedContractId) ? 'selected' : '';
+                                    options += '<option value="' + contract.id + '" ' + isSelected + '>' + contract.text + '</option>';
                                 });
                                 contractDropdown.html(options);
                             } else {
