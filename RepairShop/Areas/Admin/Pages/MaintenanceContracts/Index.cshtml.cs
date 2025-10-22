@@ -57,6 +57,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                 id = mc.Id,
                 contractNumber = $"CONTRACT-{mc.Id:D4}",
                 clientName = mc.Client?.Name ?? "N/A",
+                clientId = mc.ClientId,
                 startDate = mc.StartDate,
                 endDate = mc.EndDate,
                 status = mc.Status,
@@ -100,6 +101,113 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                 .ToList();
 
             return new JsonResult(new { clients });
+        }
+
+        // API to get serial numbers for a client (both available and assigned)
+        public async Task<JsonResult> OnGetClientSerialNumbers(int contractId, int clientId)
+        {
+            // Get serial numbers already assigned to this contract
+            var assignedSerialNumbers = (await _unitOfWork.SerialNumber.GetAllAsy(
+                sn => sn.IsActive == true && sn.MaintenanceContractId == contractId,
+                includeProperties: "Model"
+            ))
+            .Select(sn => new
+            {
+                id = sn.Id,
+                value = sn.Value,
+                modelName = sn.Model.Name,
+                isAssigned = true
+            })
+            .OrderBy(sn => sn.value)
+            .ToList();
+
+            // Get available serial numbers (no contract)
+            var availableSerialNumbers = (await _unitOfWork.SerialNumber.GetAllAsy(
+                sn => sn.IsActive == true && sn.ClientId == clientId && sn.MaintenanceContractId == null,
+                includeProperties: "Model"
+            ))
+            .Select(sn => new
+            {
+                id = sn.Id,
+                value = sn.Value,
+                modelName = sn.Model.Name,
+                isAssigned = false
+            })
+            .OrderBy(sn => sn.value)
+            .ToList();
+
+            // Combine both lists
+            var allSerialNumbers = assignedSerialNumbers.Concat(availableSerialNumbers).ToList();
+
+            return new JsonResult(new
+            {
+                serialNumbers = allSerialNumbers,
+                assignedCount = assignedSerialNumbers.Count,
+                availableCount = availableSerialNumbers.Count
+            });
+        }
+
+        // API to assign/remove contract from serial numbers
+        public async Task<IActionResult> OnPostAssignToSerialNumbers(int contractId, List<int> serialNumberIds)
+        {
+            try
+            {
+                var contract = await _unitOfWork.MaintenanceContract.GetAsy(mc => mc.Id == contractId);
+                if (contract == null)
+                {
+                    return new JsonResult(new { success = false, message = "Contract not found" });
+                }
+
+                // Get all serial numbers for this client
+                var clientSerialNumbers = await _unitOfWork.SerialNumber.GetAllAsy(
+                    sn => sn.IsActive == true && sn.ClientId == contract.ClientId
+                );
+
+                int assignedCount = 0;
+                int removedCount = 0;
+
+                foreach (var serialNumber in clientSerialNumbers)
+                {
+                    if (serialNumberIds.Contains(serialNumber.Id))
+                    {
+                        // Assign contract to this serial number
+                        if (serialNumber.MaintenanceContractId != contractId)
+                        {
+                            serialNumber.MaintenanceContractId = contractId;
+                            await _unitOfWork.SerialNumber.UpdateAsy(serialNumber);
+                            assignedCount++;
+                        }
+                    }
+                    else
+                    {
+                        // Remove contract from this serial number if it was previously assigned
+                        if (serialNumber.MaintenanceContractId == contractId)
+                        {
+                            serialNumber.MaintenanceContractId = null;
+                            await _unitOfWork.SerialNumber.UpdateAsy(serialNumber);
+                            removedCount++;
+                        }
+                    }
+                }
+
+                await _unitOfWork.SaveAsy();
+
+                var message = new List<string>();
+                if (assignedCount > 0) message.Add($"Assigned to {assignedCount} serial number(s)");
+                if (removedCount > 0) message.Add($"Removed from {removedCount} serial number(s)");
+
+                return new JsonResult(new
+                {
+                    success = true,
+                    message = message.Count > 0 ? string.Join(" and ", message) : "No changes made",
+                    assignedCount = assignedCount,
+                    removedCount = removedCount
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { success = false, message = $"Error updating serial numbers: {ex.Message}" });
+            }
         }
     }
 }
