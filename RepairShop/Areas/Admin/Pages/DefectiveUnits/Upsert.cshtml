@@ -16,22 +16,28 @@
     </div>
     <div class="card-body p-4">
         <form method="post" class="row">
-            <input type="hidden" asp-for="DefectiveUnitForUpsert.Id" id="duId"/>
+            <input type="hidden" asp-for="DefectiveUnitForUpsert.Id" id="duId" />
+            <input type="hidden" asp-for="DefectiveUnitForUpsert.SerialNumberId" id="selectedSerialId" />
+            <input type="hidden" asp-for="DefectiveUnitForUpsert.WarrantyId" id="selectedWarrantyId" />
+            <input type="hidden" asp-for="DefectiveUnitForUpsert.MaintenanceContractId" id="selectedContractId" />
+
             <div class="row">
                 <div class="col-12 col-md-10 mx-auto">
                     <div class="border p-4">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                        <!-- Serial Number Search Section -->
+                        <!-- Serial Number Search/Create Section -->
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Search Serial Number *</label>
+                            <label class="form-label fw-bold">Serial Number *</label>
                             <div class="input-group">
                                 <input type="text" id="serialNumberSearch" class="form-control"
-                                       placeholder="Search by serial number, model, or client name...">
+                                       placeholder="Enter serial number or search existing...">
                                 <button type="button" class="btn btn-outline-primary" onclick="searchSerialNumbers()">
                                     <i class="bi bi-search"></i> Search
                                 </button>
                             </div>
+                            <div id="searchMessage" class="mt-1 small" style="display: none;"></div>
+
                             <div id="searchResults" class="mt-2" style="display: none;">
                                 <div class="card">
                                     <div class="card-header">
@@ -46,9 +52,57 @@
                             </div>
                         </div>
 
+                        <!-- New Serial Number Creation Fields (Hidden by default) -->
+                        <div id="newSerialFields" class="border p-3 rounded mb-4" style="display: none;">
+                            <h6 class="text-primary mb-3">
+                                <i class="bi bi-plus-circle"></i> Create New Serial Number
+                            </h6>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="NewSerialNumber.Value" class="form-label fw-bold">Serial Number Value</label>
+                                        <input asp-for="NewSerialNumber.Value" class="form-control" id="newSerialValue" />
+                                        <span asp-validation-for="NewSerialNumber.Value" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="NewSerialNumber.ModelId" class="form-label fw-bold">Model</label>
+                                        <select asp-for="NewSerialNumber.ModelId" asp-items="@Model.ModelList"
+                                                class="form-select" id="newSerialModel">
+                                            <option disabled selected>--Select Model--</option>
+                                        </select>
+                                        <span asp-validation-for="NewSerialNumber.ModelId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="NewSerialNumber.ClientId" class="form-label fw-bold">Client</label>
+                                        <select asp-for="NewSerialNumber.ClientId" asp-items="@Model.ClientList"
+                                                class="form-select" id="newSerialClient">
+                                            <option disabled selected>--Select Client--</option>
+                                        </select>
+                                        <span asp-validation-for="NewSerialNumber.ClientId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label asp-for="NewSerialNumber.MaintenanceContractId" class="form-label fw-bold">Maintenance Contract (Optional)</label>
+                                        <select asp-for="NewSerialNumber.MaintenanceContractId" class="form-select" id="newSerialContract">
+                                            <option value="">--Select Contract--</option>
+                                        </select>
+                                        <span asp-validation-for="NewSerialNumber.MaintenanceContractId" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Selected Serial Number Details -->
                         <div id="selectedSerialInfo" class="mb-4 p-3 border rounded" style="display: none;">
-                            <h6>Selected Device Information</h6>
+                            <h6 class="text-success">
+                                <i class="bi bi-check-circle"></i> Existing Device Found
+                            </h6>
                             <div class="row">
                                 <div class="col-md-6">
                                     <strong>Serial Number:</strong> <span id="selectedSerialValue"></span>
@@ -71,11 +125,9 @@
                                     <span id="contractStatus" class="badge bg-secondary">Checking...</span>
                                 </div>
                             </div>
-                            <input type="hidden" asp-for="DefectiveUnitForUpsert.SerialNumberId" id="selectedSerialId" />
-                            <input type="hidden" asp-for="DefectiveUnitForUpsert.WarrantyId" id="selectedWarrantyId" />
-                            <input type="hidden" asp-for="DefectiveUnitForUpsert.MaintenanceContractId" id="selectedContractId" />
                         </div>
 
+                        <!-- Defective Unit Details -->
                         <div class="mb-3">
                             <label asp-for="DefectiveUnitForUpsert.Description" class="form-label fw-bold"></label>
                             <textarea asp-for="DefectiveUnitForUpsert.Description" class="form-control" rows="4"
@@ -126,8 +178,26 @@
     @{
         <partial name="_ValidationScriptsPartial" />
     }
+    <script src="~/js/DUserialNumberSearch.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialize TomSelect for dropdowns
+            new TomSelect('#newSerialModel', {
+                placeholder: '-- Select Model --',
+                create: false
+            });
+
+            new TomSelect('#newSerialClient', {
+                placeholder: '-- Select Client --',
+                create: false,
+                onChange: function(value) {
+                    if (value && value !== '') {
+                        loadContractsForClient(value);
+                    } else {
+                        $('#newSerialContract').html('<option value="">--Select Contract--</option>');
+                    }
+                }
+            });
 
             // Enable enter key for search
             const searchInput = document.getElementById('serialNumberSearch');
@@ -141,139 +211,10 @@
             // If editing, load the existing serial number details
             @if (Model.DefectiveUnitForUpsert.Id != 0 && Model.DefectiveUnitForUpsert.SerialNumberId > 0)
             {
-                <text>
-                loadSerialNumberDetails(@Model.DefectiveUnitForUpsert.SerialNumberId);
-                </text>
+                    <text>
+                    loadSerialNumberDetails(@Model.DefectiveUnitForUpsert.SerialNumberId);
+                    </text>
             }
         });
-
-        // This function is called when the search button is clicked or the enter key is pressed.
-        // It trims the search term, checks if it has at least 2 characters, and then fetches the data.
-        function searchSerialNumbers() {
-            const searchTerm = document.getElementById('serialNumberSearch').value.trim();
-            if (searchTerm.length < 2) {
-                toastr.warning('Please enter at least 2 characters to search');
-                return;
-            }
-
-            const resultsDiv = document.getElementById('searchResults');
-            const resultsList = document.getElementById('searchResultsList');
-
-            resultsList.innerHTML = '<div class="text-center p-3"><div class="spinner-border" role="status"></div></div>';
-            resultsDiv.style.display = 'block';
-
-            fetch(`/Admin/DefectiveUnits/Upsert?handler=SearchSerialNumbers&searchTerm=${encodeURIComponent(searchTerm)}`)
-                .then(response => response.json())
-                .then(data => {
-                    resultsList.innerHTML = '';
-
-                    if (data.length === 0) {
-                        resultsList.innerHTML = '<div class="text-center p-3 text-muted">No serial numbers found</div>';
-                        return;
-                    }
-
-                    // Create a new list item for each search result
-                    data.forEach(item => {
-                        const listItem = document.createElement('button');
-                        listItem.type = 'button';
-                        listItem.className = 'list-group-item list-group-item-action';
-                        listItem.innerHTML = `
-                            <div class="d-flex justify-content-between align-items-start">
-                                <div>
-                                    <strong>${item.value}</strong><br>
-                                    <small class="text-muted">Model: ${item.modelName} | Client: ${item.clientName}</small>
-                                </div>
-                                <div class="text-end">
-                                    ${item.hasWarranty ? '<span class="badge bg-success me-1">Warranty</span>' : ''}
-                                    ${item.hasContract ? '<span class="badge bg-info">Contract</span>' : ''}
-                                </div>
-                            </div>
-                        `;
-                        // When a search result is clicked, select that serial number
-                        listItem.onclick = function() {
-                            selectSerialNumber(item.id);
-                        };
-                        resultsList.appendChild(listItem);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    resultsList.innerHTML = '<div class="text-center p-3 text-danger">Error loading results</div>';
-                });
-        }
-
-        // This function is called when a search result is clicked.
-        // It updates the UI with the selected serial number's details.
-        function selectSerialNumber(serialNumberId) {
-            document.getElementById('searchResults').style.display = 'none';
-            loadSerialNumberDetails(serialNumberId);
-        }
-
-        // This function is called to load the details of a selected serial number.
-        // It fetches the data and updates the UI accordingly.
-        function loadSerialNumberDetails(serialNumberId) {
-            const infoDiv = document.getElementById('selectedSerialInfo');
-            infoDiv.style.display = 'block';
-
-            fetch(`/Admin/DefectiveUnits/Upsert?handler=SerialNumberDetails&id=${serialNumberId}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Update the UI with the serial number's details
-                        document.getElementById('selectedSerialValue').textContent = data.serialNumberValue;
-                        document.getElementById('selectedModelName').textContent = data.modelName;
-                        document.getElementById('selectedClientName').textContent = data.clientName;
-
-                        const date = new Date(data.receivedDate);
-                        document.getElementById('SelectedReceivedDate').textContent = date.toLocaleDateString('en-GB')
-                            .split('/').join('-') + ' ' +
-                            date.toLocaleTimeString('en-US', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: true
-                            });;
-
-
-                        // Update warranty status
-                        const warrantyBadge = document.getElementById('warrantyStatus');
-                        if (data.hasActiveWarranty) {
-                            warrantyBadge.textContent = 'Active';
-                            warrantyBadge.className = 'badge bg-success';
-                            document.getElementById('selectedWarrantyId').value = data.warrantyId;
-                        } else {
-                            warrantyBadge.textContent = 'No Active Warranty';
-                            warrantyBadge.className = 'badge bg-secondary';
-                            document.getElementById('selectedWarrantyId').value = '';
-                        }
-
-                        // Update contract status
-                        const contractBadge = document.getElementById('contractStatus');
-                        if (data.hasActiveContract) {
-                            contractBadge.textContent = 'Active';
-                            contractBadge.className = 'badge bg-info';
-                            document.getElementById('selectedContractId').value = data.maintenanceContractId;
-                        } else {
-                            contractBadge.textContent = 'No Active Contract';
-                            contractBadge.className = 'badge bg-secondary';
-                            document.getElementById('selectedContractId').value = '';
-                        }
-
-                        // Set the serial number ID
-                        document.getElementById('selectedSerialId').value = data.serialNumberId;
-
-                        // Enable submit button(need to check if null because it is null when editing)
-                        let submit = document.getElementById('submitBtn');
-                        if (submit) {
-                            submit.disabled = false;
-                        }
-                    } else {
-                        toastr.error('Error loading serial number details');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    toastr.error('Error loading serial number details');
-                });
-        }
     </script>
 }

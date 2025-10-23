@@ -21,6 +21,13 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         [BindProperty]
         public DefectiveUnit DefectiveUnitForUpsert { get; set; }
 
+        [BindProperty]
+        public SerialNumber NewSerialNumber { get; set; } // For creating new serial numbers
+
+        public IEnumerable<SelectListItem> ModelList { get; set; }
+        public IEnumerable<SelectListItem> ClientList { get; set; }
+        public IEnumerable<SelectListItem> MaintenanceContractList { get; set; }
+
         public List<SerialNumber> AvailableSerialNumbers { get; set; }
         public Warranty SelectedWarranty { get; set; }
         public MaintenanceContract SelectedMaintenanceContract { get; set; }
@@ -28,9 +35,10 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         public async Task<IActionResult> OnGet(int? id)
         {
             DefectiveUnitForUpsert = new DefectiveUnit();
+            NewSerialNumber = new SerialNumber();
 
-            // Load available serial numbers
-            await LoadAvailableSerialNumbers();
+            // Populate dropdowns
+            await PopulateDropdowns();
 
             if (id == null || id == 0)
             {
@@ -72,13 +80,40 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                     return NotFound();
                 }
 
-                var duplicateReporetedDU = await _unitOfWork.DefectiveUnit.GetAsy(du => du.IsActive == true 
-                    && du.SerialNumberId == DefectiveUnitForUpsert.SerialNumberId 
+                // Check if we need to create a new serial number
+                bool creatingNewSerial = DefectiveUnitForUpsert.SerialNumberId == 0 &&
+                                       !string.IsNullOrEmpty(NewSerialNumber.Value);
+
+                if (creatingNewSerial)
+                {
+                    // Validate new serial number
+                    var existingSerialNumber = await _unitOfWork.SerialNumber.GetAsy(
+                        sn => sn.Value == NewSerialNumber.Value && sn.IsActive == true
+                    );
+
+                    if (existingSerialNumber != null)
+                    {
+                        ModelState.AddModelError("NewSerialNumber.Value", "Serial number already exists.");
+                        await PopulateDropdowns();
+                        return Page();
+                    }
+
+                    // Create the new serial number
+                    await _unitOfWork.SerialNumber.AddAsy(NewSerialNumber);
+                    await _unitOfWork.SaveAsy();
+
+                    // Set the new serial number ID to the defective unit
+                    DefectiveUnitForUpsert.SerialNumberId = NewSerialNumber.Id;
+                }
+
+                var duplicateReportedDU = await _unitOfWork.DefectiveUnit.GetAsy(du => du.IsActive == true
+                    && du.SerialNumberId == DefectiveUnitForUpsert.SerialNumberId
                     && du.Status == SD.Status_DU_Reported);
-                if(duplicateReporetedDU != null)
+
+                if (duplicateReportedDU != null)
                 {
                     ModelState.AddModelError(string.Empty, "You have already reported a defective unit for this serial number.");
-                    await LoadAvailableSerialNumbers();
+                    await PopulateDropdowns();
                     return Page();
                 }
 
@@ -97,7 +132,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 return RedirectToPage("Index");
             }
 
-            await LoadAvailableSerialNumbers();
+            await PopulateDropdowns();
             return Page();
         }
 
@@ -111,13 +146,16 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                       sn.Client.Name.Contains(searchTerm)),
                 includeProperties: "Model,Client,Warranty,MaintenanceContract"
             ))
-            .Take(10) // Limit results for performance
+            .Take(10)
             .Select(sn => new
             {
                 id = sn.Id,
                 value = sn.Value,
                 modelName = sn.Model.Name,
                 clientName = sn.Client.Name,
+                modelId = sn.ModelId,
+                clientId = sn.ClientId,
+                receivedDate = sn.ReceivedDate.ToString("dd-MM-yyyy HH:mm tt"),
                 hasWarranty = sn.Warranty != null && sn.Warranty.Status == "Active",
                 hasContract = sn.MaintenanceContract != null && sn.MaintenanceContract.Status == "Active",
                 warrantyId = sn.Warranty?.Id,
@@ -148,24 +186,65 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 serialNumberValue = serialNumber.Value,
                 modelName = serialNumber.Model.Name,
                 clientName = serialNumber.Client.Name,
+                modelId = serialNumber.ModelId,
+                clientId = serialNumber.ClientId,
                 hasActiveWarranty = serialNumber.Warranty != null && serialNumber.Warranty.Status == "Active",
                 hasActiveContract = serialNumber.MaintenanceContract != null && serialNumber.MaintenanceContract.Status == "Active",
                 warrantyId = serialNumber.Warranty?.Id,
                 maintenanceContractId = serialNumber.MaintenanceContract?.Id,
-                receivedDate = serialNumber.ReceivedDate
+                receivedDate = serialNumber.ReceivedDate.ToString("dd-MM-yyyy HH:mm tt")
             };
 
             return new JsonResult(result);
         }
 
-        private async Task LoadAvailableSerialNumbers()
+        // API for getting contracts by client
+        public async Task<JsonResult> OnGetContractsByClient(int clientId)
         {
-            AvailableSerialNumbers = (await _unitOfWork.SerialNumber.GetAllAsy(
-                sn => sn.IsActive == true,
-                includeProperties: "Model,Client"
+            var contracts = (await _unitOfWork.MaintenanceContract.GetAllAsy(
+                mc => mc.IsActive == true && mc.ClientId == clientId,
+                includeProperties: "Client"
             ))
-            .OrderBy(sn => sn.Value)
+            .OrderBy(mc => mc.Id)
+            .Select(mc => new
+            {
+                id = mc.Id,
+                text = $"Contract #{mc.Id} - {mc.Client.Name} ({mc.Status})"
+            })
             .ToList();
+
+            return new JsonResult(contracts);
+        }
+
+        private async Task PopulateDropdowns()
+        {
+            // Populate Models dropdown
+            var models = (await _unitOfWork.Model.GetAllAsy(m => m.IsActive == true))
+                .OrderBy(m => m.Name)
+                .ToList();
+
+            ModelList = models.Select(m => new SelectListItem
+            {
+                Text = m.Name,
+                Value = m.Id.ToString()
+            });
+
+            // Populate Clients dropdown
+            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true))
+                .OrderBy(c => c.Name)
+                .ToList();
+
+            ClientList = clients.Select(c => new SelectListItem
+            {
+                Text = c.Name,
+                Value = c.Id.ToString()
+            });
+
+            // Initialize empty maintenance contracts list
+            MaintenanceContractList = new List<SelectListItem>
+            {
+                new SelectListItem { Text = "Select a client first", Value = "" }
+            };
         }
     }
 }
