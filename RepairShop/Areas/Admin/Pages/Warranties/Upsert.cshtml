@@ -21,7 +21,8 @@
 
                         <div class="mb-3">
                             <label asp-for="WarrantyForUpsert.SerialNumberId" class="form-label fw-bold"></label>
-                            <select asp-for="WarrantyForUpsert.SerialNumberId" asp-items="@Model.SerialNumberList" class="form-select">
+                            <select asp-for="WarrantyForUpsert.SerialNumberId" asp-items="@Model.SerialNumberList"
+                                    class="form-select" id="serialNumberSelect">
                                 <option disabled selected>-- Select Serial Number --</option>
                             </select>
                             <span asp-validation-for="WarrantyForUpsert.SerialNumberId" class="text-danger"></span>
@@ -81,4 +82,16 @@
     @{
         <partial name="_ValidationScriptsPartial" />
     }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            new TomSelect('#serialNumberSelect', {
+                placeholder: '-- Select Serial Number --',
+                create: false,
+                sortField: {
+                    field: 'text',
+                    direction: 'asc'
+                }
+            });
+        });
+    </script>
 }

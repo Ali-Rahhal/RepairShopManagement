@@ -21,7 +21,8 @@
 
                         <div class="mb-3">
                             <label asp-for="MaintenanceContractForUpsert.ClientId" class="form-label fw-bold"></label>
-                            <select asp-for="MaintenanceContractForUpsert.ClientId" asp-items="@Model.ClientList" class="form-select">
+                            <select asp-for="MaintenanceContractForUpsert.ClientId" asp-items="@Model.ClientList" 
+                                    class="form-select" id="clientSelect">
                                 <option disabled selected>-- Select Client --</option>
                             </select>
                             <span asp-validation-for="MaintenanceContractForUpsert.ClientId" class="text-danger"></span>
@@ -86,4 +87,16 @@
     @{
         <partial name="_ValidationScriptsPartial" />
     }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            new TomSelect('#clientSelect', {
+                placeholder: '-- Select Client --',
+                create: false,
+                sortField: {
+                    field: 'text',
+                    direction: 'asc'
+                }
+            });
+        });
+    </script>
 }

@@ -29,7 +29,8 @@
 
                         <div class="py-2 col-12">
                             <label asp-for="SerialNumberForUpsert.ModelId" class="ms-2 text-muted"></label>
-                            <select asp-for="SerialNumberForUpsert.ModelId" asp-items="@Model.ModelList" class="form-select border-0 shadow">
+                            <select asp-for="SerialNumberForUpsert.ModelId" asp-items="@Model.ModelList" 
+                                    class="form-select border-0 shadow" id="modelSelect">
                                 <option disabled selected>--Select Model--</option>
                             </select>
                             <span asp-validation-for="SerialNumberForUpsert.ModelId" class="text-danger"></span>
@@ -37,7 +38,8 @@
 
                         <div class="py-2 col-12">
                             <label asp-for="SerialNumberForUpsert.ClientId" class="ms-2 text-muted"></label>
-                            <select asp-for="SerialNumberForUpsert.ClientId" asp-items="@Model.ClientList" class="form-select border-0 shadow" id="clientDropdown">
+                            <select asp-for="SerialNumberForUpsert.ClientId" asp-items="@Model.ClientList" 
+                                    class="form-select border-0 shadow" id="clientDropdown">
                                 <option disabled selected>--Select Client--</option>
                             </select>
                             <span asp-validation-for="SerialNumberForUpsert.ClientId" class="text-danger"></span>
@@ -79,6 +81,27 @@
     @{
         <partial name="_ValidationScriptsPartial" />
     }
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            new TomSelect('#modelSelect', {
+                placeholder: '-- Select Model --',
+                create: false,
+                sortField: {
+                    field: 'text',
+                    direction: 'asc'
+                }
+            });
+
+            new TomSelect('#clientDropdown', {
+                placeholder: '-- Select Client --',
+                create: false,
+                sortField: {
+                    field: 'text',
+                    direction: 'asc'
+                }
+            });
+        });
+    </script>
     <script>
         $(document).ready(function () {
             // Store the selected contract ID when page loads
