@@ -82,6 +82,9 @@ function showNewSerialFields(searchTerm) {
 function selectSerialNumber(serialNumberId) {
     document.getElementById('searchResults').style.display = 'none';
     document.getElementById('newSerialFields').style.display = 'none';
+    // Clear new serial number fields to avoid validation issues
+    document.getElementById('newSerialValue').value = '';
+
     loadSerialNumberDetails(serialNumberId);
     isCreatingNew = false;
 }

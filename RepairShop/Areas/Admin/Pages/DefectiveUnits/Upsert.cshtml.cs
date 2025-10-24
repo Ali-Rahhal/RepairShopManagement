@@ -73,16 +73,25 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
         public async Task<IActionResult> OnPost()
         {
+            // Determine if we're creating a new serial number
+            bool creatingNewSerial = DefectiveUnitForUpsert.SerialNumberId == 0 &&
+                                   !string.IsNullOrEmpty(NewSerialNumber.Value);
+
+            // Clear NewSerialNumber validation errors if we're not creating a new serial number
+            if (!creatingNewSerial)
+            {
+                ModelState.Remove("NewSerialNumber.Value");
+                ModelState.Remove("NewSerialNumber.ModelId");
+                ModelState.Remove("NewSerialNumber.ClientId");
+                ModelState.Remove("NewSerialNumber.MaintenanceContractId");
+            }
+
             if (ModelState.IsValid)
             {
                 if (DefectiveUnitForUpsert == null)
                 {
                     return NotFound();
                 }
-
-                // Check if we need to create a new serial number
-                bool creatingNewSerial = DefectiveUnitForUpsert.SerialNumberId == 0 &&
-                                       !string.IsNullOrEmpty(NewSerialNumber.Value);
 
                 if (creatingNewSerial)
                 {
