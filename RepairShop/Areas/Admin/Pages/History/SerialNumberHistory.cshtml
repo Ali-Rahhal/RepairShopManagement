@@ -1,0 +1,435 @@
+﻿@page
+@model RepairShop.Areas.Admin.Pages.History.SerialNumberHistoryModel
+@{
+    ViewData["Title"] = "Serial Number History";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow border-0 my-4">
+                <div class="card-header text-white bg-primary bg-gradient py-3">
+                    <div class="row align-items-center">
+                        <div class="col-12 text-center">
+                            <h2 class="text-white py-2">
+                                <i class="bi bi-clock-history me-2"></i>Serial Number History
+                            </h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Search Section -->
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <form method="post" asp-page-handler="Search" id="searchForm">
+                                <div class="input-group input-group-lg">
+                                    <input type="text" class="form-control"
+                                           id="serialNumberSearch"
+                                           name="searchTerm"
+                                           value="@Model.SearchTerm"
+                                           placeholder="Start typing to search serial numbers..."
+                                           autocomplete="off"
+                                           required>
+                                    <button type="submit" class="btn btn-outline-primary">
+                                        <i class="bi bi-search me-2"></i>Search History
+                                    </button>
+                                </div>
+                                <div id="searchSuggestions" class="dropdown-menu w-100" style="display: none;"></div>
+                            </form>
+                        </div>
+                    </div>
+
+                    @if (Model.SerialNumberHistory != null)
+                    {
+                        <!-- Serial Number Summary -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h4 class="mb-0">
+                                            <i class="bi bi-upc-scan me-2"></i>Serial Number: @Model.SerialNumberHistory.SerialNumber.Value
+                                        </h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-3">
+                                                <strong>Model:</strong> @Model.SerialNumberHistory.SerialNumber.Model.Name
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>Client:</strong> @Model.SerialNumberHistory.SerialNumber.Client.Name
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>Received Date:</strong> @Model.SerialNumberHistory.SerialNumber.ReceivedDate.ToString("dd-MM-yyyy hh:mm tt")
+                                            </div>
+                                            <div class="col-md-3">
+                                                <strong>Warranty:</strong>
+                                                @if (Model.SerialNumberHistory.SerialNumber.Warranty != null)
+                                                {
+                                                    <span class="badge bg-@(Model.SerialNumberHistory.SerialNumber.Warranty.Status == "Active" ? "success" : "warning")">
+                                                        @Model.SerialNumberHistory.SerialNumber.Warranty.Status
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">No Warranty</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statistics -->
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card text-white bg-primary">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4>@Model.SerialNumberHistory.TotalDefectiveUnits</h4>
+                                                <p class="mb-0">Defective Reports</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="bi bi-exclamation-triangle fs-1"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-white bg-info">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4>@Model.SerialNumberHistory.TotalRepairJobs</h4>
+                                                <p class="mb-0">Total Repair Jobs</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="bi bi-tools fs-1"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-white bg-success">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4>@Model.SerialNumberHistory.CompletedJobs</h4>
+                                                <p class="mb-0">Completed Jobs</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="bi bi-check-circle fs-1"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-white bg-dark">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4>@Model.SerialNumberHistory.OutOfServiceJobs</h4>
+                                                <p class="mb-0">Out of Service</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="bi bi-x-circle fs-1"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Timeline -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h4 class="mb-0">
+                                            <i class="bi bi-timeline me-2"></i>Repair History Timeline
+                                        </h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="timeline">
+                                            @foreach (var timelineEvent in Model.SerialNumberHistory.TimelineEvents)
+                                            {
+                                                <div class="timeline-item">
+                                                    <div class="timeline-marker bg-@timelineEvent.EventTypeColor"></div>
+                                                    <div class="timeline-content">
+                                                        <div class="timeline-header">
+                                                            <h6 class="mb-1">
+                                                                <span class="badge bg-@timelineEvent.EventTypeColor me-2">@timelineEvent.EventType</span>
+                                                                @timelineEvent.Description
+                                                            </h6>
+                                                            <small class="text-muted">
+                                                                &nbsp<i class="bi bi-calendar me-1"></i>@timelineEvent.Date.ToString("dd-MM-yyyy hh:mm tt")
+                                                            </small>
+                                                        </div>
+                                                        <div class="timeline-body">
+                                                            <p class="mb-1">@timelineEvent.Details</p>
+                                                            @if (!string.IsNullOrEmpty(timelineEvent.Status))
+                                                            {
+                                                                <small class="text-muted">Status: @timelineEvent.Status</small>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Defective Units Details -->
+                        @if (Model.SerialNumberHistory.DefectiveUnits.Any())
+                        {
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header bg-light">
+                                            <h4 class="mb-0">
+                                                <i class="bi bi-exclamation-triangle me-2"></i>Defective Unit Reports
+                                            </h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-hover">
+                                                    <thead class="table-dark">
+                                                        <tr>
+                                                            <th>Reported Date</th>
+                                                            <th>Description</th>
+                                                            <th>Status</th>
+                                                            <th>Resolved Date</th>
+                                                            <th>Coverage</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var du in Model.SerialNumberHistory.DefectiveUnits.OrderByDescending(du => du.ReportedDate))
+                                                        {
+                                                            <tr>
+                                                                <td>@du.ReportedDate.ToString("dd-MM-yyyy hh:mm tt")</td>
+                                                                <td>@du.Description</td>
+                                                                <td>
+                                                                    <span class="badge bg-@(du.Status == SD.Status_DU_Reported ? "warning" : du.Status == SD.Status_DU_Fixed ? "success" : "secondary")">
+                                                                        @du.Status
+                                                                    </span>
+                                                                </td>
+                                                                <td>@(du.ResolvedDate?.ToString("dd-MM-yyyy hh:mm tt") ?? "Not resolved")</td>
+                                                                <td>
+                                                                    @if (du.WarrantyId.HasValue)
+                                                                    {
+                                                                        <span class="badge bg-info me-1">Warranty</span>
+                                                                    }
+                                                                    @if (du.MaintenanceContractId.HasValue)
+                                                                    {
+                                                                        <span class="badge bg-primary">Contract</span>
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Repair Jobs Details -->
+                        @if (Model.SerialNumberHistory.TransactionHeaders.Any())
+                        {
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-header bg-light">
+                                            <h4 class="mb-0">
+                                                <i class="bi bi-tools me-2"></i>Repair Jobs
+                                            </h4>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="table-responsive">
+                                                <table class="table table-striped table-hover">
+                                                    <thead class="table-dark">
+                                                        <tr>
+                                                            <th>Created Date</th>
+                                                            <th>Status</th>
+                                                            <th>In Progress Date</th>
+                                                            <th>Completed Date</th>
+                                                            <th>Technician</th>
+                                                            <th>Description</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var job in Model.SerialNumberHistory.TransactionHeaders.OrderByDescending(th => th.CreatedDate))
+                                                        {
+                                                            <tr>
+                                                                <td>@job.CreatedDate.ToString("dd-MM-yyyy hh:mm tt")</td>
+                                                                <td>
+                                                                    <span class="badge bg-@(job.Status == SD.Status_Job_New ? "secondary" : job.Status == SD.Status_Job_InProgress ? "warning" : job.Status == SD.Status_Job_Completed ? "success" : "dark")">
+                                                                        @job.Status
+                                                                    </span>
+                                                                </td>
+                                                                <td>@(job.InProgressDate?.ToString("dd-MM-yyyy hh:mm tt") ?? "-")</td>
+                                                                <td>@(job.CompletedOrOutOfServiceDate?.ToString("dd-MM-yyyy hh:mm tt") ?? "-")</td>
+                                                                <td>@job.User?.UserName</td>
+                                                                <td>@job.Description</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else if (!string.IsNullOrEmpty(Model.SearchTerm))
+                    {
+                        <div class="alert alert-warning text-center">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            No history found for serial number: <strong>@Model.SearchTerm</strong>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -30px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 3px var(--bs-primary);
+    }
+
+    .timeline-content {
+        background: #f8f9fa;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        border-left: 3px solid var(--bs-primary);
+    }
+
+    .timeline-header {
+        display: flex;
+        justify-content: between;
+        align-items: flex-start;
+        margin-bottom: 0.5rem;
+    }
+
+    .timeline-body {
+        color: #6c757d;
+    }
+
+    .dropdown-item:hover {
+        background-color: #f8f9fa;
+        cursor: pointer;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('serialNumberSearch');
+            const suggestionsContainer = document.getElementById('searchSuggestions');
+            let debounceTimer;
+
+            // Auto-focus search input
+            if (searchInput) {
+                searchInput.focus();
+                if (searchInput.value) {
+                    searchInput.select();
+                }
+            }
+
+            // Search suggestions functionality
+            searchInput.addEventListener('input', function(e) {
+                clearTimeout(debounceTimer);
+                const searchTerm = e.target.value.trim();
+
+                if (searchTerm.length < 2) {
+                    suggestionsContainer.style.display = 'none';
+                    return;
+                }
+
+                debounceTimer = setTimeout(() => {
+                    fetchSuggestions(searchTerm);
+                }, 300);
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+                    suggestionsContainer.style.display = 'none';
+                }
+            });
+
+            // Handle suggestion selection
+            suggestionsContainer.addEventListener('click', function(e) {
+                const item = e.target.closest('.dropdown-item'); // find the parent with the dataset
+                if (item) {
+                    searchInput.value = item.dataset.value;
+                    suggestionsContainer.style.display = 'none';
+                    // Auto-submit form when suggestion is selected
+                    document.getElementById('searchForm').submit();
+                }
+            });
+
+            function fetchSuggestions(searchTerm) {
+                fetch(`?handler=SearchSerialNumbers&term=${encodeURIComponent(searchTerm)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        displaySuggestions(data.results);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching suggestions:', error);
+                        suggestionsContainer.style.display = 'none';
+                    });
+            }
+
+            function displaySuggestions(suggestions) {
+                if (!suggestions || suggestions.length === 0) {
+                    suggestionsContainer.style.display = 'none';
+                    return;
+                }
+
+                suggestionsContainer.innerHTML = '';
+                suggestions.forEach(suggestion => {
+                    const item = document.createElement('div');
+                    item.className = 'dropdown-item';
+                    item.dataset.value = suggestion.id;
+                    item.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>${suggestion.text}</span>
+                            <small class="text-muted">Click to select</small>
+                        </div>
+                    `;
+                    suggestionsContainer.appendChild(item);
+                });
+
+                suggestionsContainer.style.display = 'block';
+            }
+        });
+    </script>
+}

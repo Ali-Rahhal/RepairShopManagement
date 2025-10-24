@@ -88,7 +88,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
         //AJAX CALL for deleting a TH//Didnt use OnPostDelete because it needs the link to send a form and it causes issues with DataTables
         public async Task<IActionResult> OnGetDelete(int? id)//The route is /User/TransactionHeaders/Index?handler=Delete&id=1
         {
-            var THToBeDeleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id);
+            var THToBeDeleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id, includeProperties: "DefectiveUnit");
             if (THToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
@@ -99,6 +99,9 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             {
                 return new JsonResult(new { success = false, message = "You can only delete a new transaction" });
             }
+
+            THToBeDeleted.DefectiveUnit.Status = SD.Status_DU_Reported;
+            await _unitOfWork.DefectiveUnit.UpdateAsy(THToBeDeleted.DefectiveUnit);
 
             await _unitOfWork.TransactionHeader.RemoveAsy(THToBeDeleted);
             await _unitOfWork.SaveAsy();
