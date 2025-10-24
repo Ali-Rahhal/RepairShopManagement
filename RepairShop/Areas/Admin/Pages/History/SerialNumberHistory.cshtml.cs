@@ -89,13 +89,26 @@ namespace RepairShop.Areas.Admin.Pages.History
 
             // Get all transaction headers for these defective units
             var transactionHeaders = new List<TransactionHeader>();
+            var transactionBodies = new List<TransactionBody>();
+
             foreach (var du in defectiveUnits)
             {
                 var transactions = await _unitOfWork.TransactionHeader.GetAllAsy(
                     th => th.DefectiveUnitId == du.Id && th.IsActive == true,
                     includeProperties: "User,Client,BrokenParts"
                 );
-                transactionHeaders.AddRange(transactions);
+
+                foreach (var transaction in transactions)
+                {
+                    transactionHeaders.Add(transaction);
+
+                    // Get all transaction bodies for this header
+                    var bodies = await _unitOfWork.TransactionBody.GetAllAsy(
+                        tb => tb.TransactionHeaderId == transaction.Id && tb.IsActive == true,
+                        includeProperties: "Part"
+                    );
+                    transactionBodies.AddRange(bodies);
+                }
             }
 
             // Create timeline events
@@ -142,7 +155,7 @@ namespace RepairShop.Areas.Admin.Pages.History
                 }
             }
 
-            // Add transaction events
+            // Add transaction header events
             foreach (var transaction in transactionHeaders)
             {
                 timelineEvents.Add(new TimelineEvent
@@ -186,6 +199,128 @@ namespace RepairShop.Areas.Admin.Pages.History
                 }
             }
 
+            // Add transaction body (parts) events
+            foreach (var body in transactionBodies)
+            {
+                // Part added event - show initial status
+                timelineEvents.Add(new TimelineEvent
+                {
+                    EventType = "Part Added to Repair",
+                    Date = body.CreatedDate,
+                    Description = "Part identified for repair/replacement",
+                    Details = $"Part: {body.BrokenPartName} - Initial Status: {GetPartStatusDisplay(body.Status)}",
+                    Status = body.Status,
+                    RelatedId = body.Id,
+                    EventTypeColor = "info"
+                });
+
+                // Pending Repair status
+                if (body.Status == SD.Status_Part_Pending_Repair)
+                {
+                    timelineEvents.Add(new TimelineEvent
+                    {
+                        EventType = "Part Pending Repair",
+                        Date = body.CreatedDate,
+                        Description = "Part waiting for repair",
+                        Details = $"Part: {body.BrokenPartName} - Awaiting repair work to begin",
+                        Status = SD.Status_Part_Pending_Repair,
+                        RelatedId = body.Id,
+                        EventTypeColor = "warning"
+                    });
+                }
+
+                // Pending Replacement status
+                if (body.Status == SD.Status_Part_Pending_Replace)
+                {
+                    timelineEvents.Add(new TimelineEvent
+                    {
+                        EventType = "Part Pending Replacement",
+                        Date = body.CreatedDate,
+                        Description = "Part scheduled for replacement",
+                        Details = $"Part: {body.BrokenPartName} - Scheduled for replacement, waiting to begin",
+                        Status = SD.Status_Part_Pending_Replace,
+                        RelatedId = body.Id,
+                        EventTypeColor = "warning"
+                    });
+                }
+
+                // Waiting for Part (out of stock) - only when explicitly set
+                if (body.WaitingPartDate.HasValue)
+                {
+                    timelineEvents.Add(new TimelineEvent
+                    {
+                        EventType = "Waiting for Replacement Part",
+                        Date = body.WaitingPartDate.Value,
+                        Description = "Part replacement delayed - out of stock",
+                        Details = $"Part: {body.BrokenPartName} - Replacement part is out of stock, waiting for inventory",
+                        Status = SD.Status_Part_Waiting_Part,
+                        RelatedId = body.Id,
+                        EventTypeColor = "danger"
+                    });
+                }
+
+                // Part Fixed event
+                if (body.FixedDate.HasValue)
+                {
+                    timelineEvents.Add(new TimelineEvent
+                    {
+                        EventType = "Part Fixed",
+                        Date = body.FixedDate.Value,
+                        Description = "Part successfully repaired",
+                        Details = $"Part: {body.BrokenPartName} - Successfully repaired",
+                        Status = SD.Status_Part_Fixed,
+                        RelatedId = body.Id,
+                        EventTypeColor = "success"
+                    });
+                }
+
+                // Part Replaced event
+                if (body.ReplacedDate.HasValue)
+                {
+                    var partName = body.Part != null ? body.Part.Name : body.BrokenPartName;
+                    timelineEvents.Add(new TimelineEvent
+                    {
+                        EventType = "Part Replaced",
+                        Date = body.ReplacedDate.Value,
+                        Description = "Part replaced",
+                        Details = $"Part: {body.BrokenPartName} replaced with {partName}",
+                        Status = SD.Status_Part_Replaced,
+                        RelatedId = body.Id,
+                        EventTypeColor = "success"
+                    });
+                }
+
+                // Part Not Repairable
+                if (body.NotRepairableDate.HasValue)
+                {
+                    timelineEvents.Add(new TimelineEvent
+                    {
+                        EventType = "Part Not Repairable",
+                        Date = body.NotRepairableDate.Value,
+                        Description = "Part cannot be repaired",
+                        Details = $"Part: {body.BrokenPartName} - Cannot be repaired, requires replacement",
+                        Status = SD.Status_Part_NotRepairable,
+                        RelatedId = body.Id,
+                        EventTypeColor = "danger"
+                    });
+                }
+
+                // Part Not Replaceable
+                if (body.NotReplaceableDate.HasValue)
+                {
+                    timelineEvents.Add(new TimelineEvent
+                    {
+                        EventType = "Part Not Replaceable",
+                        Date = body.NotReplaceableDate.Value,
+                        Description = "Part cannot be replaced",
+                        Details = $"Part: {body.BrokenPartName} - Cannot be replaced (part unavailable or not cost-effective)",
+                        Status = SD.Status_Part_NotReplaceable,
+                        RelatedId = body.Id,
+                        EventTypeColor = "danger"
+                    });
+                }
+            }
+
             // Sort all events by date and keep the 1st elm(serial number received) in place
             timelineEvents = timelineEvents.Take(1)
                 .Concat(timelineEvents.Skip(1).OrderBy(e => e.Date))
@@ -196,11 +331,29 @@ namespace RepairShop.Areas.Admin.Pages.History
                 SerialNumber = serialNumber,
                 DefectiveUnits = defectiveUnits,
                 TransactionHeaders = transactionHeaders,
+                TransactionBodies = transactionBodies,
                 TimelineEvents = timelineEvents,
                 TotalDefectiveUnits = defectiveUnits.Count,
                 TotalRepairJobs = transactionHeaders.Count,
+                TotalPartsReplaced = transactionBodies.Count(tb => tb.Status == SD.Status_Part_Replaced),
+                TotalPartsFixed = transactionBodies.Count(tb => tb.Status == SD.Status_Part_Fixed),
                 CompletedJobs = transactionHeaders.Count(th => th.Status == SD.Status_Job_Completed),
                 OutOfServiceJobs = transactionHeaders.Count(th => th.Status == SD.Status_Job_OutOfService)
+            };
+        }
+
+        private string GetPartStatusDisplay(string status)
+        {
+            return status switch
+            {
+                SD.Status_Part_Pending_Repair => "Pending Repair",
+                SD.Status_Part_Pending_Replace => "Pending Replacement",
+                SD.Status_Part_Waiting_Part => "Waiting for Part",
+                SD.Status_Part_Fixed => "Fixed",
+                SD.Status_Part_Replaced => "Replaced",
+                SD.Status_Part_NotRepairable => "Not Repairable",
+                SD.Status_Part_NotReplaceable => "Not Replaceable",
+                _ => status
             };
         }
     }
@@ -210,9 +363,12 @@ namespace RepairShop.Areas.Admin.Pages.History
         public SerialNumber SerialNumber { get; set; }
         public List<DefectiveUnit> DefectiveUnits { get; set; }
         public List<TransactionHeader> TransactionHeaders { get; set; }
+        public List<TransactionBody> TransactionBodies { get; set; }
         public List<TimelineEvent> TimelineEvents { get; set; }
         public int TotalDefectiveUnits { get; set; }
         public int TotalRepairJobs { get; set; }
+        public int TotalPartsReplaced { get; set; }
+        public int TotalPartsFixed { get; set; }
         public int CompletedJobs { get; set; }
         public int OutOfServiceJobs { get; set; }
     }
