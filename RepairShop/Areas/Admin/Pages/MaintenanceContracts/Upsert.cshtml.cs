@@ -21,6 +21,9 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
         [BindProperty]
         public MaintenanceContract MaintenanceContractForUpsert { get; set; }
 
+        [BindProperty]
+        public List<int> SelectedSerialNumberIds { get; set; } = new();
+
         public IEnumerable<SelectListItem> ClientList { get; set; }
 
         public async Task<IActionResult> OnGet(int? id)
@@ -49,6 +52,13 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                 {
                     return NotFound();
                 }
+
+                // Load currently assigned serial numbers
+                var assignedSerialNumbers = await _unitOfWork.SerialNumber.GetAllAsy(
+                    sn => sn.MaintenanceContractId == id
+                );
+                SelectedSerialNumberIds = assignedSerialNumbers.Select(sn => sn.Id).ToList();
+
                 return Page();
             }
         }
@@ -73,15 +83,30 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                 // Auto-set status based on current date
                 MaintenanceContractForUpsert.Status = MaintenanceContractForUpsert.EndDate < DateTime.Now ? "Expired" : "Active";
 
-                if (MaintenanceContractForUpsert.Id == 0)
+                bool isNew = MaintenanceContractForUpsert.Id == 0;
+                int contractId;
+
+                if (isNew)
                 {
                     await _unitOfWork.MaintenanceContract.AddAsy(MaintenanceContractForUpsert);
+                    await _unitOfWork.SaveAsy();
+                    contractId = MaintenanceContractForUpsert.Id;
                     TempData["success"] = "Maintenance contract created successfully";
                 }
                 else
                 {
+                    contractId = MaintenanceContractForUpsert.Id;
                     await _unitOfWork.MaintenanceContract.UpdateAsy(MaintenanceContractForUpsert);
                     TempData["success"] = "Maintenance contract updated successfully";
+                }
+
+                // Validate and assign selected serial numbers
+                var validationResult = await ValidateAndAssignSerialNumbers(contractId, SelectedSerialNumberIds);
+                if (!validationResult.isValid)
+                {
+                    ModelState.AddModelError("", validationResult.errorMessage);
+                    await PopulateDropdowns();
+                    return Page();
                 }
 
                 await _unitOfWork.SaveAsy();
@@ -90,6 +115,50 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
 
             await PopulateDropdowns();
             return Page();
+        }
+
+        // AJAX endpoint to search serial numbers
+        public async Task<JsonResult> OnGetSearchSerialNumbers(int clientId, string searchTerm = "")
+        {
+            try
+            {
+                var serialNumbers = (await _unitOfWork.SerialNumber.GetAllAsy(
+                    sn => sn.ClientId == clientId && 
+                          sn.IsActive &&
+                          (string.IsNullOrEmpty(searchTerm) || 
+                           sn.Value.Contains(searchTerm) ||
+                           (sn.Model != null && sn.Model.Name.Contains(searchTerm))),
+                    includeProperties: "Model,MaintenanceContract"
+                ))
+                .OrderBy(sn => sn.Value)
+                .Select(sn => {
+                    var currentContract = sn.MaintenanceContract;
+                    var isContractExpired = currentContract?.EndDate < DateTime.Now;
+                    var hasActiveContract = currentContract != null && !isContractExpired;
+                    var isAvailable = currentContract == null || isContractExpired;
+
+                    return new
+                    {
+                        id = sn.Id,
+                        value = sn.Value,
+                        model = sn.Model?.Name ?? "Unknown Model",
+                        receivedDate = sn.ReceivedDate.ToString("yyyy-MM-dd"),
+                        currentContract = currentContract != null ? $"Contract-{currentContract.Id:D4}" : "None",
+                        hasActiveContract = hasActiveContract,
+                        isAvailable = isAvailable,
+                        contractStatus = currentContract?.Status ?? "No Contract",
+                        contractEndDate = currentContract?.EndDate.ToString("yyyy-MM-dd") ?? "N/A"
+                    };
+                })
+                .Take(100) // Limit results for performance
+                .ToList();
+
+                return new JsonResult(serialNumbers);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new { error = "An error occurred while searching serial numbers" });
+            }
         }
 
         private async Task PopulateDropdowns()
@@ -104,6 +173,72 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                 Text = $"{c.Name}",
                 Value = c.Id.ToString()
             });
+        }
+
+        private async Task<(bool isValid, string errorMessage)> ValidateAndAssignSerialNumbers(int contractId, List<int> selectedSerialNumberIds)
+        {
+            if (selectedSerialNumberIds == null || !selectedSerialNumberIds.Any())
+                return (true, "");
+
+            var errorMessages = new List<string>();
+            var validSerialNumberIds = new List<int>();
+
+            foreach (var serialNumberId in selectedSerialNumberIds)
+            {
+                var serialNumber = await _unitOfWork.SerialNumber.GetAsy(
+                    sn => sn.Id == serialNumberId,
+                    includeProperties: "MaintenanceContract"
+                );
+
+                if (serialNumber == null)
+                {
+                    errorMessages.Add($"Serial number with ID {serialNumberId} not found.");
+                    continue;
+                }
+
+                // Check if serial number is available for assignment
+                if (serialNumber.MaintenanceContractId.HasValue && serialNumber.MaintenanceContractId != contractId)
+                {
+                    var currentContract = serialNumber.MaintenanceContract;
+                    if (currentContract != null && currentContract.EndDate >= DateTime.Now)
+                    {
+                        errorMessages.Add($"Serial number {serialNumber.Value} is currently covered by an active maintenance contract (Contract-{currentContract.Id:D4}) that ends on {currentContract.EndDate:yyyy-MM-dd}.");
+                        continue;
+                    }
+                }
+
+                validSerialNumberIds.Add(serialNumberId);
+            }
+
+            if (errorMessages.Any())
+            {
+                return (false, string.Join(" ", errorMessages));
+            }
+
+            // First, remove all serial numbers from this contract
+            var existingSerialNumbers = await _unitOfWork.SerialNumber.GetAllAsy(
+                sn => sn.MaintenanceContractId == contractId,
+                tracked: true
+            );
+
+            foreach (var serialNumber in existingSerialNumbers)
+            {
+                serialNumber.MaintenanceContractId = null;
+                await _unitOfWork.SerialNumber.UpdateAsy(serialNumber);
+            }
+
+            // Then assign the valid serial numbers
+            foreach (var serialNumberId in validSerialNumberIds)
+            {
+                var serialNumber = await _unitOfWork.SerialNumber.GetAsy(sn => sn.Id == serialNumberId, tracked: true);
+                if (serialNumber != null)
+                {
+                    serialNumber.MaintenanceContractId = contractId;
+                    await _unitOfWork.SerialNumber.UpdateAsy(serialNumber);
+                }
+            }
+
+            return (true, "");
         }
     }
 }

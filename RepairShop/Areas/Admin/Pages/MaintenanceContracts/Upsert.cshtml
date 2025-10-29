@@ -12,7 +12,7 @@
         </div>
     </div>
     <div class="card-body p-4">
-        <form method="post" class="row">
+        <form method="post" class="row" id="maintenanceContractForm">
             <input type="hidden" asp-for="MaintenanceContractForUpsert.Id" />
             <div class="row">
                 <div class="col-12 col-md-8 mx-auto">
@@ -21,11 +21,47 @@
 
                         <div class="mb-3">
                             <label asp-for="MaintenanceContractForUpsert.ClientId" class="form-label fw-bold"></label>
-                            <select asp-for="MaintenanceContractForUpsert.ClientId" asp-items="@Model.ClientList" 
+                            <select asp-for="MaintenanceContractForUpsert.ClientId" asp-items="@Model.ClientList"
                                     class="form-select" id="clientSelect">
                                 <option disabled selected>-- Select Client --</option>
                             </select>
                             <span asp-validation-for="MaintenanceContractForUpsert.ClientId" class="text-danger"></span>
+                        </div>
+
+                        <!-- Serial Numbers Selection Section -->
+                        <div class="mb-3" id="serialNumbersSection" style="display: none;">
+                            <label class="form-label fw-bold">Select Serial Numbers</label>
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> Only serial numbers without maintenance contracts or with expired contracts can be selected.
+                            </div>
+
+                            <!-- Search Bar -->
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <input type="text" id="serialNumberSearch" class="form-control" placeholder="Search by serial number or model name..." />
+                                    <button type="button" id="searchButton" class="btn btn-outline-primary">
+                                        <i class="bi bi-search"></i> Search
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">Enter at least 2 characters to search</small>
+                            </div>
+
+                            <!-- Selected Serial Numbers -->
+                            <div class="mb-3" id="selectedSerialNumbersSection" style="display: none;">
+                                <label class="form-label fw-bold">Selected Serial Numbers</label>
+                                <div id="selectedSerialNumbersList" class="border rounded p-2 bg-light">
+                                    <!-- Selected items will appear here -->
+                                </div>
+                            </div>
+
+                            <!-- Search Results -->
+                            <div class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
+                                <div id="searchResults">
+                                    <div class="text-center text-muted py-3">
+                                        Select a client and search for serial numbers to display results.
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="row">
@@ -88,15 +124,213 @@
         <partial name="_ValidationScriptsPartial" />
     }
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        // Global variable to store serial number details
+        let serialNumberDetails = new Map();
+        let selectedSerialNumbers = new Set(@Html.Raw(Json.Serialize(Model.SelectedSerialNumberIds)));
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize TomSelect for client dropdown
             new TomSelect('#clientSelect', {
                 placeholder: '-- Select Client --',
                 create: false,
-                sortField: {
-                    field: 'text',
-                    direction: 'asc'
+                sortField: { field: 'text', direction: 'asc' }
+            });
+
+            const clientSelect = document.getElementById('clientSelect');
+            const serialNumbersSection = document.getElementById('serialNumbersSection');
+            const searchInput = document.getElementById('serialNumberSearch');
+            const searchButton = document.getElementById('searchButton');
+            const searchResults = document.getElementById('searchResults');
+            const selectedSerialNumbersSection = document.getElementById('selectedSerialNumbersSection');
+            const selectedSerialNumbersList = document.getElementById('selectedSerialNumbersList');
+
+            // Show/hide serial numbers section based on client selection
+            clientSelect.addEventListener('change', function () {
+                if (this.value) {
+                    serialNumbersSection.style.display = 'block';
+                    updateSelectedSerialNumbersDisplay();
+                } else {
+                    serialNumbersSection.style.display = 'none';
+                    searchResults.innerHTML = '<div class="text-center text-muted py-3">Select a client and search for serial numbers to display results.</div>';
                 }
             });
+
+            // Search functionality
+            searchButton.addEventListener('click', performSearch);
+            searchInput.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            function performSearch() {
+                const clientId = clientSelect.value;
+                const searchTerm = searchInput.value.trim();
+
+                if (!clientId) {
+                    alert('Please select a client first.');
+                    return;
+                }
+
+                if (searchTerm.length < 2) {
+                    alert('Please enter at least 2 characters to search.');
+                    return;
+                }
+
+                searchResults.innerHTML = '<div class="text-center py-3"><div class="spinner-border" role="status"></div><div>Searching...</div></div>';
+
+                fetch(`?handler=SearchSerialNumbers&clientId=${clientId}&searchTerm=${encodeURIComponent(searchTerm)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            searchResults.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                            return;
+                        }
+
+                        if (!data || data.length === 0) {
+                            searchResults.innerHTML = '<div class="text-center text-muted py-3">No serial numbers found matching your search.</div>';
+                            return;
+                        }
+
+                        // Store serial number details for later use
+                        data.forEach(sn => {
+                            serialNumberDetails.set(sn.id, sn);
+                        });
+
+                        displaySearchResults(data);
+                    })
+                    .catch(error => {
+                        console.error('Error searching serial numbers:', error);
+                        searchResults.innerHTML = '<div class="alert alert-danger">Failed to search serial numbers. Please try again.</div>';
+                    });
+            }
+
+            function displaySearchResults(serialNumbers) {
+                let html = '';
+                let availableCount = 0;
+
+                serialNumbers.forEach(sn => {
+                    const isSelected = selectedSerialNumbers.has(sn.id);
+                    const isAvailable = sn.isAvailable;
+
+                    if (isAvailable) availableCount++;
+
+                    html += `
+                        <div class="form-check serial-number-item mb-2 ${!isAvailable ? 'text-muted' : ''}">
+                            <input class="form-check-input" type="checkbox"
+                                   value="${sn.id}"
+                                   id="sn_${sn.id}"
+                                   ${isSelected ? 'checked' : ''}
+                                   ${!isAvailable ? 'disabled' : ''}
+                                   onchange="toggleSerialNumber(${sn.id}, this.checked)">
+                            <label class="form-check-label" for="sn_${sn.id}">
+                                <strong>${sn.value}</strong> - ${sn.model}
+                                <small class="text-muted">(Received: ${sn.receivedDate})</small>
+                                ${sn.currentContract && sn.currentContract !== 'None'
+                                    ? `<span class="badge ${sn.hasActiveContract ? 'bg-warning' : 'bg-secondary'} ms-2">
+                                        ${sn.hasActiveContract ? 'Active Contract' : 'Expired Contract'} (${sn.contractEndDate})
+                                      </span>`
+                                    : '<span class="badge bg-success ms-2">Available</span>'}
+                            </label>
+                        </div>
+                    `;
+                });
+
+                // Add summary
+                html = `
+                    <div class="mb-2 p-2 bg-light rounded">
+                        <small><strong>${availableCount}</strong> of <strong>${serialNumbers.length}</strong> serial numbers available for assignment</small>
+                    </div>
+                    ${html}
+                `;
+
+                searchResults.innerHTML = html;
+            }
+
+            window.toggleSerialNumber = function (serialNumberId, isSelected) {
+                if (isSelected) {
+                    selectedSerialNumbers.add(serialNumberId);
+                } else {
+                    selectedSerialNumbers.delete(serialNumberId);
+                }
+
+                // Update hidden form fields
+                updateSelectedSerialNumbersForm();
+                updateSelectedSerialNumbersDisplay();
+            }
+
+            function updateSelectedSerialNumbersForm() {
+                // Remove existing hidden inputs
+                document.querySelectorAll('input[name="SelectedSerialNumberIds"]').forEach(input => input.remove());
+
+                // Add new hidden inputs for selected serial numbers
+                selectedSerialNumbers.forEach(id => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'SelectedSerialNumberIds';
+                    input.value = id;
+                    document.getElementById('maintenanceContractForm').appendChild(input);
+                });
+            }
+
+            function updateSelectedSerialNumbersDisplay() {
+                if (selectedSerialNumbers.size > 0) {
+                    selectedSerialNumbersSection.style.display = 'block';
+
+                    let html = '<div class="d-flex flex-wrap gap-2">';
+
+                    selectedSerialNumbers.forEach(id => {
+                        const sn = serialNumberDetails.get(id);
+                        if (sn) {
+                            // Only show value and model name
+                            html += `
+                                <span class="badge bg-primary p-2">
+                                    ${sn.value} - ${sn.model}
+                                </span>
+                            `;
+                        } else {
+                            // Fallback if details are not available
+                            html += `
+                                <span class="badge bg-secondary p-2">
+                                    SN-${id}
+                                </span>
+                            `;
+                        }
+                    });
+
+                    html += '</div>';
+                    selectedSerialNumbersList.innerHTML = html;
+                } else {
+                    selectedSerialNumbersSection.style.display = 'none';
+                    selectedSerialNumbersList.innerHTML = '';
+                }
+            }
+
+            // Initialize selected serial numbers display
+            updateSelectedSerialNumbersForm();
+            updateSelectedSerialNumbersDisplay();
+
+            // Show serial numbers section if editing existing contract
+            @if (Model.MaintenanceContractForUpsert.Id != 0 && Model.MaintenanceContractForUpsert.ClientId > 0)
+            {
+                    <text>
+                    serialNumbersSection.style.display = 'block';
+                    // Load initial serial number details for existing selections
+                    if (selectedSerialNumbers.size > 0) {
+                        const clientId = @Model.MaintenanceContractForUpsert.ClientId;
+                        fetch(`?handler=SearchSerialNumbers&clientId=${clientId}&searchTerm=`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data && !data.error) {
+                                    data.forEach(sn => {
+                                        serialNumberDetails.set(sn.id, sn);
+                                    });
+                                    updateSelectedSerialNumbersDisplay();
+                                }
+                            });
+                    }
+                    </text>
+            }
         });
     </script>
 }
