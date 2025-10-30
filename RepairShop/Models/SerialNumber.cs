@@ -17,6 +17,7 @@ namespace RepairShop.Models
         [ValidateNever]
         public Client Client { get; set; } // owned by Client
 
+        public int? WarrantyId { get; set; }
         [ValidateNever]
         public Warranty Warranty { get; set; } // covered by Warranty
 

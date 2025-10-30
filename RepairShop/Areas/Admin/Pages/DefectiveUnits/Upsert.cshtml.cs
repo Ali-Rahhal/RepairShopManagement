@@ -155,7 +155,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                       sn.Client.Name.Contains(searchTerm)),
                 includeProperties: "Model,Client,Warranty,MaintenanceContract"
             ))
-            .Take(10)
+            .Take(20)
             .Select(sn => new
             {
                 id = sn.Id,

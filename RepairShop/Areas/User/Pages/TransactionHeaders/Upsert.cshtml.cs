@@ -110,7 +110,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                       du.SerialNumber.Client.Name.Contains(term)),
                 includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client"
             ))
-            .Take(10) // Limit results for performance
+            .Take(20) // Limit results for performance
             .Select(du => new
             {
                 id = du.Id,

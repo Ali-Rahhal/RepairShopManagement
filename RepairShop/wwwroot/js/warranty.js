@@ -4,15 +4,14 @@ document.addEventListener('DOMContentLoaded', function () {
     loadDataTable();
 });
 
-function isAdmin() {//function to check if the user is admin
+function isAdmin() {
     return document.getElementById("isAdmin").value === "True";
 }
 
 function loadDataTable() {
     dataTable = new DataTable('#tblData', {
         "stateSave": true,
-        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
-        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
+        "stateDuration": 86400,
         ajax: {
             url: '/Admin/Warranties/Index?handler=All',
             dataSrc: 'data'
@@ -20,61 +19,84 @@ function loadDataTable() {
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         columns: [
             {
-                data: 'serialNumber',
-                width: "15%",
-                render: function (data) {
-                    return data || 'N/A';
+                data: 'coveredCount',
+                width: "8%",
+                render: function (data, type, row) {
+                    return `<span class="badge bg-info p-2 fs-6">${data} items</span>`;
                 }
             },
             {
-                data: 'modelName',
+                data: 'serialNumbers',
                 width: "15%",
                 render: function (data) {
-                    return data || 'N/A';
+                    if (!data || data.length === 0) return '<span class="text-muted">N/A</span>';
+                    if (data.length === 1) return `<span class="fw-bold">${data[0]}</span>`;
+
+                    const firstItem = data[0];
+                    const remainingCount = data.length - 1;
+                    return `
+                        <div>
+                            <div class="fw-bold">${firstItem}</div>
+                            <small class="text-muted">+${remainingCount} more serial number${remainingCount > 1 ? 's' : ''}</small>
+                        </div>
+                    `;
                 }
             },
             {
-                data: 'clientName',
-                width: "15%",
+                data: 'modelNames',
+                width: "12%",
                 render: function (data) {
-                    return data || 'N/A';
+                    if (!data || data.length === 0) return '<span class="text-muted">N/A</span>';
+                    if (data.length === 1) return data[0];
+
+                    const uniqueModels = [...new Set(data)];
+                    if (uniqueModels.length === 1) return uniqueModels[0];
+
+                    return `
+                        <div>
+                            <div>${uniqueModels[0]}</div>
+                            <small class="text-muted">+${uniqueModels.length - 1} more model${uniqueModels.length > 2 ? 's' : ''}</small>
+                        </div>
+                    `;
+                }
+            },
+            {
+                data: 'clientNames',
+                width: "12%",
+                render: function (data) {
+                    if (!data || data.length === 0) return '<span class="text-muted">N/A</span>';
+                    if (data.length === 1) return data[0];
+
+                    const uniqueClients = [...new Set(data)];
+                    if (uniqueClients.length === 1) return uniqueClients[0];
+
+                    return `
+                        <div>
+                            <div>${uniqueClients[0]}</div>
+                            <small class="text-muted">+${uniqueClients.length - 1} more client${uniqueClients.length > 2 ? 's' : ''}</small>
+                        </div>
+                    `;
                 }
             },
             {
                 data: 'startDate',
-                width: "12%",
+                width: "10%",
                 render: function (data) {
-                    if (data == null) {
-                        return 'N/A';
-                    }
-
+                    if (!data) return '<span class="text-muted">N/A</span>';
                     const date = new Date(data);
-                    const options = {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric'
-                    };
+                    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
                     const formattedDate = date.toLocaleDateString('en-GB', options);
-
                     return formattedDate;
                 }
             },
             {
                 data: 'endDate',
-                width: "12%",
+                width: "10%",
                 render: function (data) {
-                    if (data == null) {
-                        return 'N/A';
-                    }
-
+                    if (!data) return '<span class="text-muted">N/A</span>';
                     const date = new Date(data);
-                    const options = {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric'
-                    };
+                    const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
                     const formattedDate = date.toLocaleDateString('en-GB', options);
-
                     return formattedDate;
                 }
             },
@@ -82,39 +104,39 @@ function loadDataTable() {
                 data: 'daysRemaining',
                 width: "12%",
                 render: function (data, type, row) {
-                    if (row.isExpired) {//isExpired is defined in the json sent from index
-                        return '<span class="badge bg-danger p-2 fs-5">Expired</span>';
+                    if (row.isExpired) {
+                        return '<span class="badge bg-danger p-2 fs-6">Expired</span>';
                     } else if (data < 30) {
-                        return `<span class="badge bg-warning p-2 fs-5">${data} days</span>`;
+                        return `<span class="badge bg-warning p-2 fs-6">${data} days</span>`;
                     } else {
-                        return `<span class="badge bg-success p-2 fs-5">${data} days</span>`;
+                        return `<span class="badge bg-success p-2 fs-6">${data} days</span>`;
                     }
                 }
             },
             {
                 data: 'status',
-                width: "9%",
+                width: "8%",
                 render: function (data) {
                     if (data === 'Active') {
-                        return '<span class="badge bg-success p-2 fs-5">Active</span>';
+                        return '<span class="badge bg-success p-2 fs-6">Active</span>';
                     } else {
-                        return '<span class="badge bg-danger p-2 fs-5">Expired</span>';
+                        return '<span class="badge bg-danger p-2 fs-6">Expired</span>';
                     }
                 }
             },
             {
                 data: 'id',
-                render: function (data) {
+                render: function (data, type, row) {
                     return `<div class="w-100 d-flex justify-content-center" role="group">
-                        <a href="/Admin/Warranties/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2">
+                        <a href="/Admin/Warranties/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-1">
                             <i class="bi bi-pencil-square"></i>
                         </a>
-                        <a onclick="Delete('/Admin/Warranties/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2">
+                        <a onclick="Delete('/Admin/Warranties/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-1">
                             <i class="bi bi-trash-fill"></i>
                         </a>
                     </div>`;
                 },
-                width: "10%",
+                width: "8%",
                 orderable: false
             }
         ],
@@ -125,9 +147,9 @@ function loadDataTable() {
     });
 
     if (isAdmin()) {
-        dataTable.column(7).visible(true);   // show admin column
+        dataTable.column(8).visible(true);   // show admin column
     } else {
-        dataTable.column(7).visible(false);
+        dataTable.column(8).visible(false);
     }
 
     // Add event listener for status filter
@@ -141,9 +163,9 @@ function applyStatusFilter() {
     const status = document.getElementById('statusFilter').value;
 
     if (status === 'All') {
-        dataTable.column(6).search('').draw(); // Status column
+        dataTable.column(7).search('').draw(); // Status column is now at index 7
     } else {
-        dataTable.column(6).search('^' + status + '$', true, false).draw();
+        dataTable.column(7).search('^' + status + '$', true, false).draw();
     }
 }
 
@@ -160,7 +182,7 @@ function clearFilters() {
 function Delete(url) {
     Swal.fire({
         title: "Are you sure you want to delete this warranty?",
-        text: "This action cannot be undone!",
+        text: "This will remove coverage from all associated serial numbers!",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
@@ -181,7 +203,7 @@ function Delete(url) {
                     }
                 },
                 error: function () {
-                    toastr.error('An error occurred while deleting the model');
+                    toastr.error('An error occurred while deleting the warranty');
                 }
             });
         }

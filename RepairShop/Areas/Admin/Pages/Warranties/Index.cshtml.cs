@@ -21,12 +21,11 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
         {
         }
 
-        // API for DataTable
         public async Task<JsonResult> OnGetAll()
         {
             var warrantyList = (await _unitOfWork.Warranty.GetAllAsy(
                 w => w.IsActive == true,
-                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client"
+                includeProperties: "SerialNumbers,SerialNumbers.Model,SerialNumbers.Client"
             )).ToList();
 
             // Update status for warranties that have expired
@@ -51,19 +50,19 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                 await _unitOfWork.SaveAsy();
             }
 
-
-            // Format the data for better display
+            // Format the data for better display - handle multiple serial numbers
             var formattedData = warrantyList.Select(w => new
             {
                 id = w.Id,
                 startDate = w.StartDate,
                 endDate = w.EndDate,
                 status = w.Status,
-                serialNumber = w.SerialNumber?.Value ?? "N/A",
-                modelName = w.SerialNumber?.Model?.Name ?? "N/A",
-                clientName = w.SerialNumber?.Client?.Name ?? "N/A",
+                serialNumbers = w.SerialNumbers?.Select(sn => sn.Value ?? "N/A").ToList() ?? new List<string>(),
+                modelNames = w.SerialNumbers?.Select(sn => sn.Model?.Name ?? "N/A").Distinct().ToList() ?? new List<string>(),
+                clientNames = w.SerialNumbers?.Select(sn => sn.Client?.Name ?? "N/A").Distinct().ToList() ?? new List<string>(),
                 daysRemaining = (w.EndDate - DateTime.Now).Days,
-                isExpired = w.EndDate < DateTime.Now
+                isExpired = w.EndDate < DateTime.Now,
+                coveredCount = w.SerialNumbers?.Count ?? 0
             });
 
             return new JsonResult(new { data = formattedData });

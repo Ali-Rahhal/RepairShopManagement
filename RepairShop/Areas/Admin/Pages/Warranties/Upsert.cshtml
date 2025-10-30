@@ -19,14 +19,67 @@
                     <div class="border p-4">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                        <div class="mb-3">
-                            <label asp-for="WarrantyForUpsert.SerialNumberId" class="form-label fw-bold"></label>
-                            <select asp-for="WarrantyForUpsert.SerialNumberId" asp-items="@Model.SerialNumberList"
-                                    class="form-select" id="serialNumberSelect">
-                                <option disabled selected>-- Select Serial Number --</option>
-                            </select>
-                            <span asp-validation-for="WarrantyForUpsert.SerialNumberId" class="text-danger"></span>
-                        </div>
+                        @if (Model.WarrantyForUpsert.Id == 0)
+                        {
+                            <!-- Bulk Serial Number Creation for new warranties -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">New Serial Numbers</label>
+                                <textarea asp-for="NewSerialNumbersInput" class="form-control" rows="3"
+                                          placeholder="Enter serial numbers separated by semicolons (;)&#10;Example: SN001;SN002;SN003"></textarea>
+                                <span asp-validation-for="NewSerialNumbersInput" class="text-danger"></span>
+                                <small class="form-text text-muted">
+                                    Enter new serial numbers separated by semicolons. These will be created and assigned to this warranty.
+                                </small>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="SelectedModelId" class="form-label fw-bold">Model</label>
+                                <select asp-for="SelectedModelId" asp-items="@Model.ModelList" class="form-select" id="modelSelect">
+                                    <option disabled selected>-- Select Model --</option>
+                                </select>
+                                <span asp-validation-for="SelectedModelId" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="SelectedClientId" class="form-label fw-bold">Client</label>
+                                <select asp-for="SelectedClientId" asp-items="@Model.ClientList" class="form-select" id="clientSelect">
+                                    <option disabled selected>-- Select Client --</option>
+                                </select>
+                                <span asp-validation-for="SelectedClientId" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="SelectedMaintenanceContractId" class="form-label fw-bold">Maintenance Contract (Optional)</label>
+                                <select asp-for="SelectedMaintenanceContractId" asp-items="@Model.MaintenanceContractList" class="form-select" id="maintenanceContractSelect">
+                                    <option value="">-- No Maintenance Contract --</option>
+                                </select>
+                                <span asp-validation-for="SelectedMaintenanceContractId" class="text-danger"></span>
+                                <small class="form-text text-muted" id="contractLoadingText" style="display: none;">
+                                    Loading contracts...
+                                </small>
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- For editing existing warranty, show current serial numbers -->
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Covered Serial Numbers</label>
+                                <div class="border rounded p-3 bg-light">
+                                    @if (Model.WarrantyForUpsert.SerialNumbers?.Any() == true)
+                                    {
+                                        foreach (var serialNumber in Model.WarrantyForUpsert.SerialNumbers)
+                                        {
+                                            <span class="badge bg-primary me-2 mb-2 p-2">@serialNumber.Value</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">No serial numbers assigned</span>
+                                    }
+                                </div>
+                                <small class="form-text text-muted">Serial numbers cannot be modified for existing warranties.</small>
+                            </div>
+                        }
 
                         <div class="row">
                             <div class="col-md-6">
@@ -84,14 +137,72 @@
     }
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            new TomSelect('#serialNumberSelect', {
-                placeholder: '-- Select Serial Number --',
+
+            new TomSelect('#modelSelect', {
+                placeholder: '-- Select Model --',
                 create: false,
                 sortField: {
                     field: 'text',
                     direction: 'asc'
                 }
             });
+
+            new TomSelect('#clientSelect', {
+                placeholder: '-- Select Client --',
+                create: false,
+                sortField: {
+                    field: 'text',
+                    direction: 'asc'
+                }
+            });
+
+            const clientSelect = document.getElementById('clientSelect');
+            const contractSelect = document.getElementById('maintenanceContractSelect');
+            const contractLoadingText = document.getElementById('contractLoadingText');
+
+            if (clientSelect && contractSelect) {
+                clientSelect.addEventListener('change', function() {
+                    const clientId = this.value;
+
+                    if (clientId) {
+                        // Show loading
+                        contractLoadingText.style.display = 'block';
+                        contractSelect.disabled = true;
+
+                        // Clear existing options except the first one
+                        while (contractSelect.options.length > 1) {
+                            contractSelect.remove(1);
+                        }
+
+                        // Fetch maintenance contracts for the selected client
+                        fetch(`/Admin/Warranties/Upsert?handler=MaintenanceContractsByClient&clientId=${clientId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                // Add new options
+                                data.forEach(item => {
+                                    if (item.value !== '') { // Skip the empty option we'll add manually
+                                        const option = new Option(item.text, item.value);
+                                        contractSelect.add(option);
+                                    }
+                                });
+
+                                // Hide loading
+                                contractLoadingText.style.display = 'none';
+                                contractSelect.disabled = false;
+                            })
+                            .catch(error => {
+                                console.error('Error loading maintenance contracts:', error);
+                                contractLoadingText.style.display = 'none';
+                                contractSelect.disabled = false;
+                            });
+                    } else {
+                        // Clear contracts if no client selected
+                        while (contractSelect.options.length > 1) {
+                            contractSelect.remove(1);
+                        }
+                    }
+                });
+            }
         });
     </script>
 }
