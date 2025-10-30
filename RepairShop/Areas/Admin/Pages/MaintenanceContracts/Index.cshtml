@@ -63,56 +63,6 @@
     </div>
 </div>
 
-<!-- Modal for assigning contract to serial numbers -->
-<div class="modal fade" id="assignContractModal" tabindex="-1" aria-labelledby="assignContractModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="assignContractModalLabel">Manage Contract Serial Numbers</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="modalLoading" class="text-center p-3" style="display: none;">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-                <div id="modalContent">
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i>
-                        Check serial numbers to assign this contract, uncheck to remove.
-                    </div>
-
-                    <!-- Summary Section -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <span class="badge bg-success" id="assignedCount">0 assigned</span>
-                        </div>
-                        <div class="col-md-6">
-                            <span class="badge bg-secondary" id="availableCount">0 available</span>
-                        </div>
-                    </div>
-
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="selectAllSerialNumbers">
-                        <label class="form-check-label" for="selectAllSerialNumbers">
-                            <strong>Select All</strong>
-                        </label>
-                    </div>
-
-                    <div id="serialNumbersList" class="mb-3" style="max-height: 400px; overflow-y: auto;">
-                        <!-- Serial numbers will be populated here -->
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="assignContractToSelected()">Save Changes</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
     <script src="~/js/maintenancecontract.js"></script>
 }
