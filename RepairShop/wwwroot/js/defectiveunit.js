@@ -37,13 +37,6 @@ function loadDataTable() {
                 }
             },
             {
-                data: 'modelName',
-                width: "12%",
-                render: function (data) {
-                    return data || 'N/A';
-                }
-            },
-            {
                 data: 'clientName',
                 width: "12%",
                 render: function (data) {
@@ -72,6 +65,13 @@ function loadDataTable() {
                             });
                     }
                     return '';
+                }
+            },
+            {
+                data: 'hasAccessories',
+                width: "4%",
+                render: function (data) {
+                    return data ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-warning">No</span>';
                 }
             },
             {
@@ -131,7 +131,7 @@ function loadDataTable() {
                     if (data === 'Not resolved') {
                         return '<span class="badge bg-warning">Pending</span>';
                     }
-                    return data ? new Date(data).toLocaleDateString() : 'N/A';
+                    return data ? data : 'N/A';
                 }
             },
             {
