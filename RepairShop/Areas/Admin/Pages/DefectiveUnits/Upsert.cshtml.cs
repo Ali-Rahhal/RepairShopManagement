@@ -117,7 +117,8 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
                 var duplicateReportedDU = await _unitOfWork.DefectiveUnit.GetAsy(du => du.IsActive == true
                     && du.SerialNumberId == DefectiveUnitForUpsert.SerialNumberId
-                    && du.Status == SD.Status_DU_Reported);
+                    && du.Status == SD.Status_DU_Reported
+                    && du.Id != DefectiveUnitForUpsert.Id);
 
                 if (duplicateReportedDU != null)
                 {
