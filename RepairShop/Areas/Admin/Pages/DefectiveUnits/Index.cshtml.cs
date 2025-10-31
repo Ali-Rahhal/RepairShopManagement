@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 using System.Security.Claims;
 
 namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
@@ -101,6 +102,24 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             return new JsonResult(new { success = true, message = "Defective unit added to transaction successfully" });
         }
 
+        // Add this method to your IndexModel class
+        public async Task<IActionResult> OnGetDownloadPdf(int id)
+        {
+            var defectiveUnit = await _unitOfWork.DefectiveUnit.GetAsy(
+                du => du.Id == id,
+                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,Warranty,MaintenanceContract"
+            );
 
+            if (defectiveUnit == null)
+            {
+                return NotFound();
+            }
+
+            var reportService = new DUReportService();
+            var pdfBytes = reportService.GenerateDUReportPdf(defectiveUnit);
+
+            return File(pdfBytes, "application/pdf",
+                $"DefectiveUnitReport_{defectiveUnit.SerialNumber?.Value}_{defectiveUnit.Id}_{DateTime.Now:yyyy-MM-dd hh:mm tt}.pdf");
+        }
     }
 }

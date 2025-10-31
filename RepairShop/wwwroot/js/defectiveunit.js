@@ -137,59 +137,51 @@ function loadDataTable() {
             {
                 data: 'id',
                 render: function (data, type, row) {
+                    let buttons = '';
+
+                    // PDF Download Button (always visible)
+                    buttons += `<a href="/Admin/DefectiveUnits/Index?handler=DownloadPdf&id=${data}" 
+                                  title="Download PDF Report" 
+                                  class="btn btn-info btn-sm mx-1" target="_blank">
+                                  <i class="bi bi-file-earmark-pdf"></i>
+                               </a>`;
+
+                    // Edit Button (always visible)
+                    buttons += `<a href="/Admin/DefectiveUnits/Upsert?id=${data}" 
+                                  title="Edit" 
+                                  class="btn btn-primary btn-sm mx-1">
+                                  <i class="bi bi-pencil-square"></i>
+                               </a>`;
 
                     if (isAdmin()) {
-                    //    return `<div class="d-flex justify-content-center" role="group">
-                    //    <a href="/Admin/DefectiveUnits/Upsert?id=${data}" title="Edit" class="btn btn-primary btn-sm mx-1">
-                    //        <i class="bi bi-pencil-square"></i>
-                    //    </a>
-                    //    <button onclick="Delete(${data})" title="Delete" class="btn btn-danger btn-sm mx-1">
-                    //        <i class="bi bi-trash-fill"></i>
-                    //    </button>
-                    //</div>`;
                         if (row.status === 'Reported') {
-                            return `<div class="d-flex justify-content-center" role="group">
-                        <a href="/Admin/DefectiveUnits/Upsert?id=${data}" title="Edit" class="btn btn-primary btn-sm mx-1">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                        <a onclick="addToTransaction(${data})" title="Add to Transaction" class="btn btn-success btn-sm mx-1">
-                            <i class="bi bi-plus-circle"></i>
-                        </a>
-                        <button onclick="Delete(${data})" title="Delete" class="btn btn-danger btn-sm mx-1">
-                            <i class="bi bi-trash-fill"></i>
-                        </button>
-                    </div>`;
-                        } else {
-                            return `<div class="d-flex justify-content-center" role="group">
-                        <a href="/Admin/DefectiveUnits/Upsert?id=${data}" title="Edit" class="btn btn-primary btn-sm mx-1">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                        <button onclick="Delete(${data})" title="Delete" class="btn btn-danger btn-sm mx-1">
-                            <i class="bi bi-trash-fill"></i>
-                        </button>
-                    </div>`;
+                            // Add to Transaction Button
+                            buttons += `<a onclick="addToTransaction(${data})" 
+                                         title="Add to Transaction" 
+                                         class="btn btn-success btn-sm mx-1">
+                                         <i class="bi bi-plus-circle"></i>
+                                      </a>`;
+                        }
+                        // Delete Button (admin only)
+                        buttons += `<button onclick="Delete(${data})" 
+                                           title="Delete" 
+                                           class="btn btn-danger btn-sm mx-1">
+                                           <i class="bi bi-trash-fill"></i>
+                                        </button>`;
+                    } else {
+                        if (row.status === 'Reported') {
+                            // Add to Transaction Button (non-admin)
+                            buttons += `<a onclick="addToTransaction(${data})" 
+                                         title="Add to Transaction" 
+                                         class="btn btn-success btn-sm mx-1">
+                                         <i class="bi bi-plus-circle"></i>
+                                      </a>`;
                         }
                     }
 
-                    if (row.status === 'Reported') {
-                        return `<div class="d-flex justify-content-center" role="group">
-                        <a href="/Admin/DefectiveUnits/Upsert?id=${data}" title="Edit" class="btn btn-primary btn-sm mx-1">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                        <a onclick="addToTransaction(${data})" title="Add to Transaction" class="btn btn-success btn-sm mx-1">
-                            <i class="bi bi-plus-circle"></i>
-                        </a>
-                    </div>`;
-                    } else {
-                        return `<div class="d-flex justify-content-center" role="group">
-                        <a href="/Admin/DefectiveUnits/Upsert?id=${data}" title="Edit" class="btn btn-primary btn-sm mx-1">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                    </div>`;
-                    }
-                    
+                    return `<div class="d-flex justify-content-center" role="group">${buttons}</div>`;
                 },
-                width: "12%",
+                width: "15%",
                 orderable: false
             }
         ],
