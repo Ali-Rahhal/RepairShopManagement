@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	
 	<!-- 🔽 Version Information -->
-	<Version>1.1.1</Version>
-	<FileVersion>1.1.1.0</FileVersion>
-	<InformationalVersion>1.1.1 - Second Release with bug fix</InformationalVersion>
+	<Version>1.2.0</Version>
+	<FileVersion>1.2.0.0</FileVersion>
+	<InformationalVersion>1.2.0 - 3rd Release</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
