@@ -205,9 +205,9 @@ namespace RepairShop.Areas.Admin.Pages.History
                 // Part added event - show initial status
                 timelineEvents.Add(new TimelineEvent
                 {
-                    EventType = "Part Added to Repair",
+                    EventType = $"Part Added to {(body.PartId == null ? "Repair" : "Replace")}",
                     Date = body.CreatedDate,
-                    Description = "Part identified for repair/replacement",
+                    Description = $"Part identified for {(body.PartId == null ? "repair" : "replacement")}",
                     Details = $"Part: {body.BrokenPartName} - Initial Status: Needs {(body.PartId == null ? "Repair" : "Replacement")}",
                     Status = body.Status,
                     RelatedId = body.Id,
