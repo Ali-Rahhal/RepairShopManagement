@@ -208,7 +208,7 @@ namespace RepairShop.Areas.Admin.Pages.History
                     EventType = "Part Added to Repair",
                     Date = body.CreatedDate,
                     Description = "Part identified for repair/replacement",
-                    Details = $"Part: {body.BrokenPartName} - Initial Status: {GetPartStatusDisplay(body.Status)}",
+                    Details = $"Part: {body.BrokenPartName} - Initial Status: Needs {(body.PartId == null ? "Repair" : "Replacement")}",
                     Status = body.Status,
                     RelatedId = body.Id,
                     EventTypeColor = "info"
@@ -313,7 +313,7 @@ namespace RepairShop.Areas.Admin.Pages.History
                         EventType = "Part Not Replaceable",
                         Date = body.NotReplaceableDate.Value,
                         Description = "Part cannot be replaced",
-                        Details = $"Part: {body.BrokenPartName} - Cannot be replaced (part unavailable or not cost-effective)",
+                        Details = $"Part: {body.BrokenPartName} - Cannot be replaced",
                         Status = SD.Status_Part_NotReplaceable,
                         RelatedId = body.Id,
                         EventTypeColor = "danger"
