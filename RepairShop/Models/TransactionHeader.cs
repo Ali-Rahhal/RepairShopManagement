@@ -18,6 +18,7 @@ namespace RepairShop.Models
         public string? Description { get; set; }
         [Required]
         public string Status { get; set; } = SD.Status_Job_New;
+        public DateTime? LastModifiedDate { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime? InProgressDate { get; set; }
         public DateTime? CompletedOrOutOfServiceDate { get; set; }

@@ -118,6 +118,15 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             await _unitOfWork.TransactionBody.UpdateAsy(TB);
             await _unitOfWork.SaveAsy();
 
+            // Update TransactionHeader last modified date
+            var HeaderForBody = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == TB.TransactionHeaderId, tracked: true);
+            if (HeaderForBody != null)
+            {
+                HeaderForBody.LastModifiedDate = DateTime.Now;
+                await _unitOfWork.TransactionHeader.UpdateAsy(HeaderForBody);
+                await _unitOfWork.SaveAsy();
+            }
+
             return new JsonResult(new { success = true, message = "Status changed successfully" });
         }
 
@@ -153,6 +162,16 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
 
             await _unitOfWork.TransactionBody.RemoveAsy(TBToBeDeleted);
             await _unitOfWork.SaveAsy();
+
+            // Update TransactionHeader last modified date
+            var HeaderForBody = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == TBToBeDeleted.TransactionHeaderId, tracked: true);
+            if (HeaderForBody != null)
+            {
+                HeaderForBody.LastModifiedDate = DateTime.Now;
+                await _unitOfWork.TransactionHeader.UpdateAsy(HeaderForBody);
+                await _unitOfWork.SaveAsy();
+            }
+
             return new JsonResult(new { success = true, message = "Part deleted successfully" });
         }
     }

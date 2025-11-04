@@ -109,6 +109,15 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                     TempData["success"] = "Part name updated successfully";
                 }
 
+                // Update TransactionHeader last modified date
+                var HeaderForBody = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == tbForUpsert.TransactionHeaderId, tracked: true);
+                if (HeaderForBody != null)
+                {
+                    HeaderForBody.LastModifiedDate = DateTime.Now;
+                    await _unitOfWork.TransactionHeader.UpdateAsy(HeaderForBody);
+                    await _unitOfWork.SaveAsy();
+                }
+
                 return RedirectToPage("Index", new { HeaderId = tbForUpsert.TransactionHeaderId });
             }
 

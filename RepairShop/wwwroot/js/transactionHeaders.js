@@ -27,8 +27,9 @@ function loadDataTable() {
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "order": [
-            [3, "asc"],   // Status: New -> InProgress -> Completed -> OutOfService
-            [5, "desc"]   // Then by creation date: newest first
+            [8, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
+            [3, "asc"],   // Within equal modification times, sort by status
+            [5, "desc"]   // Within equal statuses, sort by newest creation date
         ],
         "columnDefs": [
             {
@@ -192,6 +193,10 @@ function loadDataTable() {
                     }
                 },
                 "width": "20%"
+            },
+            {
+                data: 'lastModifiedDate',
+                visible: false // hide from user, used for ordering
             }
         ],
         "language": {
@@ -304,7 +309,11 @@ function clearFilters() {
     $('#minDate').val('');
     $('#maxDate').val('');
     // Reset to initial ordering: [3, "asc"], [5, "desc"]
-    dataTable.order([[3, 'asc'], [5, 'desc']]).draw();
+    dataTable.order([
+        [8, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
+        [3, "asc"],   // Within equal modification times, sort by status
+        [5, "desc"]   // Within equal statuses, sort by newest creation date
+    ]).draw();
 
     // Clear any search filters
     dataTable.search('').columns().search('').draw();

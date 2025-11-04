@@ -59,6 +59,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 serialNumber = t.DefectiveUnit?.SerialNumber?.Value ?? "N/A",
                 status = t.Status,
                 client = t.Client != null ? new { name = t.Client.Name } : null,
+                lastModifiedDate = t.LastModifiedDate ?? t.CreatedDate,
                 createdDate = t.CreatedDate,
                 inProgressDate = t.InProgressDate,
                 completedOrOutOfServiceDate = t.CompletedOrOutOfServiceDate,
@@ -80,6 +81,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
 
             THToBeChanged.Status = SD.Status_Job_InProgress;
             THToBeChanged.InProgressDate = DateTime.Now;
+            THToBeChanged.LastModifiedDate = DateTime.Now;
             await _unitOfWork.TransactionHeader.UpdateAsy(THToBeChanged);
             await _unitOfWork.SaveAsy();
             return new JsonResult(new { success = true, message = "Status changed successfully" });
@@ -131,7 +133,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             var partCount = THToBeCompleted.BrokenParts.Count(o => o.IsActive == true);
             if (partCount == 0)
             {
-                return new JsonResult(new { success = false, message = "You have no parts to complete" });
+                return new JsonResult(new { success = false, message = "Parts must be reported before marking as completed" });
             }
 
             //check if there are non-repairable parts
@@ -143,6 +145,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 THToBeCompleted.CompletedOrOutOfServiceDate = DateTime.Now;
                 THToBeCompleted.DefectiveUnit.Status = SD.Status_DU_OutOfService;
                 THToBeCompleted.DefectiveUnit.ResolvedDate = DateTime.Now;
+                THToBeCompleted.LastModifiedDate = DateTime.Now;
                 await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
                 await _unitOfWork.SaveAsy();
                 return new JsonResult(new { success = true, message = "Transaction is out of service" });
@@ -153,6 +156,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 THToBeCompleted.CompletedOrOutOfServiceDate = DateTime.Now;
                 THToBeCompleted.DefectiveUnit.Status = SD.Status_DU_Fixed;
                 THToBeCompleted.DefectiveUnit.ResolvedDate = DateTime.Now;
+                THToBeCompleted.LastModifiedDate = DateTime.Now;
                 await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
                 await _unitOfWork.SaveAsy();
                 return new JsonResult(new { success = true, message = "Transaction completed successfully" });

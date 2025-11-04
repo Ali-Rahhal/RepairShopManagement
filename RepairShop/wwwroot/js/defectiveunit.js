@@ -20,7 +20,7 @@ function loadDataTable() {
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "order": [
             [5, "asc"],   // Status: New -> InProgress -> Completed -> OutOfService
-            [3, "desc"]   // Then by creation date: newest first
+            [2, "desc"]   // Then by creation date: newest first
         ],
         "columnDefs": [
             {
@@ -188,8 +188,7 @@ function loadDataTable() {
         language: {
             emptyTable: "No defective units found",
             zeroRecords: "No matching defective units found"
-        },
-        order: [[3, 'desc']] // Sort by reported date descending
+        }
     });
 
     // robust status-priority sorter (register before DataTable init) -----
@@ -239,12 +238,12 @@ function applyFilters() {
 
 function clearFilters() {
     $('#statusFilter').val('All');
-    // Reset to initial ordering: [5, "asc"], [3, "desc"]
-    dataTable.order([[5, 'asc'], [3, 'desc']]).draw();
+    // Reset to initial ordering: [5, "asc"], [2, "desc"]
+    dataTable.order([[5, 'asc'], [2, 'desc']]).draw();
 
     dataTable.columns().search('').draw();
 
-    toastr.info('All filters cleared');
+    toastr.info('All filters and sorting reset');
 }
 
 function Delete(id) {

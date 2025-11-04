@@ -83,6 +83,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 }
                 else
                 {
+                    thForUpsert.LastModifiedDate = DateTime.Now;
                     await _unitOfWork.TransactionHeader.UpdateAsy(thForUpsert);
                     TempData["success"] = "Transaction updated successfully";
                 }

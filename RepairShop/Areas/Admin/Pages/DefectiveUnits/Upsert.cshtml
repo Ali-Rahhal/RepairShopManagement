@@ -20,6 +20,11 @@
             <input type="hidden" asp-for="DefectiveUnitForUpsert.SerialNumberId" id="selectedSerialId" />
             <input type="hidden" asp-for="DefectiveUnitForUpsert.WarrantyId" id="selectedWarrantyId" />
             <input type="hidden" asp-for="DefectiveUnitForUpsert.MaintenanceContractId" id="selectedContractId" />
+            @if(Model.DefectiveUnitForUpsert.Id != 0)
+            {
+                <input type="hidden" asp-for="DefectiveUnitForUpsert.ReportedDate" />
+                <input type="hidden" asp-for="DefectiveUnitForUpsert.Status" />
+            }
 
             <div class="row">
                 <div class="col-12 col-md-10 mx-auto">
