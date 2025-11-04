@@ -16,41 +16,40 @@ function searchSerialNumbers() {
     resultsDiv.style.display = 'block';
     messageDiv.style.display = 'none';
 
-    fetch(`/Admin/DefectiveUnits/Upsert?handler=SearchSerialNumbers&searchTerm=${encodeURIComponent(searchTerm)}`)
+    fetch(`/Admin/DefectiveUnits/Upsert?handler=SearchSerialNumber&searchTerm=${encodeURIComponent(searchTerm)}`)
         .then(response => response.json())
         .then(data => {
             resultsList.innerHTML = '';
 
-            if (data.length === 0) {
+            if (!data || Object.keys(data).length === 0) {//!data → catches null || Object.keys(data).length === 0 → catches empty { }
                 // No existing serial number found - show creation fields
                 showNewSerialFields(searchTerm);
                 messageDiv.innerHTML = '<span class="text-warning"><i class="bi bi-info-circle"></i> Serial number not found. You can create a new one below.</span>';
                 messageDiv.style.display = 'block';
                 resultsDiv.style.display = 'none';
             } else {
-                // Show search results
-                data.forEach(item => {
-                    const listItem = document.createElement('button');
-                    listItem.type = 'button';
-                    listItem.className = 'list-group-item list-group-item-action';
-                    listItem.innerHTML = `
+                // Show search result
+                const listItem = document.createElement('button');
+                listItem.type = 'button';
+                listItem.className = 'list-group-item list-group-item-action';
+                listItem.innerHTML = `
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <strong>${item.value}</strong><br>
-                                        <small class="text-muted">Model: ${item.modelName} | Client: ${item.clientName} | Received: ${item.receivedDate}</small>
+                                        <strong>${data.value}</strong><br>
+                                        <small class="text-muted">Model: ${data.modelName} | Client: ${data.clientName} | Received: ${data.receivedDate}</small>
                                     </div>
                                     <div class="text-end">
-                                        ${item.hasWarranty ? '<span class="badge bg-success me-1">Warranty</span>' : ''}
-                                        ${item.hasContract ? '<span class="badge bg-info">Contract</span>' : ''}
+                                        ${data.hasWarranty ? '<span class="badge bg-success me-1">Warranty</span>' : ''}
+                                        ${data.hasContract ? '<span class="badge bg-info">Contract</span>' : ''}
                                     </div>
                                 </div>
                             `;
-                    listItem.onclick = function () {
-                        selectSerialNumber(item.id);
-                    };
-                    resultsList.appendChild(listItem);
-                });
-                messageDiv.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Found matching serial numbers. Select one or create new.</span>';
+                listItem.onclick = function () {
+                    selectSerialNumber(data.id);
+                };
+                resultsList.appendChild(listItem);
+
+                messageDiv.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Found matching serial number. Select it or create new.</span>';
                 messageDiv.style.display = 'block';
             }
         })

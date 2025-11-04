@@ -147,17 +147,17 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         }
 
         // API for searching serial numbers
-        public async Task<JsonResult> OnGetSearchSerialNumbers(string searchTerm)
+        public async Task<JsonResult?> OnGetSearchSerialNumber(string searchTerm)
         {
-            var serialNumbers = (await _unitOfWork.SerialNumber.GetAllAsy(
+            var sn = await _unitOfWork.SerialNumber.GetAsy(
                 sn => sn.IsActive == true &&
-                     (sn.Value.Contains(searchTerm) ||
-                      sn.Model.Name.Contains(searchTerm) ||
-                      sn.Client.Name.Contains(searchTerm)),
+                    sn.Value.Equals(searchTerm),
                 includeProperties: "Model,Client,Warranty,MaintenanceContract"
-            ))
-            .Take(20)
-            .Select(sn => new
+            );
+
+            if (sn == null) return new JsonResult(null);
+
+            var serialNumber = new
             {
                 id = sn.Id,
                 value = sn.Value,
@@ -170,10 +170,9 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 hasContract = sn.MaintenanceContract != null && sn.MaintenanceContract.Status == "Active",
                 warrantyId = sn.Warranty?.Id,
                 maintenanceContractId = sn.MaintenanceContract?.Id
-            })
-            .ToList();
+            };
 
-            return new JsonResult(serialNumbers);
+            return new JsonResult(serialNumber);
         }
 
         // API for getting serial number details
