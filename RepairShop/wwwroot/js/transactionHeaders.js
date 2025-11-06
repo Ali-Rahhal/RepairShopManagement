@@ -27,7 +27,7 @@ function loadDataTable() {
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "order": [
-            [8, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
+            [7, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
             [3, "asc"],   // Within equal modification times, sort by status
             [5, "desc"]   // Within equal statuses, sort by newest creation date
         ],
@@ -69,6 +69,8 @@ function loadDataTable() {
                             return `<span class="badge bg-success p-2 fs-5">${data}</span>`;
                         case "OutOfService":
                             return `<span class="badge bg-danger p-2 fs-5">${data}</span>`;
+                        case "Delivered":
+                            return `<span class="badge bg-primary p-2 fs-5">${data}</span>`;
                         default:
                             return `<p>${data}</p>`;
                     }
@@ -108,91 +110,50 @@ function loadDataTable() {
             },
             {
                 data: 'id',
-                visible: isAdmin(),//this column is only visible to non-admin users
+                "width": "25%",
                 "render": function (data, type, row) {
-                    //return `<div class="w-75 d-flex" role="group">
-                    //            <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a>
-                    //            <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                    //            <button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}')"
-                    //                title="View History" class="btn btn-outline-primary mx-2">
-                    //                    <i class="bi bi-clock-history"></i>
-                    //            </button>
-                    //        </div>`;
+                    let firstButton = row.status === "New"
+                        ? `<a onClick="ChangeStatusToInProgress('/User/TransactionHeaders/Index?handler=ChangeStatus&id=${data}')" title="Start Work" class="btn btn-success mx-2"><i class="bi bi-play-circle"></i></a>`
+                        : `<a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a>`;
+
+                    let secondButton = (row.status === "New" || row.status === "InProgress")
+                        ? `<a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>`
+                        : `<a title="Edit(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-pencil-square"></i></a>`;
+
+                    let thirdButton = ``;
                     if (row.status === "New") {
-                        return `<div class="w-75 d-flex" role="group">
-                                    <a onClick="ChangeStatusToInProgress('/User/TransactionHeaders/Index?handler=ChangeStatus&id=${data}')" title="Start Work" class="btn btn-success mx-2"><i class="bi bi-play-circle"></i></a>
-                                    <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a title="Complete(Transaction needs to be in progress)" class="btn btn-dark mx-2"><i class="bi bi-check-circle"></i></a>
-                                    <button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}')"
-                                        title="View History" class="btn btn-outline-primary mx-2"> 
-                                            <i class="bi bi-clock-history"></i>
-                                    </button>
-                                    <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                                </div>`;
-                    } else if (row.status !== "Completed" && row.status !== "OutOfService") {
-                        return `<div class="w-75 d-flex" role="group">
-                                    <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a> 
-                                    <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a onClick="ToCompleted('/User/TransactionHeaders/Index?handler=CompleteStatus&id=${data}')" title="Complete" class="btn btn-success mx-2"><i class="bi bi-check-circle"></i></a>
-                                    <button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}')"
-                                        title="View History" class="btn btn-outline-primary mx-2"> 
-                                            <i class="bi bi-clock-history"></i>
-                                    </button>
-                                    <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                                </div>`;
-                    } else {
-                        return `<div class="w-75 d-flex" role="group">
-                                    <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a> 
-                                    <a title="Edit(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a title="Complete(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-check-circle"></i></a>
-                                    <button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}')"
-                                        title="View History" class="btn btn-outline-primary mx-2"> 
-                                            <i class="bi bi-clock-history"></i>
-                                    </button>
-                                    <a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                                </div>`;
+                        thirdButton = `<a title="Complete(Transaction needs to be in progress)" class="btn btn-dark mx-2"><i class="bi bi-check-circle"></i></a>`;
                     }
-                },
-                "width": "5%"
-            },
-            {
-                data: 'id',
-                visible: !isAdmin(),//this column is only visible to non-admin users
-                "render": function (data, type, row) {
-                    //show status change button if status is "New" 
-                    if (row.status === "New") {
-                        return `<div class="w-75 d-flex" role="group">
-                                    <a onClick="ChangeStatusToInProgress('/User/TransactionHeaders/Index?handler=ChangeStatus&id=${data}')" title="Start Work" class="btn btn-success mx-2"><i class="bi bi-play-circle"></i></a>
-                                    <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a title="Complete(Transaction needs to be in progress)" class="btn btn-dark mx-2"><i class="bi bi-check-circle"></i></a>
-                                    <button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}')"
-                                        title="View History" class="btn btn-outline-primary mx-2"> 
-                                            <i class="bi bi-clock-history"></i>
-                                    </button>
-                                </div>`;
-                    } else if (row.status !== "Completed" && row.status !== "OutOfService") {
-                        return `<div class="w-75 d-flex" role="group">
-                                    <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a> 
-                                    <a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a onClick="ToCompleted('/User/TransactionHeaders/Index?handler=CompleteStatus&id=${data}')" title="Complete" class="btn btn-success mx-2"><i class="bi bi-check-circle"></i></a>
-                                    <button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}')"
-                                        title="View History" class="btn btn-outline-primary mx-2"> 
-                                            <i class="bi bi-clock-history"></i>
-                                    </button>
-                                </div>`;
-                    } else {
-                        return `<div class="w-75 d-flex" role="group">
-                                    <a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a> 
-                                    <a title="Edit(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a title="Complete(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-check-circle"></i></a>
-                                    <button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}')"
-                                        title="View History" class="btn btn-outline-primary mx-2"> 
-                                            <i class="bi bi-clock-history"></i>
-                                    </button>
-                                </div>`;
+                    else if (row.status === "InProgress") {
+                        thirdButton = `<a onClick="ToBeCompleted('/User/TransactionHeaders/Index?handler=CompleteStatus&id=${data}')" title="Complete" class="btn btn-success mx-2"><i class="bi bi-check-circle"></i></a>`;
                     }
-                },
-                "width": "20%"
+                    else if (row.status === "Completed") {
+                        thirdButton = `<a onClick="ToBeDelivered('/User/TransactionHeaders/Index?handler=DeliverStatus&id=${data}')" title="Deliver" class="btn btn-outline-success mx-2"><i class="bi bi-truck"></i></a>`;
+                    }
+                    else if (row.status === "OutOfService") {
+                        thirdButton = `<a title="Deliver(Transaction is out of service)" class="btn btn-dark mx-2"><i class="bi bi-truck"></i></a>`;
+                    }
+                    else if (row.status === "Delivered") {
+                        thirdButton = `<a href="/User/TransactionHeaders/Index?handler=DownloadPdf&id=${data}" title="Download PDF Report" class="btn btn-info mx-2" target="_blank"> <i class="bi bi-file-earmark-pdf"></i></a>`;
+                    }
+
+                    let fourthButton = `<button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}', '${row.deliveredDate}')"
+                                        title="View History" class="btn btn-outline-primary mx-2"> 
+                                            <i class="bi bi-clock-history"></i>
+                                        </button>`;
+
+                    let fifthButton = isAdmin()
+                        ? `<a onClick="Delete('/User/TransactionHeaders/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>`
+                        : ``;
+
+                    return `<div class="w-75 d-flex" role="group">
+                                ${firstButton}
+                                ${secondButton}
+                                ${thirdButton}
+                                ${fourthButton}
+                                ${fifthButton}
+                            </div>`;
+                }
             },
             {
                 data: 'lastModifiedDate',
@@ -242,7 +203,8 @@ function loadDataTable() {
             case 'new': return 1;
             case 'inprogress': return 2;
             case 'completed': return 3;
-            case 'outofservice': return 4;
+            case 'delivered': return 4;
+            case 'outofservice': return 5;
             default: return 5;
         }
     };
@@ -310,7 +272,7 @@ function clearFilters() {
     $('#maxDate').val('');
     // Reset to initial ordering: [3, "asc"], [5, "desc"]
     dataTable.order([
-        [8, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
+        [7, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
         [3, "asc"],   // Within equal modification times, sort by status
         [5, "desc"]   // Within equal statuses, sort by newest creation date
     ]).draw();
@@ -366,7 +328,7 @@ function Delete(url) {
     });
 }
 
-function ToCompleted(url) {
+function ToBeCompleted(url) {
     Swal.fire({
         title: "Are you sure you want to mark this task as complete?",
         text: "You won't be able to revert this!",
@@ -393,7 +355,34 @@ function ToCompleted(url) {
     });
 }
 
-function showHistory(id, created, inProgress, completedOrOutOfService) {
+function ToBeDelivered(url) {
+    Swal.fire({
+        title: "Are you sure you want to mark this task as delivered?",
+        text: "You won't be able to revert this!",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Yes, mark as delivered"
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: url,
+                success: function (data) {
+                    if (data.success) {
+                        dataTable.ajax.reload();
+                        toastr.success(data.message);
+                    }
+                    else {
+                        toastr.error(data.message);
+                    }
+                }
+            })
+        }
+    });
+}
+
+function showHistory(id, created, inProgress, completedOrOutOfService, delivered) {
     // Format dates nicely
     const formatDate = (d) => {
         const date = new Date(d);
@@ -413,6 +402,7 @@ function showHistory(id, created, inProgress, completedOrOutOfService) {
             <p><strong>Created:</strong> ${formatDate(created)}</p>
             <p><strong>In Progress:</strong> ${formatDate(inProgress)}</p>
             <p><strong>Completed / Out of Service:</strong> ${formatDate(completedOrOutOfService)}</p>
+            <p><strong>Delivered:</strong> ${formatDate(delivered)}</p>
         </div>
     `;
 

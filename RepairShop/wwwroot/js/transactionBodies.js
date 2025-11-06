@@ -75,15 +75,7 @@ function loadDataTable() {
             {
                 data: 'id',//this column is only visible to admins
                 "render": function (data, type, row) {
-                    //return `<div class="w-100 d-flex justify-content-center" role="group">
-                    //                <button class="btn btn-outline-primary mx-2" title="View History"
-                    //                    onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
-                    //                                            '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
-                    //                                            '${row.notRepairableDate}', '${row.notReplaceableDate}')">
-                    //                        <i class="bi bi-clock-history"></i>
-                    //                </button>
-                    //            </div>`;
-                    if (hStatus === "Completed" || hStatus === "OutOfService") {//only show this column if the header status is completed.
+                    if (hStatus === "Completed" || hStatus === "OutOfService" || hStatus === "Delivered") {//only show this column if the header status is completed.
                         return `<div class="w-100 d-flex justify-content-center" role="group">
                                     <button class="btn btn-outline-primary mx-2" title="View History"
                                         onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
@@ -124,7 +116,7 @@ function loadDataTable() {
             {
                 data: 'id',//this column is only visible to non-admin users
                 "render": function (data, type, row) {
-                    if (hStatus === "Completed" || hStatus === "OutOfService") {//only show this column if the header status is completed.
+                    if (hStatus === "Completed" || hStatus === "OutOfService" || hStatus === "Delivered") {//only show this column if the header status is completed.
                         return `<div class="w-100 d-flex justify-content-center" role="group">
                                     <button class="btn btn-outline-primary mx-2" title="View History"
                                         onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 

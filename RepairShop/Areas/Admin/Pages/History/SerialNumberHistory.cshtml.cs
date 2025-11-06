@@ -185,16 +185,31 @@ namespace RepairShop.Areas.Admin.Pages.History
 
                 if (transaction.CompletedOrOutOfServiceDate.HasValue)
                 {
-                    var eventType = transaction.Status == SD.Status_Job_Completed ? "Repair Completed" : "Marked Out of Service";
+                    var eventType = (transaction.Status == SD.Status_Job_Completed || transaction.Status == SD.Status_Job_Delivered) ? "Repair Completed" : "Marked Out of Service";
                     timelineEvents.Add(new TimelineEvent
                     {
                         EventType = eventType,
                         Date = transaction.CompletedOrOutOfServiceDate.Value,
                         Description = eventType,
                         Details = $"Job finalized with status: {transaction.Status}",
+                        Status = (transaction.Status == SD.Status_Job_Completed || transaction.Status == SD.Status_Job_Delivered) ? SD.Status_Job_Completed : SD.Status_Job_OutOfService,
+                        RelatedId = transaction.Id,
+                        EventTypeColor = (transaction.Status == SD.Status_Job_Completed || transaction.Status == SD.Status_Job_Delivered) ? "success" : "dark"
+                    });
+                }
+
+                if (transaction.DeliveredDate.HasValue)
+                {
+                    var eventType = "Delivery Completed";
+                    timelineEvents.Add(new TimelineEvent
+                    {
+                        EventType = eventType,
+                        Date = transaction.DeliveredDate.Value,
+                        Description = eventType,
+                        Details = $"Job finalized and delivery is complete",
                         Status = transaction.Status,
                         RelatedId = transaction.Id,
-                        EventTypeColor = transaction.Status == SD.Status_Job_Completed ? "success" : "dark"
+                        EventTypeColor = "primary"
                     });
                 }
             }
@@ -337,7 +352,7 @@ namespace RepairShop.Areas.Admin.Pages.History
                 TotalRepairJobs = transactionHeaders.Count,
                 TotalPartsReplaced = transactionBodies.Count(tb => tb.Status == SD.Status_Part_Replaced),
                 TotalPartsFixed = transactionBodies.Count(tb => tb.Status == SD.Status_Part_Fixed),
-                CompletedJobs = transactionHeaders.Count(th => th.Status == SD.Status_Job_Completed),
+                CompletedJobs = transactionHeaders.Count(th => th.Status == SD.Status_Job_Completed || th.Status == SD.Status_Job_Delivered),
                 OutOfServiceJobs = transactionHeaders.Count(th => th.Status == SD.Status_Job_OutOfService)
             };
         }

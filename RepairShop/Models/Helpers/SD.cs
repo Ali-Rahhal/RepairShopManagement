@@ -9,6 +9,7 @@
         public const string Status_Job_InProgress = "InProgress";
         public const string Status_Job_Completed = "Completed";
         public const string Status_Job_OutOfService = "OutOfService";
+        public const string Status_Job_Delivered = "Delivered";
 
         public const string Status_Part_Pending_Repair = "PendingForRepair";
         public const string Status_Part_Pending_Replace = "PendingForReplacement";

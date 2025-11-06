@@ -63,6 +63,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 createdDate = t.CreatedDate,
                 inProgressDate = t.InProgressDate,
                 completedOrOutOfServiceDate = t.CompletedOrOutOfServiceDate,
+                deliveredDate = t.DeliveredDate,
                 description = t.Description,
                 defectiveUnitId = t.DefectiveUnitId
             });
@@ -137,7 +138,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             }
 
             //check if there are non-repairable parts
-            var nonRepairableParts = THToBeCompleted.BrokenParts.Count(o => o.IsActive == true && (o.Status == SD.Status_Part_NotReplaceable 
+            var nonRepairableParts = THToBeCompleted.BrokenParts.Count(o => o.IsActive == true && (o.Status == SD.Status_Part_NotReplaceable
                                                                                                     || o.Status == SD.Status_Part_NotRepairable));
             if (nonRepairableParts > 0)
             {
@@ -161,6 +162,29 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 await _unitOfWork.SaveAsy();
                 return new JsonResult(new { success = true, message = "Transaction completed successfully" });
             }
+        }
+
+
+        //AJAX CALL for marking transaction as delivered
+        public async Task<IActionResult> OnGetDeliverStatus(int? id)//The route is /User/TransactionHeaders/Index?handler=DeliverStatus&id=1
+        {
+            var THToBeCompleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id);
+            if (THToBeCompleted == null)
+            {
+                return new JsonResult(new { success = false, message = "Error while marking as delivered" });
+            }
+
+            if (THToBeCompleted.Status != SD.Status_Job_Completed)
+            {
+                return new JsonResult(new { success = false, message = "You can only mark a completed transaction as delivered" });
+            }
+
+            THToBeCompleted.Status = SD.Status_Job_Delivered;
+            THToBeCompleted.DeliveredDate = DateTime.Now;
+            THToBeCompleted.LastModifiedDate = DateTime.Now;
+            await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
+            await _unitOfWork.SaveAsy();
+            return new JsonResult(new { success = true, message = "Transaction marked as delivered successfully" });
         }
     }
 }

@@ -22,6 +22,7 @@ namespace RepairShop.Models
         public DateTime CreatedDate { get; set; } = DateTime.Now;
         public DateTime? InProgressDate { get; set; }
         public DateTime? CompletedOrOutOfServiceDate { get; set; }
+        public DateTime? DeliveredDate { get; set; }
         public bool IsActive { get; set; } = true;
 
         [Required]
