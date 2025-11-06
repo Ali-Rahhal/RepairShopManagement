@@ -4,13 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Repair Management System</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/RepairShop.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/RepairShop.styles.css" asp-append-version="true"/>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"/>
-    <link rel="stylesheet" href="~/lib/toastr/toastr.min.css"/>
-    <link rel="stylesheet" href="~/lib/datatables/jquery.dataTables.min.css"/>
-    <link rel="stylesheet" href="~/lib/tomselect/tom-select.bootstrap5.min.css" />
+    <link rel="stylesheet" href="~/lib/toastr/toastr.min.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/lib/datatables/jquery.dataTables.min.css" asp-append-version="true"/>
+    <link rel="stylesheet" href="~/lib/tomselect/tom-select.bootstrap5.min.css" asp-append-version="true"/>
 </head>
 <body>
     <header>
@@ -89,17 +89,17 @@
 
     <footer class="border-top footer text-muted">
         <div class="container text-center">
-            Made By Ali Rahhal
+            <small>&copy; 2025 RepairShop. All rights reserved.</small>
         </div>
     </footer>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/lib/datatables/jquery.dataTables.min.js" asp-append-version="true"></script>
-    <script src="~/lib/sweetalert/sweetalert2@11.js"></script>
-    <script src="~/lib/toastr/toastr.min.js"></script>
-    <script src="~/lib/tomselect/tom-select.complete.min.js"></script>
+    <script src="~/lib/sweetalert/sweetalert2@11.js" asp-append-version="true"></script>
+    <script src="~/lib/toastr/toastr.min.js" asp-append-version="true"></script>
+    <script src="~/lib/tomselect/tom-select.complete.min.js" asp-append-version="true"></script>
 
 
     @await RenderSectionAsync("Scripts", required: false)
