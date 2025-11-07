@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 using System.Security.Claims;
 
 namespace RepairShop.Areas.User.Pages.TransactionHeaders
@@ -185,6 +186,26 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
             await _unitOfWork.SaveAsy();
             return new JsonResult(new { success = true, message = "Transaction marked as delivered successfully" });
+        }
+
+        // Method to download the PDF report
+        public async Task<IActionResult> OnGetDownloadPdf(int id)
+        {
+            var transactionHeader = await _unitOfWork.TransactionHeader.GetAsy(
+                th => th.Id == id,
+                includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,Client,User"
+            );
+
+            if (transactionHeader == null)
+            {
+                return NotFound();
+            }
+
+            var reportService = new TransactionReportService();
+            var pdfBytes = reportService.GenerateTransactionReportPdf(transactionHeader);
+
+            return File(pdfBytes, "application/pdf",
+                $"TransactionReport_{transactionHeader.DefectiveUnit.SerialNumber?.Value}_{transactionHeader.Id}_{DateTime.Now:yyyy-MM-dd hh:mm tt}.pdf");
         }
     }
 }
