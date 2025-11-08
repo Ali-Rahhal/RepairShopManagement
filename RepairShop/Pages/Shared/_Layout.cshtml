@@ -86,10 +86,13 @@
             @RenderBody()
         </main>
     </div>
-
+    @{
+        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+    }
     <footer class="border-top footer text-muted">
         <div class="container text-center">
             <small>&copy; 2025 RepairShop. All rights reserved.</small>
+            <small>Version: @version</small>
         </div>
     </footer>
 
