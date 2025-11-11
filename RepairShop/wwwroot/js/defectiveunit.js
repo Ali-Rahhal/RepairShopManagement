@@ -78,7 +78,11 @@ function loadDataTable() {
                 data: 'description',
                 width: "20%",
                 render: function (data) {
-                    return data || 'No description';
+                    let text = '';
+                    if (data) {
+                        text = data.length > 20 ? data.substring(0, 20) + '...' : data;
+                    }
+                    return text || 'No description';
                 }
             },
             {

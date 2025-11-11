@@ -293,7 +293,6 @@
                                                             <th>Completed Date</th>
                                                             <th>Delivered Date</th>
                                                             <th>Technician</th>
-                                                            <th>Description</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -310,7 +309,6 @@
                                                                 <td>@(job.CompletedOrOutOfServiceDate?.ToString("dd-MM-yyyy hh:mm tt") ?? "-")</td>
                                                                 <td>@(job.DeliveredDate?.ToString("dd-MM-yyyy hh:mm tt") ?? "-")</td>
                                                                 <td>@job.User?.UserName</td>
-                                                                <td>@job.Description</td>
                                                             </tr>
                                                         }
                                                     </tbody>

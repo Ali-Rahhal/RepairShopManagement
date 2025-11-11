@@ -27,9 +27,9 @@ function loadDataTable() {
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "order": [
-            [7, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
-            [3, "asc"],   // Within equal modification times, sort by status
-            [5, "desc"]   // Within equal statuses, sort by newest creation date
+            [8, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
+            [4, "asc"],   // Within equal modification times, sort by status
+            [6, "desc"]   // Within equal statuses, sort by newest creation date
         ],
         "columnDefs": [
             {
@@ -40,12 +40,12 @@ function loadDataTable() {
         "columns": [
             {
                 data: 'user.userName',
-                visible: isAdmin(),//this column is only visible to admin users
-                "width": "10%"
+                "width": "5%",
+                visible: isAdmin()//this column is only visible to admin users
             },
             {
                 data: 'model',
-                "width": "20%",
+                "width": "10%",
                 render: function (data) {
                     return data || 'N/A';
                 }
@@ -58,24 +58,35 @@ function loadDataTable() {
                 }
             },
             {
+                data: 'duDescription',
+                "width": "15%",
+                render: function (data) {
+                    var text = '';
+                    if (data) {
+                        text = data.length > 20 ? data.substring(0, 20) + '...' : data;
+                    }
+                    return text || 'N/A';
+                }
+            },
+            {
                 data: 'status',
+                "width": "5%",
                 "render": function (data) {
                     switch (data) {
                         case "New":
-                            return `<span class="badge bg-info p-2 fs-5">${data}</span>`;
+                            return `<span class="badge bg-info">${data}</span>`;
                         case "InProgress":
-                            return `<span class="badge bg-warning p-2 fs-5">${data}</span>`;
+                            return `<span class="badge bg-warning">${data}</span>`;
                         case "Completed":
-                            return `<span class="badge bg-success p-2 fs-5">${data}</span>`;
+                            return `<span class="badge bg-success">${data}</span>`;
                         case "OutOfService":
-                            return `<span class="badge bg-danger p-2 fs-5">${data}</span>`;
+                            return `<span class="badge bg-danger">${data}</span>`;
                         case "Delivered":
-                            return `<span class="badge bg-primary p-2 fs-5">${data}</span>`;
+                            return `<span class="badge bg-primary">${data}</span>`;
                         default:
                             return `<p>${data}</p>`;
                     }
-                },
-                "width": "10%"
+                }
             },
             {
                 data: 'client.name',
@@ -110,7 +121,7 @@ function loadDataTable() {
             },
             {
                 data: 'id',
-                "width": "25%",
+                "width": "20%",
                 "render": function (data, type, row) {
                     let firstButton = row.status === "New"
                         ? `<a onClick="ChangeStatusToInProgress('/User/TransactionHeaders/Index?handler=ChangeStatus&id=${data}')" title="Start Work" class="btn btn-success mx-2"><i class="bi bi-play-circle"></i></a>`
@@ -272,9 +283,9 @@ function clearFilters() {
     $('#maxDate').val('');
     // Reset to initial ordering: [3, "asc"], [5, "desc"]
     dataTable.order([
-        [7, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
-        [3, "asc"],   // Within equal modification times, sort by status
-        [5, "desc"]   // Within equal statuses, sort by newest creation date
+        [8, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
+        [4, "asc"],   // Within equal modification times, sort by status
+        [6, "desc"]   // Within equal statuses, sort by newest creation date
     ]).draw();
 
     // Clear any search filters

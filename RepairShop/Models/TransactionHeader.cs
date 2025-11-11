@@ -15,7 +15,6 @@ namespace RepairShop.Models
         [DeleteBehavior(DeleteBehavior.Restrict)] // Add this to prevent cascade issues
         public DefectiveUnit DefectiveUnit { get; set; } //belongs to defective unit
 
-        public string? Description { get; set; }
         [Required]
         public string Status { get; set; } = SD.Status_Job_New;
         public DateTime? LastModifiedDate { get; set; }

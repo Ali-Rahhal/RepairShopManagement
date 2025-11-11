@@ -58,6 +58,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 user = t.User != null ? new { userName = t.User.UserName } : null,
                 model = t.DefectiveUnit?.SerialNumber?.Model?.Name ?? "N/A",
                 serialNumber = t.DefectiveUnit?.SerialNumber?.Value ?? "N/A",
+                duDescription = t.DefectiveUnit?.Description ?? "N/A",
                 status = t.Status,
                 client = t.Client != null ? new { name = t.Client.Name } : null,
                 lastModifiedDate = t.LastModifiedDate ?? t.CreatedDate,
@@ -65,7 +66,6 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 inProgressDate = t.InProgressDate,
                 completedOrOutOfServiceDate = t.CompletedOrOutOfServiceDate,
                 deliveredDate = t.DeliveredDate,
-                description = t.Description,
                 defectiveUnitId = t.DefectiveUnitId
             });
 
