@@ -32,22 +32,34 @@
                             <span asp-validation-for="Input.Role" class="text-danger"></span>
                         </div>
                         
-                        <p class="form-floating py-2 mb-0 mt-3 col-12 text-primary">Change Password (Optional):</p>
-                        
-                        <div class="form-floating py-1 col-12">
-                            <input asp-for="Input.OldPassword" class="form-control border-0 shadow" autocomplete="current-password" aria-required="true" placeholder="Please enter your old password." />
-                            <label asp-for="Input.OldPassword" class="form-label"></label>
-                            <span asp-validation-for="Input.OldPassword" class="text-danger"></span>
-                        </div>
-                        <div class="form-floating py-1 col-12">
-                            <input asp-for="Input.NewPassword" class="form-control border-0 shadow" autocomplete="new-password" aria-required="true" placeholder="Please enter your new password." />
-                            <label asp-for="Input.NewPassword" class="form-label"></label>
-                            <span asp-validation-for="Input.NewPassword" class="text-danger"></span>
-                        </div>
-                        <div class="form-floating py-1 col-12">
-                            <input asp-for="Input.ConfirmPassword" class="form-control border-0 shadow" autocomplete="new-password" aria-required="true" placeholder="Please confirm your new password." />
-                            <label asp-for="Input.ConfirmPassword" class="form-label"></label>
-                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">Change Password (Optional)</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-floating py-2 col-12">
+                                    <input asp-for="Input.OldPassword" class="form-control border-0 shadow"
+                                           autocomplete="current-password" aria-required="true"
+                                           placeholder="Please enter your old password." />
+                                    <label asp-for="Input.OldPassword" class="form-label"></label>
+                                    <span asp-validation-for="Input.OldPassword" class="text-danger"></span>
+                                </div>
+                                <div class="form-floating py-2 col-12">
+                                    <input asp-for="Input.NewPassword" class="form-control border-0 shadow"
+                                           autocomplete="new-password" aria-required="true"
+                                           placeholder="Please enter your new password." />
+                                    <label asp-for="Input.NewPassword" class="form-label"></label>
+                                    <span asp-validation-for="Input.NewPassword" class="text-danger"></span>
+                                </div>
+                                <div class="form-floating py-2 col-12">
+                                    <input asp-for="Input.ConfirmPassword" class="form-control border-0 shadow"
+                                           autocomplete="new-password" aria-required="true"
+                                           placeholder="Please confirm your new password." />
+                                    <label asp-for="Input.ConfirmPassword" class="form-label"></label>
+                                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                                </div>
+                                <small class="text-muted">Leave password fields empty if you don't want to change the password.</small>
+                            </div>
                         </div>
                         <div class="row pt-2">
                             <div class="col-6 col-md-3">
@@ -69,8 +81,8 @@
 
 
 
-@* @section Scripts {
+@section Scripts {
     @{
         <partial name="_ValidationScriptsPartial" />
     }
-} *@
+}

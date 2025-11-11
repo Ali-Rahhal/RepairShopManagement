@@ -33,6 +33,7 @@ namespace RepairShop.Areas.Admin.Pages.Users
         public AppUser? userForUpdate { get; set; }
         [BindProperty]
         public InputModel Input { get; set; }
+
         public class InputModel
         {
             public string? Id { get; set; }
@@ -89,66 +90,115 @@ namespace RepairShop.Areas.Admin.Pages.Users
 
         public async Task<IActionResult> OnPost()
         {
-            userForUpdate = await _userManager.FindByIdAsync(Input.Id);
-            do
+            if (!ModelState.IsValid)
             {
-                if (ModelState.IsValid)
+                Input.RoleList = await GetRoleList();
+                return Page();
+            }
+
+            userForUpdate = await _userManager.FindByIdAsync(Input.Id);
+            if (userForUpdate == null)
+            {
+                return NotFound();
+            }
+
+            // UserCode uniqueness check
+            var existingUser = await _userManager.FindByNameAsync(Input.UserCode);
+            if (existingUser != null && existingUser.Id != userForUpdate.Id)
+            {
+                ModelState.AddModelError(string.Empty, "UserCode already exists. Please choose a different UserCode.");
+                Input.RoleList = await GetRoleList();
+                return Page();
+            }
+
+            // Update user properties
+            userForUpdate.UserName = Input.UserCode;
+            userForUpdate.Role = Input.Role;
+
+            // Handle password change
+            var passwordResult = await HandlePasswordChange();
+            if (passwordResult != null) return passwordResult;
+
+            // Update roles
+            var roleResult = await UpdateUserRoles();
+            if (!roleResult.Succeeded)
+            {
+                foreach (var error in roleResult.Errors)
                 {
-                    if (userForUpdate == null)
-                    {
-                        return NotFound();
-                    }
-
-                    // Checks if a user with the same UserCode already exists and is not the current user.
-                    var user = await _userManager.FindByNameAsync(Input.UserCode);
-                    if (user != null && !user.Id.Equals(userForUpdate.Id))
-                    {
-                        ModelState.AddModelError(string.Empty, "UserCode already exists. Please choose a different UserCode.");
-                        break;
-                    }
-
-                    // Checks if the user's Role has been changed to Admin and has related transactions
-                    var transactionCount = (await _unitOfWork.TransactionHeader.GetAllAsy(t => t.IsActive == true && t.UserId == userForUpdate.Id)).Count();
-                    if (transactionCount > 0 && Input.Role == SD.Role_Admin)
-                    {
-                        ModelState.AddModelError(string.Empty, "User cannot be changed to Admin because it has related transactions");
-                        break;
-                    }
-
-                    userForUpdate.UserName = Input.UserCode;
-                    userForUpdate.Role = Input.Role;
-
-                    if(Input.OldPassword != null)
-                    {
-                        if (Input.NewPassword == null)
-                        {
-                            ModelState.AddModelError(string.Empty, "Please enter a NewPassword.");
-                            break;
-                        }
-                        var result = await _userManager.ChangePasswordAsync(userForUpdate, Input.OldPassword, Input.NewPassword);
-                        if (!result.Succeeded)
-                        {
-                            foreach (var error in result.Errors)
-                            {
-                                ModelState.AddModelError(string.Empty, error.Description);
-                            }
-                            break;
-                        }
-                    }
-                    
-                    await _userManager.UpdateAsync(userForUpdate);
-                    await _userManager.AddToRoleAsync(userForUpdate, Input.Role);//assign role to user based on selection
-                    TempData["success"] = "User updated successfully";
-                    return RedirectToPage("Index");
+                    ModelState.AddModelError(string.Empty, error.Description);
                 }
-            }while(false);
+                Input.RoleList = await GetRoleList();
+                return Page();
+            }
 
-            Input.RoleList = _roleManager.Roles.Select(r => new SelectListItem
+            // Update user
+            var updateResult = await _userManager.UpdateAsync(userForUpdate);
+            if (!updateResult.Succeeded)
+            {
+                foreach (var error in updateResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                Input.RoleList = await GetRoleList();
+                return Page();
+            }
+
+            TempData["success"] = "User updated successfully";
+            return RedirectToPage("Index");
+        }
+
+        private async Task<IEnumerable<SelectListItem>> GetRoleList()
+        {
+            return _roleManager.Roles.Select(r => new SelectListItem
             {
                 Text = r.Name,
                 Value = r.Name
             });
-            return Page();
+        }
+
+        private async Task<IdentityResult> UpdateUserRoles()
+        {
+            var currentRoles = await _userManager.GetRolesAsync(userForUpdate);
+            var removeResult = await _userManager.RemoveFromRolesAsync(userForUpdate, currentRoles);
+            if (!removeResult.Succeeded) return removeResult;
+
+            return await _userManager.AddToRoleAsync(userForUpdate, Input.Role);
+        }
+
+        private async Task<IActionResult> HandlePasswordChange()
+        {
+            if (string.IsNullOrEmpty(Input.OldPassword) && string.IsNullOrEmpty(Input.NewPassword))
+            {
+                return null; // No password change requested
+            }
+
+            if (string.IsNullOrEmpty(Input.OldPassword) || string.IsNullOrEmpty(Input.NewPassword))
+            {
+                ModelState.AddModelError(string.Empty, "Both current password and new password are required to change password.");
+                Input.RoleList = await GetRoleList();
+                return Page();
+            }
+
+            var isOldPasswordValid = await _userManager.CheckPasswordAsync(userForUpdate, Input.OldPassword);
+            if (!isOldPasswordValid)
+            {
+                ModelState.AddModelError(string.Empty, "Current password is incorrect.");
+                Input.RoleList = await GetRoleList();
+                return Page();
+            }
+
+            var changeResult = await _userManager.ChangePasswordAsync(userForUpdate, Input.OldPassword, Input.NewPassword);
+            if (!changeResult.Succeeded)
+            {
+                foreach (var error in changeResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                Input.RoleList = await GetRoleList();
+                return Page();
+            }
+
+            return null;
         }
     }
 }
