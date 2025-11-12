@@ -33,24 +33,23 @@ function searchSerialNumbers() {
                 listItem.type = 'button';
                 listItem.className = 'list-group-item list-group-item-action';
                 listItem.innerHTML = `
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <strong>${data.value}</strong><br>
-                                        <small class="text-muted">Model: ${data.modelName} | Client: ${data.clientName} | Received: ${data.receivedDate}</small>
-                                    </div>
-                                    <div class="text-end">
-                                        ${data.hasWarranty ? '<span class="badge bg-success me-1">Warranty</span>' : ''}
-                                        ${data.hasContract ? '<span class="badge bg-info">Contract</span>' : ''}
-                                    </div>
-                                </div>
-                            `;
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <strong>${data.value}</strong><br>
+                            <small class="text-muted">Model: ${data.modelName} | Client: ${data.clientName} | Received: ${data.receivedDate}</small>
+                        </div>
+                        <div class="text-end">
+                            ${data.hasWarranty ? '<span class="badge bg-success me-1">Warranty</span>' : ''}
+                            ${data.hasContract ? '<span class="badge bg-info">Contract</span>' : ''}
+                        </div>
+                    </div>`;
                 listItem.onclick = function () {
                     selectSerialNumber(data.id);
                 };
                 resultsList.appendChild(listItem);
 
-                messageDiv.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Found matching serial number. Select it or create new.</span>';
-                messageDiv.style.display = 'block';
+                // Automatically select the first result
+                selectSerialNumber(data.id);
             }
         })
         .catch(error => {
@@ -64,7 +63,8 @@ function showNewSerialFields(searchTerm) {
     document.getElementById('selectedSerialInfo').style.display = 'none';
 
     // Show new serial fields
-    document.getElementById('newSerialFields').style.display = 'block';
+    const newSection = document.getElementById('newSerialFields');
+    newSection.style.display = 'block';
 
     // Pre-fill the serial number value
     document.getElementById('newSerialValue').value = searchTerm;
@@ -76,6 +76,18 @@ function showNewSerialFields(searchTerm) {
 
     // Enable submit button
     enableSubmitButton();
+
+    // Focus the model dropdown once it becomes visible
+    setTimeout(() => {
+        const modelSelect = document.getElementById('newSerialModel');
+        const ts = modelSelect.tomselect;
+        if (ts) {
+            ts.focus();
+            ts.open(); // Automatically show dropdown
+            const wrapper = ts.wrapper;
+            wrapper.classList.add('tomselect-focused');
+        }
+    }, 100);
 }
 
 function selectSerialNumber(serialNumberId) {
@@ -141,20 +153,37 @@ function loadSerialNumberDetails(serialNumberId) {
 }
 
 function loadContractsForClient(clientId) {
-    const contractSelect = document.getElementById('newSerialContract');
+    const selectEl = document.getElementById('newSerialContract');
+    const ts = selectEl?.tomselect;
+
+    if (!ts) {
+        console.error("TomSelect instance not found for #newSerialContract");
+        return;
+    }
+
+    // Clear previous options and show loading
+    ts.clearOptions();
+    ts.clear();
+    ts.addOption({ value: "", text: "Loading..." });
+    ts.refreshOptions(false);
 
     fetch(`/Admin/DefectiveUnits/Upsert?handler=ContractsByClient&clientId=${clientId}`)
         .then(response => response.json())
         .then(data => {
-            let options = '<option value="">--Select Contract--</option>';
+            ts.clearOptions();
+            ts.addOption({ value: "", text: "--Select Contract--" });
+
             data.forEach(contract => {
-                options += `<option value="${contract.id}">${contract.text}</option>`;
+                ts.addOption({ value: contract.id, text: contract.text });
             });
-            contractSelect.innerHTML = options;
+
+            ts.refreshOptions(false);
         })
         .catch(error => {
             console.error('Error:', error);
-            contractSelect.innerHTML = '<option value="">Error loading contracts</option>';
+            ts.clearOptions();
+            ts.addOption({ value: "", text: "Error loading contracts" });
+            ts.refreshOptions(false);
         });
 }
 

@@ -113,11 +113,13 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
                     // Set the new serial number ID to the defective unit
                     DefectiveUnitForUpsert.SerialNumberId = NewSerialNumber.Id;
+                    // Set the new mc id to the defective unit
+                    DefectiveUnitForUpsert.MaintenanceContractId = NewSerialNumber.MaintenanceContractId;
                 }
 
                 var duplicateReportedDU = await _unitOfWork.DefectiveUnit.GetAsy(du => du.IsActive == true
                     && du.SerialNumberId == DefectiveUnitForUpsert.SerialNumberId
-                    && du.Status == SD.Status_DU_Reported
+                    && (du.Status == SD.Status_DU_Reported || du.Status == SD.Status_DU_UnderRepair)
                     && du.Id != DefectiveUnitForUpsert.Id);
 
                 if (duplicateReportedDU != null)
@@ -130,16 +132,21 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 if (DefectiveUnitForUpsert.Id == 0)
                 {
                     await _unitOfWork.DefectiveUnit.AddAsy(DefectiveUnitForUpsert);
+                    await _unitOfWork.SaveAsy();
+
                     TempData["success"] = "Defective unit reported successfully";
+
+                    // Redirect to same page (Upsert) for a new entry
+                    return RedirectToPage("Upsert");
                 }
                 else
                 {
                     await _unitOfWork.DefectiveUnit.UpdateAsy(DefectiveUnitForUpsert);
-                    TempData["success"] = "Defective unit updated successfully";
-                }
+                    await _unitOfWork.SaveAsy();
 
-                await _unitOfWork.SaveAsy();
-                return RedirectToPage("Index");
+                    TempData["success"] = "Defective unit updated successfully";
+                    return RedirectToPage("Index");
+                }
             }
 
             await PopulateDropdowns();

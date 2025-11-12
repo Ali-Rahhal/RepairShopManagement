@@ -132,6 +132,14 @@
                             </div>
                         </div>
 
+                        <!-- Defective Unit Details -->
+                        <div class="mb-3">
+                            <label asp-for="DefectiveUnitForUpsert.Description" class="form-label fw-bold">Issue Description *</label>
+                            <textarea asp-for="DefectiveUnitForUpsert.Description" class="form-control" rows="4"
+                                      placeholder="Describe the issue (e.g., 'Screen flickering', 'Power failure', 'No boot')"></textarea>
+                            <span asp-validation-for="DefectiveUnitForUpsert.Description" class="text-danger"></span>
+                        </div>
+
                         <!-- NEW: Has Accessories Checkbox -->
                         <div class="mb-3">
                             <div class="form-check form-switch">
@@ -150,14 +158,6 @@
                                       placeholder="List the accessories included (e.g., 'Original charger, USB-C cable, Carrying case')"></textarea>
                             <span asp-validation-for="DefectiveUnitForUpsert.Accessories" class="text-danger"></span>
                             <small class="form-text text-muted">Specify all accessories that are included with the defective unit.</small>
-                        </div>
-
-                        <!-- Defective Unit Details -->
-                        <div class="mb-3">
-                            <label asp-for="DefectiveUnitForUpsert.Description" class="form-label fw-bold">Issue Description *</label>
-                            <textarea asp-for="DefectiveUnitForUpsert.Description" class="form-control" rows="4"
-                                      placeholder="Describe the issue (e.g., 'Screen flickering', 'Power failure', 'No boot')"></textarea>
-                            <span asp-validation-for="DefectiveUnitForUpsert.Description" class="text-danger"></span>
                         </div>
 
                         @if (Model.DefectiveUnitForUpsert.Id != 0)
@@ -199,6 +199,14 @@
     </div>
 </div>
 
+<style>
+    .tomselect-focused .ts-control {
+        outline: 2px solid #007bff !important;
+        outline-offset: 2px;
+        box-shadow: 0 0 0 3px rgba(0,123,255,0.25);
+    }
+</style>
+
 @section Scripts {
     @{
         <partial name="_ValidationScriptsPartial" />
@@ -206,6 +214,13 @@
     <script src="~/js/DUserialNumberSearch.js" asp-append-version="true"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // If editing, load the existing serial number details
+            let idOfDu = document.getElementById("duId").value;
+            let idOfDuSn = document.getElementById("selectedSerialId").value;
+            if (parseInt(idOfDu) != 0 && parseInt(idOfDuSn) > 0){
+                loadSerialNumberDetails(parseInt(idOfDuSn));
+            }
+
             // Initialize TomSelect for dropdowns
             new TomSelect('#newSerialModel', {
                 placeholder: '-- Select Model --',
@@ -219,9 +234,14 @@
                     if (value && value !== '') {
                         loadContractsForClient(value);
                     } else {
-                        $('#newSerialContract').html('<option value="">--Select Contract--</option>');
+                        $('#newSerialContract').html('<option value="">--Select Client First--</option>');
                     }
                 }
+            });
+
+            new TomSelect('#newSerialContract', {
+                placeholder: '-- Select Client First --',
+                create: false
             });
 
             // Handle HasAccessories checkbox change
@@ -243,22 +263,90 @@
             // Initialize accessories section based on current state
             toggleAccessoriesSection();
 
-            // Enable enter key for search
+            // Enhanced Enter key flow
             const searchInput = document.getElementById('serialNumberSearch');
-            searchInput.addEventListener('keypress', function(e) {
+            searchInput.focus();
+            searchInput.addEventListener('keydown', function (e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
                     searchSerialNumbers();
                 }
             });
 
-            // If editing, load the existing serial number details
-            @if (Model.DefectiveUnitForUpsert.Id != 0 && Model.DefectiveUnitForUpsert.SerialNumberId > 0)
-            {
-                    <text>
-                    loadSerialNumberDetails(@Model.DefectiveUnitForUpsert.SerialNumberId);
-                    </text>
-            }
+            // Handle Enter navigation (after search)
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    const active = document.activeElement;
+
+                    // Handle accessories checkbox special case
+                    if (active.id === 'hasAccessoriesCheckbox') {
+                        e.preventDefault();
+                        active.click(); // toggle checkbox
+                        const accessoriesBox = document.getElementById('DefectiveUnitForUpsert_Accessories');
+                        if (active.checked && accessoriesBox) {
+                            setTimeout(() => accessoriesBox.focus(), 100);
+                        }
+                        return;
+                    }
+
+                    // Generic Enter → focus next visible input
+                    const focusable = Array.from(document.querySelectorAll('input:not([type=hidden]), select, textarea'))
+                        .filter(el => el.offsetParent !== null && !el.disabled);
+
+                    const index = focusable.indexOf(active);
+                    if (index > -1 && index < focusable.length - 1) {
+                        e.preventDefault();
+                        const next = focusable[index + 1];
+
+                        // If next field is a TomSelect control
+                        if (next.classList.contains('ts-hidden-accessible')) {
+                            const ts = next.tomselect;
+                            if (ts) {
+                                ts.focus();
+                                ts.open(); // Automatically show dropdown
+                                const wrapper = ts.wrapper;
+                                wrapper.classList.add('tomselect-focused');
+                            }
+                        } else if(next.tagName === 'SELECT' && !next.classList.contains('ts-hidden-accessible')) {
+                            e.preventDefault();
+                            next.focus();
+
+                            next.click();
+                        } else {
+                            next.focus();
+                        }
+                    }
+                }
+            });
+
+            // TomSelect focus & blur highlight control
+            document.addEventListener('focusin', function (e) {
+                // Handle regular inputs
+                if (e.target.matches('input, select, textarea')) {
+                    e.target.style.outline = '2px solid #007bff';
+                    e.target.style.outlineOffset = '2px';
+                    setTimeout(() => e.target.style.outline = '', 300);
+                }
+
+                // Handle TomSelect
+                const tsWrapper = e.target.closest('.ts-control');
+                if (tsWrapper) {
+                    tsWrapper.parentElement.classList.add('tomselect-focused');
+                }
+            });
+
+            document.addEventListener('focusout', function (e) {
+                const tsControl = e.target.closest('.ts-control');
+                if (tsControl) {
+                    // Use timeout to catch blur when switching inside the dropdown
+                    setTimeout(() => {
+                        const active = document.activeElement;
+                        if (!tsControl.contains(active)) {
+                            tsControl.parentElement.classList.remove('tomselect-focused');
+                        }
+                    }, 50);
+                }
+            });
         });
     </script>
 }
