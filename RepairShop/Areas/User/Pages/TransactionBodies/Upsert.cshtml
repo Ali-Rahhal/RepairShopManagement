@@ -1,6 +1,7 @@
 ﻿@page
 @model RepairShop.Areas.User.Pages.TransactionBodies.UpsertModel
 @{
+    bool inModal = Request.Query.ContainsKey("modal");//check if the page is opened in a modal; if so then hide the back button
 }
 
 <div class="card shadow border-0 my-4">
@@ -8,13 +9,14 @@
         <div class="row">
             <div class="col-12 text-center">
                 <h2 class="text-white py-2">
-                    @(Model.tbForUpsert.Id != 0 ? "Edit" : "Add") Part
+                    @(Model.tbForUpsert.Id != 0 ? "Edit" : "Add") Broken Part
                 </h2>
             </div>
         </div>
     </div>
     <div class="card-body p-4">
         <form method="post" class="row">
+            @Html.AntiForgeryToken()
             <input type="hidden" asp-for="tbForUpsert.Id" />
             <input type="hidden" asp-for="tbForUpsert.TransactionHeaderId" />
             <input type="hidden" asp-for="tbForUpsert.PartId" id="selectedPartId" />
@@ -114,11 +116,14 @@
                                     <button type="submit" class="btn btn-primary form-control">Create</button>
                                 }
                             </div>
-                            <div class="col-6 col-md-3">
-                                <a asp-page="Index" asp-route-HeaderId="@Model.tbForUpsert.TransactionHeaderId" class="btn btn-outline-primary form-control">
-                                    Back to List
-                                </a>
-                            </div>
+                            @if (!inModal)
+                            {
+                                <div class="col-6 col-md-3">
+                                    <a asp-page="Index" asp-route-HeaderId="@Model.tbForUpsert.TransactionHeaderId" class="btn btn-outline-primary form-control">
+                                        Back to List
+                                    </a>
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>

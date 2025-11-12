@@ -13,88 +13,94 @@
     <link rel="stylesheet" href="~/lib/tomselect/tom-select.bootstrap5.min.css" asp-append-version="true"/>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-primary box-shadow mb-3" data-bs-theme="dark">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">Repair Management System</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1 me-auto">
-                        <!-- Home -->
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li>
-                            <a class="nav-link" asp-area="Admin" asp-page="/DefectiveUnits/Index">Defective Units</a>
-                        </li>
-                        <li>
-                            <a class="nav-link" asp-area="User" asp-page="/TransactionHeaders/Index">Transactions</a>
-                        </li>
-                        <li>
-                            <a class="nav-link" asp-area="Admin" asp-page="/SerialNumbers/Index">Serial Numbers</a>
-                        </li>
-
-                        <!-- Assets Section -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                               aria-haspopup="true" aria-expanded="false">
-                                Assets & Inventory
-                            </a>
-                            <ul class="dropdown-menu" data-bs-theme="light">
-                                <li><a class="dropdown-item" asp-area="User" asp-page="/Clients/Index">Clients</a></li>
-                                <li><a class="dropdown-item" asp-area="Admin" asp-page="/Models/Index">Models</a></li>
-                            </ul>
-                        </li>
-                        <li>
-                            <a class="nav-link" asp-area="Admin" asp-page="/Warranties/Index">Warranties</a>
-                        </li>
-                        <li>
-                            <a class="nav-link" asp-area="Admin" asp-page="/MaintenanceContracts/Index">Maintenance Contracts</a>
-                        </li>
-
-                        <!-- Admin Section -->
-                        @if (User.IsInRole(SD.Role_Admin))
-                        {
-                            <li>
-                                <a class="nav-link" asp-area="Admin" asp-page="/History/SerialNumberHistory">History</a>
+    @{
+        bool inModal = Context.Request.Query.ContainsKey("modal");
+        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+    }
+    @if (!inModal)
+    {
+        <header>
+            <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-primary box-shadow mb-3" data-bs-theme="dark">
+                <div class="container-fluid">
+                    <a class="navbar-brand" asp-area="" asp-page="/Index">Repair Management System</a>
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1 me-auto">
+                            <!-- Home -->
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-page="/Index">Home</a>
                             </li>
+                            <li>
+                                <a class="nav-link" asp-area="Admin" asp-page="/DefectiveUnits/Index">Defective Units</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" asp-area="User" asp-page="/TransactionHeaders/Index">Transactions</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" asp-area="Admin" asp-page="/SerialNumbers/Index">Serial Numbers</a>
+                            </li>
+
+                            <!-- Assets Section -->
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-warning" href="#" role="button" data-bs-toggle="dropdown"
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                    aria-haspopup="true" aria-expanded="false">
-                                    Admin
+                                    Assets & Inventory
                                 </a>
                                 <ul class="dropdown-menu" data-bs-theme="light">
-                                    <li><a class="dropdown-item" asp-area="Admin" asp-page="/Users/Index">Manage Users</a></li>
-                                    <li><hr class="dropdown-divider" /></li>
-                                    <li><a class="dropdown-item" asp-area="Admin" asp-page="/Parts/Index">Manage Parts</a></li>
+                                    <li><a class="dropdown-item" asp-area="User" asp-page="/Clients/Index">Clients</a></li>
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-page="/Models/Index">Models</a></li>
                                 </ul>
                             </li>
-                        }
-                    </ul>
-                    <partial name="_LoginPartial" />
-                </div>
-            </div>
-        </nav>
+                            <li>
+                                <a class="nav-link" asp-area="Admin" asp-page="/Warranties/Index">Warranties</a>
+                            </li>
+                            <li>
+                                <a class="nav-link" asp-area="Admin" asp-page="/MaintenanceContracts/Index">Maintenance Contracts</a>
+                            </li>
 
-    </header>
+                            <!-- Admin Section -->
+                            @if (User.IsInRole(SD.Role_Admin))
+                            {
+                                <li>
+                                    <a class="nav-link" asp-area="Admin" asp-page="/History/SerialNumberHistory">History</a>
+                                </li>
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle text-warning" href="#" role="button" data-bs-toggle="dropdown"
+                                       aria-haspopup="true" aria-expanded="false">
+                                        Admin
+                                    </a>
+                                    <ul class="dropdown-menu" data-bs-theme="light">
+                                        <li><a class="dropdown-item" asp-area="Admin" asp-page="/Users/Index">Manage Users</a></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item" asp-area="Admin" asp-page="/Parts/Index">Manage Parts</a></li>
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+                        <partial name="_LoginPartial" />
+                    </div>
+                </div>
+            </nav>
+        </header>
+    }
     <div class="container">
         <main role="main" class="pb-3">
             <partial name="_Notification" />
             @RenderBody()
         </main>
     </div>
-    @{
-        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString();
+    @if (!inModal)
+    {
+        <footer class="border-top footer text-muted">
+            <div class="container text-center">
+                <small>&copy; 2025 RepairShop. All rights reserved.</small>
+                <small>Version: @version</small>
+            </div>
+        </footer>
     }
-    <footer class="border-top footer text-muted">
-        <div class="container text-center">
-            <small>&copy; 2025 RepairShop. All rights reserved.</small>
-            <small>Version: @version</small>
-        </div>
-    </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js" asp-append-version="true"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>

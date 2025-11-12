@@ -77,7 +77,6 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                             // Decrement part quantity
                             selectedPart.Quantity--;
                             await _unitOfWork.Part.UpdateAsy(selectedPart);
-                            TempData["success"] = "Part Added successfully";
                         }
                         else
                         {
@@ -88,6 +87,11 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                     }
 
                     await _unitOfWork.TransactionBody.AddAsy(tbForUpsert);
+
+                    if (tbForUpsert.Status != SD.Status_Part_Waiting_Part)
+                    {
+                        TempData["success"] = "Part Added successfully";
+                    }
 
                     await _unitOfWork.SaveAsy();
                     
@@ -118,6 +122,13 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                     await _unitOfWork.SaveAsy();
                 }
 
+                // If request came from modal (AJAX), return plain OK
+                if (Request.Query.ContainsKey("modal"))
+                {
+                    return new ContentResult { Content = "OK" };
+                }
+
+                // Otherwise, normal redirect
                 return RedirectToPage("Index", new { HeaderId = tbForUpsert.TransactionHeaderId });
             }
 
