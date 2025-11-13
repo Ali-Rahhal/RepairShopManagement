@@ -1,7 +1,7 @@
 ﻿@page
 @model RepairShop.Areas.Admin.Pages.MaintenanceContracts.UpsertModel
 
-<div class="card shadow border-0 my-4">
+<div class="card shadow border-0 my-4 w-100 w-xl-60 mx-auto">
     <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
         <div class="row">
             <div class="col-12 text-center">
@@ -15,7 +15,7 @@
         <form method="post" class="row" id="maintenanceContractForm">
             <input type="hidden" asp-for="MaintenanceContractForUpsert.Id" />
             <div class="row">
-                <div class="col-12 col-md-8 mx-auto">
+                <div class="col-12 mx-auto">
                     <div class="border p-4">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
@@ -96,7 +96,7 @@
                         }
 
                         <div class="row pt-3">
-                            <div class="col-6">
+                            <div class="col-6 col-md-3">
                                 @if (Model.MaintenanceContractForUpsert.Id != 0)
                                 {
                                     <button type="submit" class="btn btn-primary form-control">Update</button>
@@ -106,7 +106,7 @@
                                     <button type="submit" class="btn btn-primary form-control">Create</button>
                                 }
                             </div>
-                            <div class="col-6">
+                            <div class="col-6 col-md-3">
                                 <a asp-page="Index" class="btn btn-outline-primary form-control">
                                     Back to List
                                 </a>
@@ -144,8 +144,24 @@
             const selectedSerialNumbersSection = document.getElementById('selectedSerialNumbersSection');
             const selectedSerialNumbersList = document.getElementById('selectedSerialNumbersList');
 
+            // Get the existing small text element
+            const existingSmallText = document.querySelector('.form-text.text-muted');
+
+            function showSearchMessage(message) {
+                if (existingSmallText) {
+                    existingSmallText.innerHTML = `<span class="text-danger">${message}</span>`;
+                }
+            }
+
+            function clearSearchMessage() {
+                if (existingSmallText) {
+                    existingSmallText.innerHTML = 'Enter at least 2 characters to search';
+                }
+            }
+
             // Show/hide serial numbers section based on client selection
             clientSelect.addEventListener('change', function () {
+                clearSearchMessage();
                 if (this.value) {
                     serialNumbersSection.style.display = 'block';
                     updateSelectedSerialNumbersDisplay();
@@ -167,13 +183,15 @@
                 const clientId = clientSelect.value;
                 const searchTerm = searchInput.value.trim();
 
+                clearSearchMessage();
+
                 if (!clientId) {
-                    alert('Please select a client first.');
+                    showSearchMessage('Please select a client first.');
                     return;
                 }
 
                 if (searchTerm.length < 2) {
-                    alert('Please enter at least 2 characters to search.');
+                    showSearchMessage('Please enter at least 2 characters to search.');
                     return;
                 }
 
@@ -183,7 +201,8 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.error) {
-                            searchResults.innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                            showSearchMessage(data.error);
+                            searchResults.innerHTML = '<div class="text-center text-muted py-3">Search failed. Please try again.</div>';
                             return;
                         }
 
@@ -201,7 +220,8 @@
                     })
                     .catch(error => {
                         console.error('Error searching serial numbers:', error);
-                        searchResults.innerHTML = '<div class="alert alert-danger">Failed to search serial numbers. Please try again.</div>';
+                        showSearchMessage('Failed to search serial numbers. Please try again.');
+                        searchResults.innerHTML = '<div class="text-center text-muted py-3">Search failed. Please try again.</div>';
                     });
             }
 
@@ -313,23 +333,23 @@
             // Show serial numbers section if editing existing contract
             @if (Model.MaintenanceContractForUpsert.Id != 0 && Model.MaintenanceContractForUpsert.ClientId > 0)
             {
-                    <text>
-                    serialNumbersSection.style.display = 'block';
-                    // Load initial serial number details for existing selections
-                    if (selectedSerialNumbers.size > 0) {
-                        const clientId = @Model.MaintenanceContractForUpsert.ClientId;
-                        fetch(`?handler=SearchSerialNumbers&clientId=${clientId}&searchTerm=`)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data && !data.error) {
-                                    data.forEach(sn => {
-                                        serialNumberDetails.set(sn.id, sn);
-                                    });
-                                    updateSelectedSerialNumbersDisplay();
-                                }
-                            });
-                    }
-                    </text>
+                        <text>
+                        serialNumbersSection.style.display = 'block';
+                        // Load initial serial number details for existing selections
+                        if (selectedSerialNumbers.size > 0) {
+                            const clientId = @Model.MaintenanceContractForUpsert.ClientId;
+                            fetch(`?handler=SearchSerialNumbers&clientId=${clientId}&searchTerm=`)
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data && !data.error) {
+                                        data.forEach(sn => {
+                                            serialNumberDetails.set(sn.id, sn);
+                                        });
+                                        updateSelectedSerialNumbersDisplay();
+                                    }
+                                });
+                        }
+                        </text>
             }
         });
     </script>

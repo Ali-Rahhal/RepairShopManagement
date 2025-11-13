@@ -4,7 +4,7 @@
     ViewData["Title"] = "Register";
 }
 <div class="d-flex justify-content-center">
-    <div class="card shadow border-0 mt-4" style="width: 75%; margin: 0 auto;">
+    <div class="card shadow border-0 mt-4 w-100 w-xl-60 mx-auto">
         <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-4">
             <div class="row">
                 <div class="col-12 text-center">
@@ -39,11 +39,13 @@
                             </select>
                             <span asp-validation-for="Input.Role" class="text-danger"></span>
                         </div>
-                        <div class="col-12">
-                            <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
-                        </div>
-                        <div class="col-12">
-                            <a asp-area="Admin" asp-page="/Users/Index" class="w-100 mt-1 w-75 btn btn-outline-primary">Back to List</a>
+                        <div class="row pt-2">
+                            <div class="col-6 col-md-3">
+                                <button id="registerSubmit" type="submit" class="btn btn-primary form-control">Register</button>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <a asp-area="Admin" asp-page="/Users/Index" class="btn btn-outline-primary form-control">Back to List</a>
+                            </div>
                         </div>
 
                     </form>

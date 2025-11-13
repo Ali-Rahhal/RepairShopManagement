@@ -14,22 +14,18 @@
     </div>
     <div class="card-body p-4">
         <div class="row pb-3">
-            <div class="col-6">
+            <div class="col-12 col-xl-9">
                 <!-- Filters -->
                 <div class="row align-items-center">
                     <input hidden id="isAdmin" value="@User.IsInRole(SD.Role_Admin).ToString()" />
-                    <div class="col-auto">
+                    <div class="col-6 col-xl-2">
                         <label for="clientFilter" class="col-form-label fw-bold">Filter by Client:</label>
-                    </div>
-                    <div class="col-auto">
                         <select id="clientFilter" class="form-select form-select-sm">
                             <option value="All">All Clients</option>
                         </select>
                     </div>
-                    <div class="col-auto">
+                    <div class="col-6 col-xl-2">
                         <label for="statusFilter" class="col-form-label fw-bold">Filter by Status:</label>
-                    </div>
-                    <div class="col-auto">
                         <select id="statusFilter" class="form-select form-select-sm">
                             <option value="All">All Statuses</option>
                             <option value="New">New</option>
@@ -39,27 +35,25 @@
                             <option value="Delivered">Delivered</option>
                         </select>
                     </div>
-                    <div class="col-auto">
+                    <div class="col-6 col-xl-3">
                         <label for="minDate" class="col-form-label fw-bold">From Date:</label>
-                    </div>
-                    <div class="col-auto">
                         <input type="date" id="minDate" class="form-control form-control-sm">
                     </div>
-                    <div class="col-auto">
+                    <div class="col-6 col-xl-3">
                         <label for="maxDate" class="col-form-label fw-bold">To Date:</label>
-                    </div>
-                    <div class="col-auto">
                         <input type="date" id="maxDate" class="form-control form-control-sm">
                     </div>
-                    <div class="col-auto">
-                        <button type="button" class="btn btn-sm btn-warning" onclick="clearFilters()">
+                    <div class="col-6 col-xl-2">
+                        <label for="resetFiltersBtn" class="col-form-label fw-bold">Reset Filters:</label>
+                        <br />
+                        <button type="button" id="resetFiltersBtn" class="btn btn-sm btn-warning" onclick="clearFilters()">
                             <i class="bi bi-x-circle"></i>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div class="col-6 text-end">
+            <div class="col-12 col-xl-3 text-end">
                 @* @if (User.IsInRole(SD.Role_User))
                 {
                     <a asp-page="Upsert" class="btn btn-primary">

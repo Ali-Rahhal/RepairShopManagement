@@ -20,10 +20,10 @@ function loadDataTable() {
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "columns": [
-            { data: 'name', "width": "25%" },
-            { data: 'category', "width": "20%" },
-            { data: 'quantity', "width": "15%" },
-            { data: 'price', "width": "15%" },
+            { data: 'name', "width": "35%" },
+            { data: 'category', "width": "25%" },
+            { data: 'quantity', "width": "10%" },
+            { data: 'price', "width": "10%" },
             {
                 data: 'id',
                 "render": function (data) {
@@ -32,7 +32,7 @@ function loadDataTable() {
                         <a onClick="Delete('/Admin/Parts/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                     </div>`;
                 },
-                "width": "25%"
+                "width": "20%"
             },
         ],
         order: [[1, 'asc']],

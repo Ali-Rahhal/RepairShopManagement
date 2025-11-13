@@ -1,7 +1,7 @@
 ﻿@page
 @model RepairShop.Areas.Admin.Pages.Warranties.UpsertModel
 
-<div class="card shadow border-0 my-4">
+<div class="card shadow border-0 my-4 w-100 w-xl-60 mx-auto">
     <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
         <div class="row">
             <div class="col-12 text-center">
@@ -15,7 +15,7 @@
         <form method="post" class="row">
             <input type="hidden" asp-for="WarrantyForUpsert.Id" />
             <div class="row">
-                <div class="col-12 col-md-8 mx-auto">
+                <div class="col-12 mx-auto">
                     <div class="border p-4">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
@@ -108,7 +108,7 @@
                         }
 
                         <div class="row pt-3">
-                            <div class="col-6">
+                            <div class="col-6 col-md-3">
                                 @if (Model.WarrantyForUpsert.Id != 0)
                                 {
                                     <button type="submit" class="btn btn-primary form-control">Update Warranty</button>
@@ -118,7 +118,7 @@
                                     <button type="submit" class="btn btn-primary form-control">Create Warranty</button>
                                 }
                             </div>
-                            <div class="col-6">
+                            <div class="col-6 col-md-3">
                                 <a asp-page="Index" class="btn btn-outline-primary form-control">
                                     Back to List
                                 </a>
