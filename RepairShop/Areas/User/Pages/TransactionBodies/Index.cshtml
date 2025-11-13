@@ -1,6 +1,11 @@
 ﻿@page
 @model RepairShop.Areas.User.Pages.TransactionBodies.IndexModel
 @{
+    bool fromCompletionBtn = Request.Query.ContainsKey("fromCompletionBtn");
+    if (fromCompletionBtn)
+    {
+        TempData["warning"] = "You have pending parts";
+    }
 }
 
 <div class="d-flex justify-content-center">
@@ -50,7 +55,6 @@
                             <th>Status</th>
                             <th>Replacement Part Name</th>
                             <th>Created Date</th>
-                            <th></th><!-- History (Admin Only) -->
                             <th></th>
                         </tr>
                     </thead>

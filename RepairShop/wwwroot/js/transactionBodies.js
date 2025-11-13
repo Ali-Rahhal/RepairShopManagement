@@ -87,20 +87,21 @@ function loadDataTable() {
                     }
                     if (row.status === "WaitingForPart") {//only show this column if the part status is waiting for part.
                         return `<div class="w-100 d-flex justify-content-center" role="group">
-                                    <a onClick="CheckPartAvailable('/User/TransactionBodies/Index?handler=CheckPart&id=${data}')" title="Check if Part is Available" class="btn btn-info mx-2"><i class="bi bi-box-seam"></i></a>
                                     <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit Name" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                                    <a onClick="CheckPartAvailable('/User/TransactionBodies/Index?handler=CheckPart&id=${data}')" title="Check if Part is Available" class="btn btn-info mx-2"><i class="bi bi-box-seam"></i></a>
                                     <button class="btn btn-outline-primary mx-2" title="View History"
                                         onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
                                                                 '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
                                                                 '${row.notRepairableDate}', '${row.notReplaceableDate}')">
                                             <i class="bi bi-clock-history"></i>
                                     </button>
+                                    ${isAdmin()
+                                        ? `<a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>`
+                                        : ``}
                                 </div>`;
                     } else {
                         return `<div class="w-100 d-flex justify-content-center" role="group">
                                     <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit Name" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                                     <a onClick="ChangeStatus(${data}, '${row.status}')" title="Change Status" class="btn btn-warning mx-2"><i class="bi bi-gear"></i></a>
                                     <button class="btn btn-outline-primary mx-2" title="View History"
                                         onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
@@ -108,62 +109,16 @@ function loadDataTable() {
                                                                 '${row.notRepairableDate}', '${row.notReplaceableDate}')">
                                             <i class="bi bi-clock-history"></i>
                                     </button>
+                                    ${isAdmin()
+                                        ? `<a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>`
+                                        : ``}
                                 </div>`;
                     }
                 },
-                "width": "5%"
-            },
-            {
-                data: 'id',//this column is only visible to non-admin users
-                "render": function (data, type, row) {
-                    if (hStatus === "Completed" || hStatus === "OutOfService" || hStatus === "Delivered") {//only show this column if the header status is completed.
-                        return `<div class="w-100 d-flex justify-content-center" role="group">
-                                    <button class="btn btn-outline-primary mx-2" title="View History"
-                                        onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
-                                                                '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
-                                                                '${row.notRepairableDate}', '${row.notReplaceableDate}')">
-                                            <i class="bi bi-clock-history"></i>
-                                    </button>
-                                </div>`;
-                    }
-                    if (row.status === "WaitingForPart") {//only show this column if the part status is waiting for part.
-                        return `<div class="w-100 d-flex justify-content-center" role="group">
-                                    <a onClick="CheckPartAvailable('/User/TransactionBodies/Index?handler=CheckPart&id=${data}')" title="Check if Part is Available" class="btn btn-info mx-2"><i class="bi bi-box-seam"></i></a>
-                                    <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit Name" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                                    <button class="btn btn-outline-primary mx-2" title="View History"
-                                        onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
-                                                                '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
-                                                                '${row.notRepairableDate}', '${row.notReplaceableDate}')">
-                                            <i class="bi bi-clock-history"></i>
-                                    </button>
-                                </div>`;
-                    } else {
-                        return `<div class="w-100 d-flex justify-content-center" role="group">
-                                    <a href="/User/TransactionBodies/Upsert?id=${data}" title="Edit Name" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                                    <a onClick="Delete('/User/TransactionBodies/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                                    <a onClick="ChangeStatus(${data}, '${row.status}')" title="Change Status" class="btn btn-warning mx-2"><i class="bi bi-gear"></i></a>
-                                    <button class="btn btn-outline-primary mx-2" title="View History"
-                                        onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 
-                                                                '${row.waitingPartDate}', '${row.fixedDate}', '${row.replacedDate}', 
-                                                                '${row.notRepairableDate}', '${row.notReplaceableDate}')">
-                                            <i class="bi bi-clock-history"></i>
-                                    </button>
-                                </div>`;
-                    } 
-                },
-                "width": "20%"
+                "width": "25%"
             }
         ]
     });
-
-    if (isAdmin()) {
-        dataTable.column(4).visible(true);   // show admin column
-        dataTable.column(5).visible(false);  // hide non-admin column
-    } else {
-        dataTable.column(4).visible(false);
-        dataTable.column(5).visible(true);
-    }
 }
 
 function resetSorting() {

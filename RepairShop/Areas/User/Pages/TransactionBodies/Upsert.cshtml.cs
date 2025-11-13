@@ -50,6 +50,14 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
 
         public async Task<IActionResult> OnPost()
         {
+            // Get the final status from the hidden field
+            var finalStatus = Request.Form["finalStatus"].ToString();
+            var fromCompletionBtn = Request.Form["fromCompletionBtn"].ToString();
+            if (!string.IsNullOrEmpty(finalStatus))
+            {
+                tbForUpsert.Status = finalStatus;
+            }
+
             if (ModelState.IsValid)
             {
                 if (tbForUpsert == null)
@@ -57,7 +65,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                     return NotFound();
                 }
 
-                if (tbForUpsert.Status == SD.Status_Part_Pending_Replace && tbForUpsert.PartId == null)
+                if ((tbForUpsert.Status == SD.Status_Part_Pending_Replace || tbForUpsert.Status == SD.Status_Part_Replaced) && tbForUpsert.PartId == null)
                 {
                     ModelState.AddModelError(string.Empty, "Please select a replacement part.");
                     await LoadCategories();
@@ -66,9 +74,11 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
 
                 if (tbForUpsert.Id == 0)
                 {
-                    // CREATE MODE
-                    // If status is Pending Replace and a part is selected, decrement inventory
-                    if (tbForUpsert.Status == SD.Status_Part_Pending_Replace &&
+                    // CREATE MODE - Set appropriate dates based on final status
+                    SetStatusDates(tbForUpsert);
+
+                    // If status is Replaced or PendingReplacement and a part is selected, decrement inventory
+                    if ((tbForUpsert.Status == SD.Status_Part_Replaced || tbForUpsert.Status == SD.Status_Part_Pending_Replace) &&
                         tbForUpsert.PartId.HasValue && tbForUpsert.PartId.Value > 0)
                     {
                         var selectedPart = await _unitOfWork.Part.GetAsy(p => p.Id == tbForUpsert.PartId.Value);
@@ -77,24 +87,39 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                             // Decrement part quantity
                             selectedPart.Quantity--;
                             await _unitOfWork.Part.UpdateAsy(selectedPart);
+                            if (tbForUpsert.Status == SD.Status_Part_Pending_Replace)
+                            {
+                                TempData["success"] = "Broken part added and waiting for replacement";
+                            }
+                            else
+                            {
+                                TempData["success"] = "Broken part replaced successfully";
+                            }
+                            
                         }
                         else
                         {
+                            // If part not available, change to waiting status
                             tbForUpsert.Status = SD.Status_Part_Waiting_Part;
                             tbForUpsert.WaitingPartDate = DateTime.Now;
-                            TempData["info"] = "Part Not Available but can be added later";
+                            TempData["warning"] = "Part not available - marked as waiting for part";
                         }
+                    }
+                    else if (tbForUpsert.Status == SD.Status_Part_Fixed)
+                    {
+                        TempData["success"] = "Broken part marked as fixed successfully";
+                    }
+                    else if (tbForUpsert.Status == SD.Status_Part_NotRepairable || tbForUpsert.Status == SD.Status_Part_NotReplaceable)
+                    {
+                        TempData["warning"] = $"Broken part marked as {tbForUpsert.Status.Replace("Not", "Not ").ToLower()}";
+                    }
+                    else
+                    {
+                        TempData["success"] = "Broken Part added and waiting for repair";
                     }
 
                     await _unitOfWork.TransactionBody.AddAsy(tbForUpsert);
-
-                    if (tbForUpsert.Status != SD.Status_Part_Waiting_Part)
-                    {
-                        TempData["success"] = "Part Added successfully";
-                    }
-
                     await _unitOfWork.SaveAsy();
-                    
                 }
                 else
                 {
@@ -121,19 +146,41 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                     await _unitOfWork.TransactionHeader.UpdateAsy(HeaderForBody);
                     await _unitOfWork.SaveAsy();
                 }
-
-                // If request came from modal (AJAX), return plain OK
-                if (Request.Query.ContainsKey("modal"))
+                if(fromCompletionBtn == "True")
                 {
-                    return new ContentResult { Content = "OK" };
+                    return RedirectToPage("Upsert", new { HeaderId = tbForUpsert.TransactionHeaderId, fromCompletionBtn = "True", pageReload = "True" });
                 }
-
-                // Otherwise, normal redirect
-                return RedirectToPage("Index", new { HeaderId = tbForUpsert.TransactionHeaderId });
+                // Reload the page
+                return RedirectToPage("Upsert", new { HeaderId = tbForUpsert.TransactionHeaderId });
             }
 
             await LoadCategories();
             return Page();
+        }
+
+        private void SetStatusDates(TransactionBody transactionBody)
+        {
+            var now = DateTime.Now;
+
+            switch (transactionBody.Status)
+            {
+                case SD.Status_Part_Fixed:
+                    transactionBody.FixedDate = now;
+                    break;
+                case SD.Status_Part_Replaced:
+                    transactionBody.ReplacedDate = now;
+                    break;
+                case SD.Status_Part_NotRepairable:
+                    transactionBody.NotRepairableDate = now;
+                    break;
+                case SD.Status_Part_NotReplaceable:
+                    transactionBody.NotReplaceableDate = now;
+                    break;
+                case SD.Status_Part_Waiting_Part:
+                    transactionBody.WaitingPartDate = now;
+                    break;
+                    // For pending statuses, no specific date is set
+            }
         }
 
         private async Task LoadCategories()

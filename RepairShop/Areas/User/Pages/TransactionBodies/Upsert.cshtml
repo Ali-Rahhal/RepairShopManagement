@@ -1,10 +1,16 @@
 ﻿@page
 @model RepairShop.Areas.User.Pages.TransactionBodies.UpsertModel
 @{
-    bool inModal = Request.Query.ContainsKey("modal");//check if the page is opened in a modal; if so then hide the back button
+    bool fromCompletionBtn = Request.Query.ContainsKey("fromCompletionBtn");//check if the page is opened in a modal; if so then hide the back button and show a toastr
+    bool pageReload = Request.Query.ContainsKey("pageReload");
+    if (fromCompletionBtn && !pageReload)
+    {
+        TempData["warning"] = "Parts must be reported before marking as completed";
+    }
+    
 }
 
-<div class="card shadow border-0 my-4 w-100 @(inModal ? "" : "w-xl-60") mx-auto">
+<div class="card shadow border-0 my-4 w-100 w-xl-60 mx-auto">
     <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
         <div class="row">
             <div class="col-12 text-center">
@@ -15,11 +21,13 @@
         </div>
     </div>
     <div class="card-body p-4">
-        <form method="post" class="row">
+        <form method="post" class="row" id="transactionBodyForm">
             @Html.AntiForgeryToken()
             <input type="hidden" asp-for="tbForUpsert.Id" />
             <input type="hidden" asp-for="tbForUpsert.TransactionHeaderId" />
             <input type="hidden" asp-for="tbForUpsert.PartId" id="selectedPartId" />
+            <input type="hidden" id="finalStatus" name="finalStatus" />
+            <input type="hidden" id="fromCompletionBtn" name="fromCompletionBtn" value="@fromCompletionBtn.ToString()" />
             @if (Model.tbForUpsert.Id != 0)
             {
                 <input type="hidden" asp-for="tbForUpsert.Status" />
@@ -28,25 +36,29 @@
                 <div class="col-12">
                     <div class="border p-3">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                        
-                        @if(Model.tbForUpsert.Id == 0)
+
+                        @if (Model.tbForUpsert.Id == 0)
                         {
                             <!-- Status Selection -->
-                            <div class="form-floating py-2 col-12">
-                            <select asp-for="tbForUpsert.Status" class="form-control border-0 shadow" id="statusSelect">
-                                <option value="">Select Status</option>
-                                <option value="@SD.Status_Part_Pending_Repair">Pending Repair</option>
-                                <option value="@SD.Status_Part_Pending_Replace">Pending Replace</option>
-                            </select>
-                            <label asp-for="tbForUpsert.Status">Broken Part Status</label>
-                            <span asp-validation-for="tbForUpsert.Status" class="text-danger"></span>
+                            <div class="py-2 col-6">
+                                <label class="form-label fw-bold fs-6 text-primary mb-3">Select Action Type:</label>
+                                <div class="d-flex gap-3">
+                                    <button type="button" id="repairBtn" class="btn btn-outline-success flex-fill">
+                                        <i class="bi bi-tools"></i> Repair
+                                    </button>
+                                    <button type="button" id="replaceBtn" class="btn btn-outline-warning flex-fill">
+                                        <i class="bi bi-arrow-repeat"></i> Replace
+                                    </button>
+                                </div>
+                                <input type="hidden" asp-for="tbForUpsert.Status" id="statusSelect" />
+                                <span asp-validation-for="tbForUpsert.Status" class="text-danger"></span>
                             </div>
                         }
-                        
+
                         <!-- Broken Part Information -->
                         <div class="form-floating py-2 col-12">
-                            <input asp-for="tbForUpsert.BrokenPartName" class="form-control border-0 shadow" 
-                                   placeholder="Enter the name of the broken part"/>
+                            <input asp-for="tbForUpsert.BrokenPartName" class="form-control border-0 shadow"
+                                   placeholder="Enter the name of the broken part" />
                             <label asp-for="tbForUpsert.BrokenPartName">Broken Part Name</label>
                             <span asp-validation-for="tbForUpsert.BrokenPartName" class="text-danger"></span>
                             <small class="text-muted">Enter the name of the part that needs repair/replacement</small>
@@ -63,23 +75,23 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <select id="categorySelect" class="form-select border-0 shadow">
+                                            <div class="mb-3">
+                                                <label for="categorySelect" class="form-label fw-bold">Category</label>
+                                                <select id="categorySelect" class="form-select">
                                                     <option value="">Select Category</option>
                                                     @foreach (var category in Model.Categories)
                                                     {
                                                         <option value="@category">@category</option>
                                                     }
                                                 </select>
-                                                <label for="categorySelect">Category</label>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <div class="form-floating">
-                                                <select id="partSelect" class="form-select border-0 shadow" disabled>
+                                            <div class="mb-3">
+                                                <label for="partSelect" class="form-label fw-bold">Replacement Part</label>
+                                                <select id="partSelect" class="form-select" disabled>
                                                     <option value="">Select Replacement Part</option>
                                                 </select>
-                                                <label for="partSelect">Replacement Part</label>
                                             </div>
                                         </div>
                                     </div>
@@ -104,23 +116,65 @@
                                 </div>
                             </div>
                         }
-                        
+
                         <div class="row pt-2">
-                            <div class="col-6 col-md-3">
-                                @if (Model.tbForUpsert.Id != 0)
-                                {
-                                    <button type="submit" class="btn btn-primary form-control">Update</button>
-                                }
-                                else
-                                {
-                                    <button type="submit" class="btn btn-primary form-control">Create</button>
-                                }
-                            </div>
-                            @if (!inModal)
+                            @if (Model.tbForUpsert.Id != 0)
                             {
                                 <div class="col-6 col-md-3">
+                                    <button type="submit" class="btn btn-primary form-control">Update</button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="col-12">
+                                    <label class="form-label fw-bold fs-6 text-primary mb-3">Select Final Status:</label>
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <button type="button" id="completeBtn" class="btn btn-success form-control">
+                                                <i class="bi bi-check-circle"></i> Mark as Completed
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button type="button" id="notRepairableBtn" class="btn btn-warning form-control">
+                                                <i class="bi bi-exclamation-triangle"></i> Mark as Not Repairable
+                                            </button>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <button type="button" id="pendingBtn" class="btn btn-info form-control">
+                                                <i class="bi bi-clock"></i> Keep as Pending
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="row mt-2">
+                                        <div class="col-12">
+                                            <small class="text-muted">
+                                                <strong>Completed:</strong> Part is fixed or replaced |
+                                                <strong>Not Repairable:</strong> Part cannot be fixed/replaced |
+                                                <strong>Pending:</strong> Keep current status for later action
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            @if (!fromCompletionBtn)
+                            {
+                                <div class="col-6 col-md-3 @(Model.tbForUpsert.Id == 0 ? "mt-3" : "")">
                                     <a asp-page="Index" asp-route-HeaderId="@Model.tbForUpsert.TransactionHeaderId" class="btn btn-outline-primary form-control">
                                         Back to List
+                                    </a>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="col-6 col-md-3 @(Model.tbForUpsert.Id == 0 ? "mt-3" : "")">
+                                    <a asp-page="Index" asp-route-HeaderId="@Model.tbForUpsert.TransactionHeaderId" class="btn btn-outline-primary form-control">
+                                        To Broken Parts List
+                                    </a>
+                                </div>
+                                <div class="col-6 col-md-3 @(Model.tbForUpsert.Id == 0 ? "mt-3" : "")">
+                                    <a href="/User/TransactionHeaders/Index" class="btn btn-outline-info form-control">
+                                        To Transactions List
                                     </a>
                                 </div>
                             }

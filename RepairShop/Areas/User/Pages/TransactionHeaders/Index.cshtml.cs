@@ -131,6 +131,13 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 return new JsonResult(new { success = false, message = "You have pending parts" });
             }
 
+            //check if there are any active parts
+            var partCount = THToBeCompleted.BrokenParts.Count(o => o.IsActive == true);
+            if (partCount == 0)
+            {
+                return new JsonResult(new { success = false, message = "Parts must be reported before marking as completed" });
+            }
+
             //check if there are non-repairable parts
             var nonRepairableParts = THToBeCompleted.BrokenParts.Count(o => o.IsActive == true && (o.Status == SD.Status_Part_NotReplaceable
                                                                                                     || o.Status == SD.Status_Part_NotRepairable));
@@ -157,14 +164,6 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 return new JsonResult(new { success = true, message = "Transaction completed successfully" });
             }
         }
-
-        public async Task<JsonResult> OnGetHasBrokenParts(int id)
-        {
-            var parts = await _unitOfWork.TransactionBody.GetAllAsy(p => p.TransactionHeaderId == id);
-            bool hasParts = parts.Any();
-            return new JsonResult(new { hasParts });
-        }
-
 
         //AJAX CALL for marking transaction as delivered
         public async Task<IActionResult> OnGetDeliverStatus(int? id)//The route is /User/TransactionHeaders/Index?handler=DeliverStatus&id=1

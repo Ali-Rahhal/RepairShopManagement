@@ -404,92 +404,33 @@ function showHistory(id, created, inProgress, completedOrOutOfService, delivered
 function ToBeCompleted(url) {
     Swal.fire({
         title: "Are you sure you want to mark this task as complete?",
-        text: "If there are no broken parts, you'll be asked to add them first.",
+        text: "You won't be able to revert this!",
         icon: "question",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, continue"
+        confirmButtonText: "Yes, mark as complete"
     }).then((result) => {
         if (result.isConfirmed) {
-            // Extract the transaction ID from the URL query string
-            const urlParams = new URL(url, window.location.origin);
-            const id = urlParams.searchParams.get("id");
-
-            // 🔹 Check if this transaction has any broken parts
-            $.get(`/User/TransactionHeaders/Index?handler=HasBrokenParts&id=${id}`)
-                .done(function (data) {
-                    if (data.hasParts) {
-                        // Proceed with completion
-                        completeTransaction(url);
-                    } else {
-                        // No broken parts -> open modal to add parts
-                        openTbModal(id);
+            $.ajax({
+                url: url,
+                success: function (data) {
+                    if (data.success) {
+                        dataTable.ajax.reload();
+                        toastr.success(data.message);
                     }
-                })
-                .fail(function () {
-                    toastr.error("Error checking for broken parts.");
-                });
-        }
-    });
-}
-
-function completeTransaction(url) {
-    $.ajax({
-        url: url,
-        success: function (data) {
-            if (data.success) {
-                dataTable.ajax.reload();
-                toastr.success(data.message);
-            } else {
-                toastr.error(data.message);
-            }
-        }
-    });
-}
-
-function openTbModal(headerId) {
-    $('#tbModal').modal('show');
-    loadTbUpsertForm(headerId);
-}
-
-function loadTbUpsertForm(headerId) {
-    $("#tbModalBody").html(`<div class="text-center p-5">
-        <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2">Loading form...</p>
-    </div>`);
-
-    // Load the Upsert page into modal
-    $("#tbModalBody").load(`/User/TransactionBodies/Upsert?headerId=${headerId}&modal=true`, function () {
-        wireUpsertFormForModal(headerId);
-    });
-}
-
-function wireUpsertFormForModal(headerId) {
-    const form = $("#tbModalBody form");
-
-    form.on("submit", function (e) {
-        e.preventDefault();
-        const formData = form.serialize();
-
-        $.ajax({
-            type: "POST",
-            url: form.attr("action") || `/User/TransactionBodies/Upsert?headerId=${headerId}&modal=true`,
-            data: formData,
-            success: function (response) {
-                if (response === "OK") {
-                    // Optionally reload the Upsert form for a new entry
-                    loadTbUpsertForm(headerId);
-                } else {
-                    // Validation failed → re-render the form HTML
-                    $("#tbModalBody").html(response);
-                    wireUpsertFormForModal(headerId);
+                    else {
+                        const params = new URLSearchParams(url.split("?")[1]);
+                        const headerId = params.get("id");
+                        if (data.message.includes("Parts must be reported before marking as completed")) {
+                            window.location.href = `/User/TransactionBodies/Upsert?headerId=${headerId}&fromCompletionBtn=true`;
+                        } else if (data.message.includes("You have pending parts")) {
+                            window.location.href = `/User/TransactionBodies/Index?headerId=${headerId}&fromCompletionBtn=true`;
+                        }
+                        toastr.error(data.message);
+                    }
                 }
-            },
-            error: function (xhr) {
-                toastr.error("Error saving part.");
-                console.error(xhr.responseText);
-            }
-        });
+            })
+        }
     });
 }
