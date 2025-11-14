@@ -84,7 +84,7 @@ namespace RepairShop.Areas.Admin.Pages.History
             // Get all defective units for this serial number
             var defectiveUnits = (await _unitOfWork.DefectiveUnit.GetAllAsy(
                 du => du.SerialNumberId == serialNumber.Id && du.IsActive == true,
-                includeProperties: "Warranty,MaintenanceContract"
+                includeProperties: "SerialNumber,SerialNumber.Warranty,SerialNumber.MaintenanceContract"
             )).ToList();
 
             // Get all transaction headers for these defective units
@@ -95,7 +95,7 @@ namespace RepairShop.Areas.Admin.Pages.History
             {
                 var transactions = await _unitOfWork.TransactionHeader.GetAllAsy(
                     th => th.DefectiveUnitId == du.Id && th.IsActive == true,
-                    includeProperties: "User,Client,BrokenParts"
+                    includeProperties: "User,DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Client,BrokenParts"
                 );
 
                 foreach (var transaction in transactions)

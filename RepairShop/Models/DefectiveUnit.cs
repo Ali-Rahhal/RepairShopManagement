@@ -18,14 +18,6 @@ namespace RepairShop.Models
         [ValidateNever]
         public SerialNumber SerialNumber { get; set; } // which device failed
 
-        public int? WarrantyId { get; set; }
-        [ValidateNever]
-        public Warranty Warranty { get; set; } // if covered by warranty
-
-        public int? MaintenanceContractId { get; set; }
-        [ValidateNever]
-        public MaintenanceContract MaintenanceContract { get; set; } // if covered by contract
-
         public DateTime? ResolvedDate { get; set; }
     }
 }

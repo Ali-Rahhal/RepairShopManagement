@@ -18,8 +18,6 @@
         <form method="post" class="row">
             <input type="hidden" asp-for="DefectiveUnitForUpsert.Id" id="duId" />
             <input type="hidden" asp-for="DefectiveUnitForUpsert.SerialNumberId" id="selectedSerialId" />
-            <input type="hidden" asp-for="DefectiveUnitForUpsert.WarrantyId" id="selectedWarrantyId" />
-            <input type="hidden" asp-for="DefectiveUnitForUpsert.MaintenanceContractId" id="selectedContractId" />
             @if(Model.DefectiveUnitForUpsert.Id != 0)
             {
                 <input type="hidden" asp-for="DefectiveUnitForUpsert.ReportedDate" />

@@ -28,7 +28,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         {
             var defectiveUnitList = (await _unitOfWork.DefectiveUnit.GetAllAsy(
                 filter: du => du.IsActive == true,
-                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,Warranty,MaintenanceContract"
+                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,SerialNumber.Warranty,SerialNumber.MaintenanceContract"
             )).ToList();
 
             // Format the data for better display
@@ -42,8 +42,8 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 resolvedDate = du.ResolvedDate?.ToString("dd/MM/yyyy") ?? "Not resolved",
                 serialNumber = du.SerialNumber?.Value ?? "N/A",
                 clientName = du.SerialNumber?.Client?.Name ?? "N/A",
-                warrantyCovered = du.WarrantyId != null ? "Yes" : "No",
-                contractCovered = du.MaintenanceContractId != null ? "Yes" : "No",
+                warrantyCovered = du.SerialNumber?.WarrantyId != null ? "Yes" : "No",
+                contractCovered = du.SerialNumber?.MaintenanceContractId != null ? "Yes" : "No",
                 daysSinceReported = (DateTime.Now - du.ReportedDate).Days
             });
 
@@ -89,7 +89,6 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             TransactionHeader thForDu = new TransactionHeader()
             {
                 DefectiveUnitId = (int)DuId,
-                ClientId = defectiveUnitToBeAdded.SerialNumber.ClientId,
                 UserId = currentUserId
             };
 
@@ -107,7 +106,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         {
             var defectiveUnit = await _unitOfWork.DefectiveUnit.GetAsy(
                 du => du.Id == id,
-                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,Warranty,MaintenanceContract"
+                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,SerialNumber.Warranty,SerialNumber.MaintenanceContract"
             );
 
             if (defectiveUnit == null)

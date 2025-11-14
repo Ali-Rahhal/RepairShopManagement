@@ -22,10 +22,6 @@ namespace RepairShop.Models
 
         [ValidateNever]
         [JsonIgnore]
-        public ICollection<TransactionHeader> Transactions{ get; set; } //has many repair jobs
-
-        [ValidateNever]
-        [JsonIgnore]
         public ICollection<SerialNumber> SerialNumbers { get; set; } //has many serial numbers
 
     }

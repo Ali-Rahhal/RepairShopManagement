@@ -118,11 +118,9 @@ function loadSerialNumberDetails(serialNumberId) {
                 if (data.hasActiveWarranty) {
                     warrantyBadge.textContent = 'Active';
                     warrantyBadge.className = 'badge bg-success';
-                    document.getElementById('selectedWarrantyId').value = data.warrantyId;
                 } else {
                     warrantyBadge.textContent = 'No Active Warranty';
                     warrantyBadge.className = 'badge bg-secondary';
-                    document.getElementById('selectedWarrantyId').value = '';
                 }
 
                 // Update contract status
@@ -130,11 +128,9 @@ function loadSerialNumberDetails(serialNumberId) {
                 if (data.hasActiveContract) {
                     contractBadge.textContent = 'Active';
                     contractBadge.className = 'badge bg-info';
-                    document.getElementById('selectedContractId').value = data.maintenanceContractId;
                 } else {
                     contractBadge.textContent = 'No Active Contract';
                     contractBadge.className = 'badge bg-secondary';
-                    document.getElementById('selectedContractId').value = '';
                 }
 
                 // Set the serial number ID

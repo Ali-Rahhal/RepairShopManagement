@@ -48,7 +48,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             {
                 DefectiveUnitForUpsert = await _unitOfWork.DefectiveUnit.GetAsy(
                     du => du.Id == id,
-                    includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,Warranty,MaintenanceContract"
+                    includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,SerialNumber.Warranty,SerialNumber.MaintenanceContract"
                 );
 
                 if (DefectiveUnitForUpsert == null)
@@ -57,14 +57,14 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 }
 
                 // Load warranty and contract info if they exist
-                if (DefectiveUnitForUpsert.WarrantyId.HasValue)
+                if (DefectiveUnitForUpsert.SerialNumber.WarrantyId.HasValue)
                 {
-                    SelectedWarranty = await _unitOfWork.Warranty.GetAsy(w => w.Id == DefectiveUnitForUpsert.WarrantyId);
+                    SelectedWarranty = await _unitOfWork.Warranty.GetAsy(w => w.Id == DefectiveUnitForUpsert.SerialNumber.WarrantyId);
                 }
 
-                if (DefectiveUnitForUpsert.MaintenanceContractId.HasValue)
+                if (DefectiveUnitForUpsert.SerialNumber.MaintenanceContractId.HasValue)
                 {
-                    SelectedMaintenanceContract = await _unitOfWork.MaintenanceContract.GetAsy(mc => mc.Id == DefectiveUnitForUpsert.MaintenanceContractId);
+                    SelectedMaintenanceContract = await _unitOfWork.MaintenanceContract.GetAsy(mc => mc.Id == DefectiveUnitForUpsert.SerialNumber.MaintenanceContractId);
                 }
 
                 return Page();
@@ -113,8 +113,6 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
                     // Set the new serial number ID to the defective unit
                     DefectiveUnitForUpsert.SerialNumberId = NewSerialNumber.Id;
-                    // Set the new mc id to the defective unit
-                    DefectiveUnitForUpsert.MaintenanceContractId = NewSerialNumber.MaintenanceContractId;
                 }
 
                 var duplicateReportedDU = await _unitOfWork.DefectiveUnit.GetAsy(du => du.IsActive == true

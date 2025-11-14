@@ -25,11 +25,6 @@ namespace RepairShop.Models
         public bool IsActive { get; set; } = true;
 
         [Required]
-        public int ClientId { get; set; }
-        [ValidateNever]
-        public Client Client { get; set; } //belongs to client
-
-        [Required]
         public string UserId { get; set; }
         [ValidateNever]
         public AppUser User { get; set; } //created by a user

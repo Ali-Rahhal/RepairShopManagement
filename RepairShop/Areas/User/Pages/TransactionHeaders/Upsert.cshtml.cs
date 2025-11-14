@@ -58,7 +58,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
 
                 
 
-                // Get the defective unit to set the ClientId
+                // Get the defective unit to set the status
                 var defectiveUnit = await _unitOfWork.DefectiveUnit.GetAsy(
                     du => du.Id == thForUpsert.DefectiveUnitId,
                     includeProperties: "SerialNumber,SerialNumber.Client"
@@ -69,9 +69,6 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                     ModelState.AddModelError(string.Empty, "Selected defective unit not found");
                     return Page();
                 }
-
-                // Set the ClientId from the defective unit's serial number
-                thForUpsert.ClientId = defectiveUnit.SerialNumber.ClientId;
 
                 defectiveUnit.Status = SD.Status_DU_UnderRepair;
                 await _unitOfWork.DefectiveUnit.UpdateAsy(defectiveUnit);

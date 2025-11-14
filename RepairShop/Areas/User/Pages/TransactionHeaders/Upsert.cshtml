@@ -16,7 +16,6 @@
     <div class="card-body p-4">
         <form method="post" class="row">
             <input type="hidden" asp-for="thForUpsert.Id" />
-            <input type="hidden" asp-for="thForUpsert.ClientId" />
             @if (Model.thForUpsert.Id != 0)
             {
                 <input type="hidden" asp-for="thForUpsert.UserId" />
@@ -252,7 +251,6 @@
 
                         // Set the hidden fields
                         document.getElementById('selectedDefectiveUnitId').value = data.defectiveUnitId;
-                        document.getElementById('thForUpsert_ClientId').value = data.clientId;
 
                         // Enable submit button
                         let submit = document.getElementById('submitBtn');

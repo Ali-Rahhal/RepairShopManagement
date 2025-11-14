@@ -156,8 +156,8 @@ namespace RepairShop.Services
 
             var table = CreateBaseTable(section);
 
-            var warrantyStatus = du.WarrantyId.HasValue ? "Covered by Warranty" : "Not Covered by Warranty";
-            var contractStatus = du.MaintenanceContractId.HasValue ? "Covered by Maintenance Contract" : "Not Covered by Maintenance Contract";
+            var warrantyStatus = du.SerialNumber.WarrantyId.HasValue ? "Covered by Warranty" : "Not Covered by Warranty";
+            var contractStatus = du.SerialNumber.MaintenanceContractId.HasValue ? "Covered by Maintenance Contract" : "Not Covered by Maintenance Contract";
 
             AddTableRow(table, "Warranty:", warrantyStatus);
             AddTableRow(table, "Contract:", contractStatus);

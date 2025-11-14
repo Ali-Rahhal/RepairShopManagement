@@ -36,7 +36,7 @@ namespace RepairShop.Areas.User.Pages.Clients
             }
 
             //Check if client has related transactions
-            var transactionsRelatedToClient = (await _unitOfWork.TransactionHeader.GetAllAsy(t => t.IsActive == true && t.ClientId == clientToBeDeleted.Id));
+            var transactionsRelatedToClient = (await _unitOfWork.TransactionHeader.GetAllAsy(t => t.IsActive == true && t.DefectiveUnit.IsActive == true && t.DefectiveUnit.SerialNumber.ClientId == clientToBeDeleted.Id));
             if (transactionsRelatedToClient.Count() > 0)
             {
                 return new JsonResult(new { success = false, message = "Client cannot be deleted because it has related transactions" });

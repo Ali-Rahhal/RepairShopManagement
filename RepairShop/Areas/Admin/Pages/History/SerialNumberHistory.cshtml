@@ -251,11 +251,11 @@
                                                                 </td>
                                                                 <td>@(du.ResolvedDate?.ToString("dd-MM-yyyy hh:mm tt") ?? "Not resolved")</td>
                                                                 <td>
-                                                                    @if (du.WarrantyId.HasValue)
+                                                                    @if (du.SerialNumber.WarrantyId.HasValue)
                                                                     {
                                                                         <span class="badge bg-info me-1">Warranty</span>
                                                                     }
-                                                                    @if (du.MaintenanceContractId.HasValue)
+                                                                    @if (du.SerialNumber.MaintenanceContractId.HasValue)
                                                                     {
                                                                         <span class="badge bg-primary">Contract</span>
                                                                     }

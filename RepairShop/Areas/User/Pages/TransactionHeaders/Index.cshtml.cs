@@ -38,7 +38,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             {
                 THList = (await _unitOfWork.TransactionHeader
                     .GetAllAsy(t => t.IsActive == true,
-                    includeProperties: "Client,User,DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model")).ToList();
+                    includeProperties: "User,DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client")).ToList();
             }
             else//If the user is not an admin get only their transactions
             {
@@ -48,7 +48,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
 
                 THList = (await _unitOfWork.TransactionHeader
                     .GetAllAsy(t => t.IsActive == true && t.UserId == userId,
-                    includeProperties: "Client,DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model")).ToList();
+                    includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client")).ToList();
             }
 
             // Format the data for better display
@@ -60,7 +60,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 serialNumber = t.DefectiveUnit?.SerialNumber?.Value ?? "N/A",
                 duDescription = t.DefectiveUnit?.Description ?? "N/A",
                 status = t.Status,
-                client = t.Client != null ? new { name = t.Client.Name } : null,
+                client = t.DefectiveUnit?.SerialNumber?.Client != null ? new { name = t.DefectiveUnit.SerialNumber.Client.Name } : null,
                 lastModifiedDate = t.LastModifiedDate ?? t.CreatedDate,
                 createdDate = t.CreatedDate,
                 inProgressDate = t.InProgressDate,
@@ -192,7 +192,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
         {
             var transactionHeader = await _unitOfWork.TransactionHeader.GetAsy(
                 th => th.Id == id,
-                includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,Client,User"
+                includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client,User"
             );
 
             if (transactionHeader == null)
