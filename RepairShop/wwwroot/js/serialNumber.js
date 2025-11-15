@@ -174,7 +174,7 @@ function clearFilters() {
 
 function Delete(url) {
     Swal.fire({
-        title: "Are you sure you want to delete this?",
+        title: "Are you sure you want to delete this serial number?",
         text: "This action cannot be undone!",
         icon: "warning",
         showCancelButton: true,

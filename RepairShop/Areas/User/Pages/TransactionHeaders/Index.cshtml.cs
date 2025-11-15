@@ -75,7 +75,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
         //AJAX CALL for changing status from New to InProgress
         public async Task<IActionResult> OnGetChangeStatus(int? id)//The route is /User/TransactionHeaders/Index?handler=ChangeStatus&id=1
         {
-            var THToBeChanged = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id, includeProperties: "DefectiveUnit");
+            var THToBeChanged = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id && o.IsActive == true, includeProperties: "DefectiveUnit");
             if (THToBeChanged == null)
             {
                 return new JsonResult(new { success = false, message = "Error while changing status" });
@@ -90,32 +90,23 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
         }
 
         //AJAX CALL for deleting a TH//Didnt use OnPostDelete because it needs the link to send a form and it causes issues with DataTables
-        public async Task<IActionResult> OnGetDelete(int? id)//The route is /User/TransactionHeaders/Index?handler=Delete&id=1
+        public async Task<IActionResult> OnGetDelete(int? id, [FromServices] DeleteService _dlt)//The route is /User/TransactionHeaders/Index?handler=Delete&id=1
         {
-            var THToBeDeleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id, includeProperties: "DefectiveUnit");
+            var THToBeDeleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id && o.IsActive == true);
             if (THToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
 
-            // Only new transactions can be deleted
-            if (THToBeDeleted.Status != SD.Status_Job_New)
-            {
-                return new JsonResult(new { success = false, message = "You can only delete a new transaction" });
-            }
-
-            THToBeDeleted.DefectiveUnit.Status = SD.Status_DU_Reported;
-            await _unitOfWork.DefectiveUnit.UpdateAsy(THToBeDeleted.DefectiveUnit);
-
-            await _unitOfWork.TransactionHeader.RemoveAsy(THToBeDeleted);
-            await _unitOfWork.SaveAsy();
+            await _dlt.DeleteTransactionHeaderAsync(THToBeDeleted.Id);
+            
             return new JsonResult(new { success = true, message = "Transaction deleted successfully" });
         }
 
         //AJAX CALL for completing the transaction
         public async Task<IActionResult> OnGetCompleteStatus(int? id)//The route is /User/TransactionHeaders/Index?handler=CompleteStatus&id=1
         {
-            var THToBeCompleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id, includeProperties: "BrokenParts,DefectiveUnit");
+            var THToBeCompleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id && o.IsActive == true, includeProperties: "BrokenParts,DefectiveUnit");
             if (THToBeCompleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while completing" });
@@ -168,7 +159,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
         //AJAX CALL for marking transaction as delivered
         public async Task<IActionResult> OnGetDeliverStatus(int? id)//The route is /User/TransactionHeaders/Index?handler=DeliverStatus&id=1
         {
-            var THToBeCompleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id);
+            var THToBeCompleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id && o.IsActive == true);
             if (THToBeCompleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while marking as delivered" });
@@ -191,7 +182,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
         public async Task<IActionResult> OnGetDownloadPdf(int id)
         {
             var transactionHeader = await _unitOfWork.TransactionHeader.GetAsy(
-                th => th.Id == id,
+                th => th.Id == id && th.IsActive == true,
                 includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client,User"
             );
 

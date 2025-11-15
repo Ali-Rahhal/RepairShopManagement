@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 
 namespace RepairShop.Areas.Admin.Pages.Warranties
 {
@@ -69,16 +70,16 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
         }
 
         // API for Delete
-        public async Task<IActionResult> OnGetDelete(int? id)
+        public async Task<IActionResult> OnGetDelete(int? id, [FromServices] DeleteService _dlt)
         {
-            var warrantyToBeDeleted = await _unitOfWork.Warranty.GetAsy(w => w.Id == id, includeProperties: "SerialNumber");
+            var warrantyToBeDeleted = await _unitOfWork.Warranty.GetAsy(w => w.Id == id && w.IsActive == true);
             if (warrantyToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
 
-            await _unitOfWork.Warranty.RemoveAsy(warrantyToBeDeleted);
-            await _unitOfWork.SaveAsy();
+            await _dlt.DeleteWarrantyAsync(warrantyToBeDeleted.Id);
+
             return new JsonResult(new { success = true, message = "Warranty deleted successfully" });
         }
 

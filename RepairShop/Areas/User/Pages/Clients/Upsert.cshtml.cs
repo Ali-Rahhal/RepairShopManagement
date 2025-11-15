@@ -30,7 +30,7 @@ namespace RepairShop.Areas.User.Pages.Clients
             }
             else
             {
-                clientForUpsert = await _unitOfWork.Client.GetAsy(o => o.Id == id);
+                clientForUpsert = await _unitOfWork.Client.GetAsy(o => o.Id == id && o.IsActive == true);
                 if (clientForUpsert == null)
                 {
                     return NotFound();

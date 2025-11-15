@@ -6,6 +6,7 @@ using RepairShop.Data;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 using System.Security.Claims;
 
 namespace RepairShop.Areas.User.Pages.TransactionBodies
@@ -29,7 +30,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
         public void OnGet(int HeaderId)
         {
             this.HeaderId = HeaderId;
-            HeaderStatus = _unitOfWork.TransactionHeader.GetAsy(o => o.Id == HeaderId).Result.Status;
+            HeaderStatus = _unitOfWork.TransactionHeader.GetAsy(o => o.Id == HeaderId && o.IsActive == true).Result.Status;
         }
 
         //AJAX CALLS for getting all TBs in Json format for DataTables
@@ -57,8 +58,8 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
         //AJAX CALL for checking if part is availabe and change status
         public async Task<IActionResult> OnGetCheckPart(int? id)
         {
-            var TB = await _unitOfWork.TransactionBody.GetAsy(tb => tb.Id == id);
-            var part = await _unitOfWork.Part.GetAsy(p => p.Id == TB.PartId);
+            var TB = await _unitOfWork.TransactionBody.GetAsy(tb => tb.Id == id && tb.IsActive == true);
+            var part = await _unitOfWork.Part.GetAsy(p => p.Id == TB.PartId && p.IsActive == true);
             if (part.Quantity > 0)
             {
                 part.Quantity--;
@@ -75,7 +76,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
         //AJAX CALL for changing TB status
         public async Task<IActionResult> OnGetStatus(int? id, int? choice)//The route is /User/TransactionBodies/Index?handler=Status&id=1
         {
-            var TB = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == id);
+            var TB = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == id && o.IsActive == true);
             if (TB == null)
             {
                 return new JsonResult(new { success = false, message = "Error while changing status" });
@@ -99,7 +100,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                     // If not replaceable and a part was selected, increment inventory
                     if (TB.PartId.HasValue)
                     {
-                        var replacementPart = await _unitOfWork.Part.GetAsy(p => p.Id == TB.PartId.Value);
+                        var replacementPart = await _unitOfWork.Part.GetAsy(p => p.Id == TB.PartId.Value && p.IsActive == true);
                         if (replacementPart != null && replacementPart.Quantity >= 0)
                         {
                             replacementPart.Quantity++;
@@ -119,7 +120,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             await _unitOfWork.SaveAsy();
 
             // Update TransactionHeader last modified date
-            var HeaderForBody = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == TB.TransactionHeaderId, tracked: true);
+            var HeaderForBody = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == TB.TransactionHeaderId && o.IsActive == true, tracked: true);
             if (HeaderForBody != null)
             {
                 HeaderForBody.LastModifiedDate = DateTime.Now;
@@ -131,40 +132,19 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
         }
 
         //AJAX CALL for deleting a TB
-        public async Task<IActionResult> OnGetDelete(int? id)//The route is /User/TransactionBodies/Index?handler=Delete&id=1
+        public async Task<IActionResult> OnGetDelete(int? id, [FromServices] DeleteService _dlt)//The route is /User/TransactionBodies/Index?handler=Delete&id=1
         {
-            var TBToBeDeleted = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == id);
+
+            var TBToBeDeleted = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == id && o.IsActive == true);
             if (TBToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
 
-            // Only pending parts can be deleted
-            if (TBToBeDeleted.Status != SD.Status_Part_Pending_Repair 
-                && TBToBeDeleted.Status != SD.Status_Part_Pending_Replace 
-                && TBToBeDeleted.Status != SD.Status_Part_Waiting_Part)
-            {
-                return new JsonResult(new { success = false, message = "You can only delete pending parts" });
-            }
-            if (TBToBeDeleted.Status == SD.Status_Part_Pending_Replace)
-            {
-                // If not replaceable and a part was selected, increment inventory
-                if (TBToBeDeleted.PartId.HasValue)
-                {
-                    var replacementPart = await _unitOfWork.Part.GetAsy(p => p.Id == TBToBeDeleted.PartId.Value);
-                    if (replacementPart != null && replacementPart.Quantity >= 0)
-                    {
-                        replacementPart.Quantity++;
-                        await _unitOfWork.Part.UpdateAsy(replacementPart);
-                    }
-                }
-            }
-
-            await _unitOfWork.TransactionBody.RemoveAsy(TBToBeDeleted);
-            await _unitOfWork.SaveAsy();
+            await _dlt.DeleteTransactionBodyAsync(TBToBeDeleted.Id);    
 
             // Update TransactionHeader last modified date
-            var HeaderForBody = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == TBToBeDeleted.TransactionHeaderId, tracked: true);
+            var HeaderForBody = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == TBToBeDeleted.TransactionHeaderId && o.IsActive == true, tracked: true);
             if (HeaderForBody != null)
             {
                 HeaderForBody.LastModifiedDate = DateTime.Now;

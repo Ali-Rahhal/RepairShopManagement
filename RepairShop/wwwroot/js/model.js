@@ -120,7 +120,7 @@ function clearCategoryFilter() {
 
 function Delete(url) {
     Swal.fire({
-        title: "Are you sure you want to delete this?",
+        title: "Are you sure you want to delete this model?",
         text: "This action cannot be undone!",
         icon: "warning",
         showCancelButton: true,

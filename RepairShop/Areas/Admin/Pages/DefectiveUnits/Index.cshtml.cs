@@ -51,22 +51,16 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         }
 
         // API for Delete
-        public async Task<IActionResult> OnGetDelete(int? id)
+        public async Task<IActionResult> OnGetDelete(int? id, [FromServices] DeleteService _dlt)
         {
-            var defectiveUnitToBeDeleted = await _unitOfWork.DefectiveUnit.GetAsy(du => du.Id == id);
+            var defectiveUnitToBeDeleted = await _unitOfWork.DefectiveUnit.GetAsy(du => du.IsActive == true && du.Id == id);
             if (defectiveUnitToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
 
-            var relatedTransactionHeaders = (await _unitOfWork.TransactionHeader.GetAllAsy(th => th.IsActive == true && th.DefectiveUnitId == id)).ToList();
-            if (relatedTransactionHeaders.Count > 0)
-            {
-                return new JsonResult(new { success = false, message = "Cannot delete this report because it has related transaction headers" });
-            }
-
-            await _unitOfWork.DefectiveUnit.RemoveAsy(defectiveUnitToBeDeleted);
-            await _unitOfWork.SaveAsy();
+            await _dlt.DeleteDefectiveUnitAsync(defectiveUnitToBeDeleted.Id);
+            
             return new JsonResult(new { success = true, message = "Defective unit report deleted successfully" });
         }
 
@@ -77,7 +71,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 return new JsonResult(new { success = false, message = "Error while adding to transaction" });
             }
 
-            var defectiveUnitToBeAdded = await _unitOfWork.DefectiveUnit.GetAsy(du => du.Id == DuId, includeProperties: "SerialNumber,SerialNumber.Client");
+            var defectiveUnitToBeAdded = await _unitOfWork.DefectiveUnit.GetAsy(du => du.IsActive == true && du.Id == DuId, includeProperties: "SerialNumber,SerialNumber.Client");
 
             var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -105,7 +99,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         public async Task<IActionResult> OnGetDownloadPdf(int id)
         {
             var defectiveUnit = await _unitOfWork.DefectiveUnit.GetAsy(
-                du => du.Id == id,
+                du => du.IsActive == true && du.Id == id,
                 includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,SerialNumber.Warranty,SerialNumber.MaintenanceContract"
             );
 

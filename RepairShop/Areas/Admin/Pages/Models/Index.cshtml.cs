@@ -30,7 +30,7 @@ namespace RepairShop.Areas.Admin.Pages.Models
         // API for Delete
         public async Task<IActionResult> OnGetDelete(int? id)
         {
-            var modelToBeDeleted = await _unitOfWork.Model.GetAsy(m => m.Id == id);
+            var modelToBeDeleted = await _unitOfWork.Model.GetAsy(m => m.Id == id && m.IsActive == true);
             if (modelToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
@@ -38,10 +38,9 @@ namespace RepairShop.Areas.Admin.Pages.Models
 
             // Check if model has associated serial numbers
             var hasSerialNumbers = (await _unitOfWork.SerialNumber
-                .GetAllAsy(sn => sn.IsActive == true && sn.ModelId == modelToBeDeleted.Id))
-                .Any();
+                .GetAllAsy(sn => sn.IsActive == true && sn.ModelId == modelToBeDeleted.Id));
 
-            if (hasSerialNumbers)
+            if (hasSerialNumbers.Any())
             {
                 return new JsonResult(new { success = false, message = "Model cannot be deleted because it has associated serial numbers" });
             }

@@ -33,6 +33,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<AppDbContext>();
+builder.Services.AddScoped<DeleteService>();
 builder.Services.AddScoped<DUReportService>();
 builder.Services.AddScoped<TransactionReportService>();
 var app = builder.Build();

@@ -30,7 +30,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             else
             {
                 thForUpsert = await _unitOfWork.TransactionHeader.GetAsy(
-                    o => o.Id == id,
+                    o => o.Id == id && o.IsActive == true,
                     includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client"
                 );
                 if (thForUpsert == null)
@@ -60,7 +60,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
 
                 // Get the defective unit to set the status
                 var defectiveUnit = await _unitOfWork.DefectiveUnit.GetAsy(
-                    du => du.Id == thForUpsert.DefectiveUnitId,
+                    du => du.Id == thForUpsert.DefectiveUnitId && du.IsActive == true,
                     includeProperties: "SerialNumber,SerialNumber.Client"
                 );
 
@@ -130,7 +130,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
         public async Task<IActionResult> OnGetDefectiveUnitDetails(int id)
         {
             var defectiveUnit = await _unitOfWork.DefectiveUnit.GetAsy(
-                du => du.Id == id,
+                du => du.Id == id && du.IsActive == true,
                 includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client"
             );
 

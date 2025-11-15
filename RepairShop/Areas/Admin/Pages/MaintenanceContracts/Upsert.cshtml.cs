@@ -44,7 +44,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
             else
             {
                 MaintenanceContractForUpsert = await _unitOfWork.MaintenanceContract.GetAsy(
-                    mc => mc.Id == id,
+                    mc => mc.Id == id && mc.IsActive == true,
                     includeProperties: "Client"
                 );
 
@@ -55,7 +55,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
 
                 // Load currently assigned serial numbers
                 var assignedSerialNumbers = await _unitOfWork.SerialNumber.GetAllAsy(
-                    sn => sn.MaintenanceContractId == id
+                    sn => sn.MaintenanceContractId == id && sn.IsActive == true
                 );
                 SelectedSerialNumberIds = assignedSerialNumbers.Select(sn => sn.Id).ToList();
 
@@ -177,7 +177,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
 
         private async Task<(bool isValid, string errorMessage)> ValidateAndAssignSerialNumbers(int contractId, List<int> selectedSerialNumberIds)
         {
-            if (selectedSerialNumberIds == null || !selectedSerialNumberIds.Any())
+            if (selectedSerialNumberIds == null || selectedSerialNumberIds.Count == 0)
                 return (true, "");
 
             var errorMessages = new List<string>();
@@ -186,7 +186,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
             foreach (var serialNumberId in selectedSerialNumberIds)
             {
                 var serialNumber = await _unitOfWork.SerialNumber.GetAsy(
-                    sn => sn.Id == serialNumberId,
+                    sn => sn.Id == serialNumberId && sn.IsActive == true,
                     includeProperties: "MaintenanceContract"
                 );
 
@@ -217,7 +217,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
 
             // First, remove all serial numbers from this contract
             var existingSerialNumbers = await _unitOfWork.SerialNumber.GetAllAsy(
-                sn => sn.MaintenanceContractId == contractId,
+                sn => sn.MaintenanceContractId == contractId && sn.IsActive == true,
                 tracked: true
             );
 
@@ -230,7 +230,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
             // Then assign the valid serial numbers
             foreach (var serialNumberId in validSerialNumberIds)
             {
-                var serialNumber = await _unitOfWork.SerialNumber.GetAsy(sn => sn.Id == serialNumberId, tracked: true);
+                var serialNumber = await _unitOfWork.SerialNumber.GetAsy(sn => sn.Id == serialNumberId && sn.IsActive == true, tracked: true);
                 if (serialNumber != null)
                 {
                     serialNumber.MaintenanceContractId = contractId;

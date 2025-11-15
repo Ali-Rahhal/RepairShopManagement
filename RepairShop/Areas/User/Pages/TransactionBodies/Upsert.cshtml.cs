@@ -39,7 +39,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             else
             {
                 // Edit mode - only load the existing record
-                tbForUpsert = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == id);
+                tbForUpsert = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == id && o.IsActive == true);
                 if (tbForUpsert == null)
                 {
                     return NotFound();
@@ -81,7 +81,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                     if ((tbForUpsert.Status == SD.Status_Part_Replaced || tbForUpsert.Status == SD.Status_Part_Pending_Replace) &&
                         tbForUpsert.PartId.HasValue && tbForUpsert.PartId.Value > 0)
                     {
-                        var selectedPart = await _unitOfWork.Part.GetAsy(p => p.Id == tbForUpsert.PartId.Value);
+                        var selectedPart = await _unitOfWork.Part.GetAsy(p => p.Id == tbForUpsert.PartId.Value && p.IsActive == true);
                         if (selectedPart != null && selectedPart.Quantity > 0)
                         {
                             // Decrement part quantity
@@ -124,7 +124,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                 else
                 {
                     // EDIT MODE - Only update PartName, ignore other changes
-                    var existingTransactionBody = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == tbForUpsert.Id);
+                    var existingTransactionBody = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == tbForUpsert.Id && o.IsActive == true);
                     if (existingTransactionBody == null)
                     {
                         return NotFound();
@@ -139,7 +139,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                 }
 
                 // Update TransactionHeader last modified date
-                var HeaderForBody = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == tbForUpsert.TransactionHeaderId, tracked: true);
+                var HeaderForBody = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == tbForUpsert.TransactionHeaderId && o.IsActive == true, tracked: true);
                 if (HeaderForBody != null)
                 {
                     HeaderForBody.LastModifiedDate = DateTime.Now;
@@ -185,8 +185,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
 
         private async Task LoadCategories()
         {
-            Categories = (await _unitOfWork.Part.GetAllAsy())
-                .Where(p => p.IsActive && p.Quantity >= 0)
+            Categories = (await _unitOfWork.Part.GetAllAsy(p => p.IsActive && p.Quantity >= 0))
                 .Select(p => p.Category)
                 .Distinct()
                 .OrderBy(c => c)
@@ -196,8 +195,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
         // AJAX handler to get parts by category
         public async Task<IActionResult> OnGetPartsByCategory(string category)
         {
-            var parts = (await _unitOfWork.Part.GetAllAsy())
-                .Where(p => p.IsActive && p.Quantity >= 0 && p.Category == category)
+            var parts = (await _unitOfWork.Part.GetAllAsy(p => p.IsActive && p.Quantity >= 0 && p.Category == category))
                 .Select(p => new { p.Id, p.Name })
                 .OrderBy(p => p.Name)
                 .ToList();

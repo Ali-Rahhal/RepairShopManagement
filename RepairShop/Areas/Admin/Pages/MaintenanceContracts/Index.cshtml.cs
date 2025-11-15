@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 
 namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
 {
@@ -68,26 +69,16 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
         }
 
         // API for Delete
-        public async Task<IActionResult> OnGetDelete(int? id)
+        public async Task<IActionResult> OnGetDelete(int? id, [FromServices] DeleteService _dlt)
         {
-            var contractToBeDeleted = await _unitOfWork.MaintenanceContract.GetAsy(mc => mc.Id == id);
+            var contractToBeDeleted = await _unitOfWork.MaintenanceContract.GetAsy(mc => mc.Id == id && mc.IsActive == true);
             if (contractToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
 
-            // Check if contract has associated serial numbers
-            var hasSerialNumbers = (await _unitOfWork.SerialNumber
-                .GetAllAsy(sn => sn.IsActive == true && sn.MaintenanceContractId == contractToBeDeleted.Id))
-                .Any();
-
-            if (hasSerialNumbers)
-            {
-                return new JsonResult(new { success = false, message = "Contract cannot be deleted because it has associated serial numbers" });
-            }
-
-            await _unitOfWork.MaintenanceContract.RemoveAsy(contractToBeDeleted);
-            await _unitOfWork.SaveAsy();
+            await _dlt.DeleteMaintenanceContractAsync(contractToBeDeleted.Id);
+            
             return new JsonResult(new { success = true, message = "Maintenance contract deleted successfully" });
         }
 

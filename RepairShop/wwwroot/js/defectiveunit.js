@@ -252,8 +252,8 @@ function clearFilters() {
 
 function Delete(id) {
     Swal.fire({
-        title: "Are you sure you want to delete this defective unit report?",
-        text: "This action cannot be undone!",
+        title: "Are you sure you want to delete this defective unit?",
+        html: "<p style='color: #dc3545; font-weight: 500;'>This will delete the transaction associated with this defective unit!</p>",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",

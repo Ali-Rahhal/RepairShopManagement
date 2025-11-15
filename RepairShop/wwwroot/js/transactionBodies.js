@@ -147,7 +147,7 @@ function CheckPartAvailable(url) {
 
 function Delete(url) {
     Swal.fire({
-        title: "Are you sure you want to delete this part?",
+        title: "Are you sure you want to delete this broken part?",
         text: "You won't be able to revert this!",
         icon: "warning",
         showCancelButton: true,

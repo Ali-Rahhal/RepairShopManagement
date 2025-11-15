@@ -30,7 +30,7 @@ namespace RepairShop.Areas.Admin.Pages.Users
         //API CALL for deleting a user//Didnt use OnPostDelete because it needs the link to send a form and it causes issues with DataTables
         public async Task<IActionResult> OnGetDelete(string? id)//The route is /Admin/Companies/Index?handler=Delete&id=1
         {
-            var userToBeDeleted =  await _unitOfWork.AppUser.GetAsy(o => (o.Id).Equals(id));
+            var userToBeDeleted =  await _unitOfWork.AppUser.GetAsy(o => (o.Id).Equals(id) && o.IsActive == true);
             if (userToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });

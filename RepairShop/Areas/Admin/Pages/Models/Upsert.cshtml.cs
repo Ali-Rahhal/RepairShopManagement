@@ -29,7 +29,7 @@ namespace RepairShop.Areas.Admin.Pages.Models
             }
             else
             {
-                ModelForUpsert = await _unitOfWork.Model.GetAsy(m => m.Id == id);
+                ModelForUpsert = await _unitOfWork.Model.GetAsy(m => m.Id == id && m.IsActive == true);
                 if (ModelForUpsert == null)
                 {
                     return NotFound();

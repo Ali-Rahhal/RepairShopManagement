@@ -39,7 +39,7 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
             else
             {
                 SerialNumberForUpsert = await _unitOfWork.SerialNumber.GetAsy(
-                    sn => sn.Id == id,
+                    sn => sn.Id == id && sn.IsActive == true,
                     includeProperties: "Model,Client,MaintenanceContract"
                 );
 

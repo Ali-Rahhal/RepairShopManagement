@@ -58,7 +58,7 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
             {
                 // Edit existing warranty
                 WarrantyForUpsert = await _unitOfWork.Warranty.GetAsy(
-                    w => w.Id == id,
+                    w => w.Id == id && w.IsActive == true,
                     includeProperties: "SerialNumbers,SerialNumbers.Model,SerialNumbers.Client,SerialNumbers.MaintenanceContract",
                     tracked: true
                 );
@@ -88,6 +88,10 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
 
         public async Task<IActionResult> OnPost()
         {
+            if (WarrantyForUpsert.Id != 0)
+            {
+                ModelState.Remove("NewSerialNumbersInput");
+            }
             if (ModelState.IsValid)
             {
                 if (WarrantyForUpsert == null)
@@ -155,7 +159,7 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                         sn => serialNumberValues.Contains(sn.Value) && sn.IsActive == true
                     )).ToList();
 
-                    if (existingSerialNumbers.Any())
+                    if (existingSerialNumbers.Count != 0)
                     {
                         var duplicateNumbers = string.Join(", ", existingSerialNumbers.Select(sn => sn.Value));
                         ModelState.AddModelError("NewSerialNumbersInput",

@@ -315,7 +315,7 @@ function ChangeStatusToInProgress(url) {
 function Delete(url) {
     Swal.fire({
         title: "Are you sure you want to delete this transaction?",
-        text: "You won't be able to revert this!",
+        html: "<p style='color: #dc3545; font-weight: 500;'>This will delete all the broken parts and the defective unit associated with this transaction!</p>",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",

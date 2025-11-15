@@ -47,7 +47,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             else
             {
                 DefectiveUnitForUpsert = await _unitOfWork.DefectiveUnit.GetAsy(
-                    du => du.Id == id,
+                    du => du.IsActive == true && du.Id == id,
                     includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,SerialNumber.Warranty,SerialNumber.MaintenanceContract"
                 );
 
@@ -59,12 +59,12 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 // Load warranty and contract info if they exist
                 if (DefectiveUnitForUpsert.SerialNumber.WarrantyId.HasValue)
                 {
-                    SelectedWarranty = await _unitOfWork.Warranty.GetAsy(w => w.Id == DefectiveUnitForUpsert.SerialNumber.WarrantyId);
+                    SelectedWarranty = await _unitOfWork.Warranty.GetAsy(w => w.Id == DefectiveUnitForUpsert.SerialNumber.WarrantyId && w.IsActive == true);
                 }
 
                 if (DefectiveUnitForUpsert.SerialNumber.MaintenanceContractId.HasValue)
                 {
-                    SelectedMaintenanceContract = await _unitOfWork.MaintenanceContract.GetAsy(mc => mc.Id == DefectiveUnitForUpsert.SerialNumber.MaintenanceContractId);
+                    SelectedMaintenanceContract = await _unitOfWork.MaintenanceContract.GetAsy(mc => mc.Id == DefectiveUnitForUpsert.SerialNumber.MaintenanceContractId && mc.IsActive == true);
                 }
 
                 return Page();
@@ -102,7 +102,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
                     if (existingSerialNumber != null)
                     {
-                        ModelState.AddModelError("NewSerialNumber.Value", "Serial number already exists.");
+                        ModelState.AddModelError("NewSerialNumber.Value", "Serial number already exists. Please user another value.");
                         await PopulateDropdowns();
                         return Page();
                     }
@@ -184,7 +184,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         public async Task<JsonResult> OnGetSerialNumberDetails(int id)
         {
             var serialNumber = await _unitOfWork.SerialNumber.GetAsy(
-                sn => sn.Id == id,
+                sn => sn.Id == id && sn.IsActive == true,
                 includeProperties: "Model,Client,Warranty,MaintenanceContract"
             );
 

@@ -182,7 +182,7 @@ function clearFilters() {
 function Delete(url) {
     Swal.fire({
         title: "Are you sure you want to delete this warranty?",
-        text: "This will remove coverage from all associated serial numbers!",
+        html: "<p style='color: #dc3545; font-weight: 500;'>This will remove coverage from all associated serial numbers!</p>",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",

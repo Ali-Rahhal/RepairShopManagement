@@ -30,13 +30,13 @@ namespace RepairShop.Areas.Admin.Pages.Parts
         // API for Delete
         public async Task<IActionResult> OnGetDelete(int? id)
         {
-            var partToBeDeleted = await _unitOfWork.Part.GetAsy(p => p.Id == id);
+            var partToBeDeleted = await _unitOfWork.Part.GetAsy(p => p.Id == id && p.IsActive == true);
             if (partToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
 
-            // Optional: check if part is referenced in transactions
+            // check if part is referenced in transaction body
             var isUsed = (await _unitOfWork.TransactionBody
                 .GetAllAsy(tb => tb.IsActive == true && tb.PartId == partToBeDeleted.Id))
                 .Any();

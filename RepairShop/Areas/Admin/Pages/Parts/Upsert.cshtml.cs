@@ -29,7 +29,7 @@ namespace RepairShop.Areas.Admin.Pages.Parts
             }
             else
             {
-                PartForUpsert = await _unitOfWork.Part.GetAsy(p => p.Id == id);
+                PartForUpsert = await _unitOfWork.Part.GetAsy(p => p.Id == id && p.IsActive == true);
                 if (PartForUpsert == null)
                 {
                     return NotFound();

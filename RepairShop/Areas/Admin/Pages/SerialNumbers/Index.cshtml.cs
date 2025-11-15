@@ -34,7 +34,7 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
         // API for Delete
         public async Task<IActionResult> OnGetDelete(int? id)
         {
-            var serialNumberToBeDeleted = await _unitOfWork.SerialNumber.GetAsy(sn => sn.Id == id);
+            var serialNumberToBeDeleted = await _unitOfWork.SerialNumber.GetAsy(sn => sn.Id == id && sn.IsActive == true);
             if (serialNumberToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
@@ -42,26 +42,11 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
 
             // Check if serial number is referenced in any defective units
             var isUsedInDefectiveUnits = (await _unitOfWork.DefectiveUnit
-                .GetAllAsy(du => du.IsActive == true && du.SerialNumberId == serialNumberToBeDeleted.Id))
-                .Any();
+                .GetAllAsy(du => du.IsActive == true && du.SerialNumberId == serialNumberToBeDeleted.Id));
 
-            // Add other business logic checks as needed
-
-            if (isUsedInDefectiveUnits)
+            if (isUsedInDefectiveUnits.Any())
             {
                 return new JsonResult(new { success = false, message = "Serial number cannot be deleted because it is used in defective units" });
-            }
-
-            // Check if serial number is referenced in any warranties
-            var isUsedInWarranties = (await _unitOfWork.DefectiveUnit
-                .GetAllAsy(w => w.IsActive == true && w.SerialNumberId == serialNumberToBeDeleted.Id))
-                .Any();
-
-            // Add other business logic checks as needed
-
-            if (isUsedInWarranties)
-            {
-                return new JsonResult(new { success = false, message = "Serial number cannot be deleted because it is used in warranties" });
             }
 
             await _unitOfWork.SerialNumber.RemoveAsy(serialNumberToBeDeleted);
