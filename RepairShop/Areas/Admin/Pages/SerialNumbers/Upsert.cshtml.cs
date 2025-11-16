@@ -117,7 +117,7 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
             .Select(mc => new
             {
                 id = mc.Id,
-                text = $"Contract #{mc.Id} - {mc.Client.Name} ({mc.Status})"
+                text = $"Contract #{mc.Id} - {mc.Client.Name}{(mc.Client.Branch != null ? $" - {mc.Client.Branch}" : "")} ({mc.Status})"
             })
             .ToList();
 
@@ -144,7 +144,7 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
 
             ClientList = clients.Select(c => new SelectListItem
             {
-                Text = $"{c.Name}",
+                Text = $"{c.Name}{(c.Branch != null ? $" - {c.Branch}" : "")}",
                 Value = c.Id.ToString()
             });
 

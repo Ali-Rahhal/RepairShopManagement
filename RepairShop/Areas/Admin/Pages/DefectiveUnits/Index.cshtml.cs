@@ -42,6 +42,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 resolvedDate = du.ResolvedDate?.ToString("dd/MM/yyyy") ?? "Not resolved",
                 serialNumber = du.SerialNumber?.Value ?? "N/A",
                 clientName = du.SerialNumber?.Client?.Name ?? "N/A",
+                clientBranch = du.SerialNumber?.Client?.Branch ?? "N/A",
                 warrantyCovered = du.SerialNumber?.WarrantyId != null ? "Yes" : "No",
                 contractCovered = du.SerialNumber?.MaintenanceContractId != null ? "Yes" : "No",
                 daysSinceReported = (DateTime.Now - du.ReportedDate).Days

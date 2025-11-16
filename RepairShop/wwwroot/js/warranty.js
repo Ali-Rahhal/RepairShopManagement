@@ -43,39 +43,41 @@ function loadDataTable() {
                 }
             },
             {
-                data: 'modelNames',
+                data: 'modelName',
                 width: "12%",
                 render: function (data) {
-                    if (!data || data.length === 0) return '<span class="text-muted">N/A</span>';
-                    if (data.length === 1) return data[0];
+                    //if (!data || data.length === 0) return '<span class="text-muted">N/A</span>';
+                    //if (data.length === 1) return data[0];
 
-                    const uniqueModels = [...new Set(data)];
-                    if (uniqueModels.length === 1) return uniqueModels[0];
+                    //const uniqueModels = [...new Set(data)];
+                    //if (uniqueModels.length === 1) return uniqueModels[0];
 
-                    return `
-                        <div>
-                            <div>${uniqueModels[0]}</div>
-                            <small class="text-muted">+${uniqueModels.length - 1} more model${uniqueModels.length > 2 ? 's' : ''}</small>
-                        </div>
-                    `;
+                    //return `
+                    //    <div>
+                    //        <div>${uniqueModels[0]}</div>
+                    //        <small class="text-muted">+${uniqueModels.length - 1} more model${uniqueModels.length > 2 ? 's' : ''}</small>
+                    //    </div>
+                    //`;
+                    return data || 'N/A';
                 }
             },
             {
-                data: 'clientNames',
+                data: 'clientName',
                 width: "12%",
                 render: function (data) {
-                    if (!data || data.length === 0) return '<span class="text-muted">N/A</span>';
-                    if (data.length === 1) return data[0];
+                    //if (!data || data.length === 0) return '<span class="text-muted">N/A</span>';
+                    //if (data.length === 1) return data[0];
 
-                    const uniqueClients = [...new Set(data)];
-                    if (uniqueClients.length === 1) return uniqueClients[0];
+                    //const uniqueClients = [...new Set(data)];
+                    //if (uniqueClients.length === 1) return uniqueClients[0];
 
-                    return `
-                        <div>
-                            <div>${uniqueClients[0]}</div>
-                            <small class="text-muted">+${uniqueClients.length - 1} more client${uniqueClients.length > 2 ? 's' : ''}</small>
-                        </div>
-                    `;
+                    //return `
+                    //    <div>
+                    //        <div>${uniqueClients[0]}</div>
+                    //        <small class="text-muted">+${uniqueClients.length - 1} more client${uniqueClients.length > 2 ? 's' : ''}</small>
+                    //    </div>
+                    //`;
+                    return data || 'N/A';
                 }
             },
             {

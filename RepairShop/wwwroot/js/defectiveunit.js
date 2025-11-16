@@ -19,12 +19,12 @@ function loadDataTable() {
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "order": [
-            [5, "asc"],   // Status: New -> InProgress -> Completed -> OutOfService
-            [2, "desc"]   // Then by creation date: newest first
+            [6, "asc"],   // Status: New -> InProgress -> Completed -> OutOfService
+            [3, "desc"]   // Then by creation date: newest first
         ],
         "columnDefs": [
             {
-                "targets": 5, // Status column
+                "targets": 6, // Status column
                 "type": "status-priority"
             }
         ],
@@ -38,7 +38,14 @@ function loadDataTable() {
             },
             {
                 data: 'clientName',
-                width: "12%",
+                width: "10%",
+                render: function (data) {
+                    return data || 'N/A';
+                }
+            },
+            {
+                data: 'clientBranch',
+                width: "10%",
                 render: function (data) {
                     return data || 'N/A';
                 }
@@ -76,18 +83,31 @@ function loadDataTable() {
             },
             {
                 data: 'description',
-                width: "20%",
-                render: function (data) {
+                width: "15%",
+                render: function (data, type, row) {
                     let text = '';
                     if (data) {
                         text = data.length > 20 ? data.substring(0, 20) + '...' : data;
+                        // Add view full description button if text is truncated
+                        if (data.length > 20) {
+                            const safeDescription = data.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                            return `
+                                ${text} 
+                                <button class="btn btn-sm btn-outline-info ms-1 p-0" 
+                                        style="width: 20px; height: 20px; font-size: 10px;"
+                                        onclick="showFullDescription('${safeDescription}')"
+                                        title="View full description">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            `;
+                        }
                     }
                     return text || 'No description';
                 }
             },
             {
                 data: 'status',
-                width: "10%",
+                width: "8%",
                 render: function (data, type) {
                     if (type === `display`) {
                         let badgeClass = 'bg-secondary';
@@ -116,7 +136,7 @@ function loadDataTable() {
             },
             {
                 data: 'coverage',
-                width: "8%",
+                width: "7%",
                 render: function (data, type, row) {
                     let coverageHtml = '';
                     if (row.warrantyCovered === 'Yes') {
@@ -151,11 +171,13 @@ function loadDataTable() {
                                </a>`;
 
                     // Edit Button (always visible)
-                    buttons += `<a href="/Admin/DefectiveUnits/Upsert?id=${data}" 
-                                  title="Edit" 
-                                  class="btn btn-primary btn-sm mx-1">
-                                  <i class="bi bi-pencil-square"></i>
-                               </a>`;
+                    if (row.status !== 'Fixed' && row.status !== 'OutOfService') {
+                        buttons += `<a href="/Admin/DefectiveUnits/Upsert?id=${data}" 
+                                      title="Edit" 
+                                      class="btn btn-primary btn-sm mx-1">
+                                      <i class="bi bi-pencil-square"></i>
+                                   </a>`;
+                    }
 
                     if (isAdmin()) {
                         if (row.status === 'Reported') {
@@ -234,7 +256,7 @@ function applyFilters() {
 
     // Apply status filter
     if (statusFilter !== 'All') {
-        dataTable.column(5).search('^' + statusFilter + '$', true, false); // Status column
+        dataTable.column(6).search('^' + statusFilter + '$', true, false); // Status column
     }
 
     dataTable.draw();
@@ -242,12 +264,33 @@ function applyFilters() {
 
 function clearFilters() {
     $('#statusFilter').val('All');
-    // Reset to initial ordering: [5, "asc"], [2, "desc"]
-    dataTable.order([[5, 'asc'], [2, 'desc']]).draw();
+    dataTable.order([[6, 'asc'], [3, 'desc']]).draw();
 
     dataTable.columns().search('').draw();
 
     toastr.info('All filters and sorting reset');
+}
+
+function showFullDescription(description) {
+    // Create a temporary div to escape HTML properly
+    const tempDiv = document.createElement('div');
+    tempDiv.textContent = description;
+    const escapedDescription = tempDiv.innerHTML;
+
+    Swal.fire({
+        title: '<i class="bi bi-card-text"></i> Full Description',
+        html: `
+            <div style="text-align: left; max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #dee2e6;">
+                <p style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">${escapedDescription}</p>
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Close',
+        width: '600px',
+        customClass: {
+            popup: 'swal-wide'
+        }
+    });
 }
 
 function Delete(id) {

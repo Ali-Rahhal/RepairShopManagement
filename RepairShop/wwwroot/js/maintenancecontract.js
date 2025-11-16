@@ -28,7 +28,14 @@ function loadDataTable() {
             },
             {
                 data: 'clientName',
-                width: "15%",
+                width: "10%",
+                render: function (data) {
+                    return data || 'N/A';
+                }
+            },
+            {
+                data: 'clientBranch',
+                width: "10%",
                 render: function (data) {
                     return data || 'N/A';
                 }
@@ -73,7 +80,7 @@ function loadDataTable() {
             },
             {
                 data: 'daysRemaining',
-                width: "12%",
+                width: "10%",
                 render: function (data, type, row) {
                     if (row.isExpired) {
                         return '<span class="badge bg-danger p-2 fs-5">Expired</span>';
@@ -107,7 +114,7 @@ function loadDataTable() {
                         </a>
                     </div>`;
                 },
-                width: "18%",
+                width: "15%",
                 orderable: false
             }
         ],
@@ -119,9 +126,9 @@ function loadDataTable() {
     });
 
     if (isAdmin()) {
-        dataTable.column(6).visible(true);   // show admin column
+        dataTable.column(7).visible(true);   // show admin column
     } else {
-        dataTable.column(6).visible(false);
+        dataTable.column(7).visible(false);
     }
 
     // Add event listener for status filter
@@ -135,9 +142,9 @@ function applyStatusFilter() {
     const status = document.getElementById('statusFilter').value;
 
     if (status === 'All') {
-        dataTable.column(5).search('').draw(); // Status column (index 5)
+        dataTable.column(6).search('').draw(); // Status column (index 5)
     } else {
-        dataTable.column(5).search('^' + status + '$', true, false).draw();
+        dataTable.column(6).search('^' + status + '$', true, false).draw();
     }
 }
 

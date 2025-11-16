@@ -17,7 +17,14 @@ function loadDataTable() {
         "ajax": { url: '/User/Clients/Index?handler=All' },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "columns": [
-            { data: 'name', "width": "20%" },
+            { data: 'name', "width": "14%" },
+            {
+                data: 'branch',
+                "width": "14%",
+                "render": function (data) {
+                    return data || 'N/A';
+                }
+            },
             { data: 'phone', "width": "20%" },
             { data: 'email', "width": "20%" },
             { data: 'address', "width": "20%" },
@@ -32,7 +39,7 @@ function loadDataTable() {
                     <a onClick="Delete('/User/Clients/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                     </div>`
                 },
-                "width": "20%"
+                "width": "12%"
             }
         ],
         "language": {

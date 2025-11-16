@@ -170,7 +170,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
 
             ClientList = clients.Select(c => new SelectListItem
             {
-                Text = $"{c.Name}",
+                Text = $"{c.Name}{(c.Branch != null ? $" - {c.Branch}" : "")}",
                 Value = c.Id.ToString()
             });
         }

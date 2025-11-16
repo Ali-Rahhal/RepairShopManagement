@@ -55,8 +55,11 @@
                                             <div class="col-md-3">
                                                 <strong>Model:</strong> @Model.SerialNumberHistory.SerialNumber.Model.Name
                                             </div>
+                                            @{
+                                                var clientBranch = Model.SerialNumberHistory.SerialNumber.Client.Branch;
+                                            }
                                             <div class="col-md-3">
-                                                <strong>Client:</strong> @Model.SerialNumberHistory.SerialNumber.Client.Name
+                                                <strong>Client:</strong> @($"{Model.SerialNumberHistory.SerialNumber.Client.Name}{(clientBranch != null ? $" - {clientBranch}" : "")}")
                                             </div>
                                             <div class="col-md-3">
                                                 <strong>Received Date:</strong> @Model.SerialNumberHistory.SerialNumber.ReceivedDate.ToString("dd-MM-yyyy hh:mm tt")

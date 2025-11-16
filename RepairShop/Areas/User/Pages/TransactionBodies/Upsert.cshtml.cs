@@ -60,6 +60,8 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
 
             if (ModelState.IsValid)
             {
+                bool isEdit = false;
+
                 if (tbForUpsert == null)
                 {
                     return NotFound();
@@ -123,6 +125,7 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                 }
                 else
                 {
+                    isEdit = true;
                     // EDIT MODE - Only update PartName, ignore other changes
                     var existingTransactionBody = await _unitOfWork.TransactionBody.GetAsy(o => o.Id == tbForUpsert.Id && o.IsActive == true);
                     if (existingTransactionBody == null)
@@ -151,7 +154,14 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                     return RedirectToPage("Upsert", new { HeaderId = tbForUpsert.TransactionHeaderId, fromCompletionBtn = "True", pageReload = "True" });
                 }
                 // Reload the page
-                return RedirectToPage("Upsert", new { HeaderId = tbForUpsert.TransactionHeaderId });
+                if(!isEdit)
+                {
+                    return RedirectToPage("Upsert", new { HeaderId = tbForUpsert.TransactionHeaderId });
+                }else
+                {
+                    return RedirectToPage("Index", new { HeaderId = tbForUpsert.TransactionHeaderId });
+                }
+                
             }
 
             await LoadCategories();

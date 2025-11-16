@@ -59,8 +59,10 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                 endDate = w.EndDate,
                 status = w.Status,
                 serialNumbers = w.SerialNumbers?.Select(sn => sn.Value ?? "N/A").ToList() ?? new List<string>(),
-                modelNames = w.SerialNumbers?.Select(sn => sn.Model?.Name ?? "N/A").Distinct().ToList() ?? new List<string>(),
-                clientNames = w.SerialNumbers?.Select(sn => sn.Client?.Name ?? "N/A").Distinct().ToList() ?? new List<string>(),
+                //modelNames = w.SerialNumbers?.Select(sn => sn.Model?.Name ?? "N/A").Distinct().ToList() ?? new List<string>(),
+                //clientNames = w.SerialNumbers?.Select(sn => sn.Client?.Name ?? "N/A").Distinct().ToList() ?? new List<string>(),
+                modelName = w.SerialNumbers?.FirstOrDefault()?.Model?.Name ?? "N/A",
+                clientName = $"{w.SerialNumbers?.FirstOrDefault()?.Client?.Name}{(w.SerialNumbers?.FirstOrDefault()?.Client?.Branch != null ? $" - {w.SerialNumbers?.FirstOrDefault()?.Client?.Branch}" : "")}",
                 daysRemaining = (w.EndDate - DateTime.Now).Days,
                 isExpired = w.EndDate < DateTime.Now,
                 coveredCount = w.SerialNumbers?.Count ?? 0

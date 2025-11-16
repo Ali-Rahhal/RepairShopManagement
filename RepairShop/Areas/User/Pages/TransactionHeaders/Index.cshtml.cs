@@ -60,7 +60,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 serialNumber = t.DefectiveUnit?.SerialNumber?.Value ?? "N/A",
                 duDescription = t.DefectiveUnit?.Description ?? "N/A",
                 status = t.Status,
-                client = t.DefectiveUnit?.SerialNumber?.Client != null ? new { name = t.DefectiveUnit.SerialNumber.Client.Name } : null,
+                client = t.DefectiveUnit?.SerialNumber?.Client != null ? new { name = t.DefectiveUnit.SerialNumber.Client.Name, branch = t.DefectiveUnit.SerialNumber.Client.Branch } : null,
                 lastModifiedDate = t.LastModifiedDate ?? t.CreatedDate,
                 createdDate = t.CreatedDate,
                 inProgressDate = t.InProgressDate,

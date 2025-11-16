@@ -36,7 +36,7 @@ function searchSerialNumbers() {
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <strong>${data.value}</strong><br>
-                            <small class="text-muted">Model: ${data.modelName} | Client: ${data.clientName} | Received: ${data.receivedDate}</small>
+                            <small class="text-muted">Model: ${data.modelName} | Client: ${data.clientName}${data.clientBranch != "N/A" ? ` - ${data.clientBranch}` : ""} | Received: ${data.receivedDate}</small>
                         </div>
                         <div class="text-end">
                             ${data.hasWarranty ? '<span class="badge bg-success me-1">Warranty</span>' : ''}

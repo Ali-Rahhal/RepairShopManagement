@@ -116,7 +116,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 serialNumber = du.SerialNumber.Value,
                 model = du.SerialNumber.Model.Name,
                 clientId = du.SerialNumber.ClientId,
-                clientName = du.SerialNumber.Client.Name,
+                clientName = $"{du.SerialNumber.Client.Name}{(du.SerialNumber.Client.Branch != null ? $" - {du.SerialNumber.Client.Branch}" : "")}",
                 description = du.Description,
                 status = du.Status,
                 reportedDate = du.ReportedDate.ToString("yyyy-MM-dd")
@@ -147,7 +147,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 serialNumber = defectiveUnit.SerialNumber.Value,
                 model = defectiveUnit.SerialNumber.Model.Name,
                 clientId = defectiveUnit.SerialNumber.ClientId,
-                clientName = defectiveUnit.SerialNumber.Client.Name,
+                clientName = $"{defectiveUnit.SerialNumber.Client.Name}{(defectiveUnit.SerialNumber.Client.Branch != null ? $" - {defectiveUnit.SerialNumber.Client.Branch}" : "")}",
                 description = defectiveUnit.Description,
                 status = defectiveUnit.Status,
                 reportedDate = defectiveUnit.ReportedDate.ToString("yyyy-MM-dd")

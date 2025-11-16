@@ -58,6 +58,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                 id = mc.Id,
                 contractNumber = $"CONTRACT-{mc.Id:D4}",
                 clientName = mc.Client?.Name ?? "N/A",
+                clientBranch = mc.Client?.Branch ?? "N/A",
                 startDate = mc.StartDate,
                 endDate = mc.EndDate,
                 status = mc.Status,

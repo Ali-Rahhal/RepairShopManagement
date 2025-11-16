@@ -10,6 +10,7 @@ namespace RepairShop.Models
 
         [Required]
         public string Name { get; set; }
+        public string? Branch { get; set; }
         [Required]
         [DataType(DataType.PhoneNumber)]
         public string Phone { get; set; }

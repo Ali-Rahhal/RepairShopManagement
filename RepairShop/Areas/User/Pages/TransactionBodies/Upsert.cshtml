@@ -1,7 +1,7 @@
 ﻿@page
 @model RepairShop.Areas.User.Pages.TransactionBodies.UpsertModel
 @{
-    bool fromCompletionBtn = Request.Query.ContainsKey("fromCompletionBtn");//check if the page is opened in a modal; if so then hide the back button and show a toastr
+    bool fromCompletionBtn = Request.Query.ContainsKey("fromCompletionBtn");
     bool pageReload = Request.Query.ContainsKey("pageReload");
     if (fromCompletionBtn && !pageReload)
     {

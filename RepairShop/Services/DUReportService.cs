@@ -146,6 +146,7 @@ namespace RepairShop.Services
             AddTableRow(table, "Serial Number:", du.SerialNumber.Value);
             AddTableRow(table, "Model:", du.SerialNumber.Model?.Name ?? "N/A");
             AddTableRow(table, "Client:", du.SerialNumber.Client?.Name ?? "N/A");
+            AddTableRow(table, "Branch:", du.SerialNumber.Client?.Branch ?? "N/A");
             AddTableRow(table, "Received Date:", du.SerialNumber.ReceivedDate.ToString("dd/MM/yyyy HH:mm tt"));
         }
 

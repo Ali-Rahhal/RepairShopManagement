@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using RepairShop.Models.Helpers;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace RepairShop.Models
 {
@@ -22,6 +23,11 @@ namespace RepairShop.Models
         public DateTime? InProgressDate { get; set; }
         public DateTime? CompletedOrOutOfServiceDate { get; set; }
         public DateTime? DeliveredDate { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
+        public Double? LaborFees { get; set; }
+        public string? Comment { get; set; } //optional comment for the admin when changing status to Processed
+
         public bool IsActive { get; set; } = true;
 
         [Required]

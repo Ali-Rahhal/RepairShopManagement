@@ -26,6 +26,11 @@
                             <span asp-validation-for="clientForUpsert.Name" class="text-danger"></span>
                         </div>
                         <div class="form-floating py-2 col-12">
+                            <input asp-for="clientForUpsert.Branch" class="form-control border-0 shadow" />
+                            <label asp-for="clientForUpsert.Branch" class="ms-2">Branch(optional)</label>
+                            <span asp-validation-for="clientForUpsert.Branch" class="text-danger"></span>
+                        </div>
+                        <div class="form-floating py-2 col-12">
                             <input asp-for="clientForUpsert.Phone" class="form-control border-0 shadow" />
                             <label asp-for="clientForUpsert.Phone" class="ms-2"></label>
                             <span asp-validation-for="clientForUpsert.Phone" class="text-danger"></span>

@@ -105,6 +105,7 @@ namespace RepairShop.Services
             var table = CreateBaseTable(section);
 
             AddTableRow(table, "Client:", transaction.DefectiveUnit?.SerialNumber?.Client?.Name ?? "N/A");
+            AddTableRow(table, "Branch:", transaction.DefectiveUnit?.SerialNumber?.Client?.Branch ?? "N/A");
             AddTableRow(table, "Handled By:", transaction.User?.UserName ?? "N/A");
 
             if (sn != null)

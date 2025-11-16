@@ -60,7 +60,7 @@ namespace RepairShop.Areas.Admin.Pages.History
             var results = serialNumbers.Select(sn => new
             {
                 id = sn.Value,
-                text = $"{sn.Value} - {sn.Model.Name} ({sn.Client.Name})"
+                text = $"{sn.Value} - {sn.Model.Name} ({sn.Client.Name}{(sn.Client.Branch != null ? $" - {sn.Client.Branch}" : "")})"
             }).ToList();
 
             return new JsonResult(new { results });
@@ -120,7 +120,7 @@ namespace RepairShop.Areas.Admin.Pages.History
                 EventType = "Serial Number Received",
                 Date = serialNumber.ReceivedDate,
                 Description = $"Serial number {serialNumber.Value} was received",
-                Details = $"Model: {serialNumber.Model.Name}, Client: {serialNumber.Client.Name}",
+                Details = $"Model: {serialNumber.Model.Name}, Client: {serialNumber.Client.Name}{(serialNumber.Client.Branch != null ? $" - {serialNumber.Client.Branch}" : "")}",
                 RelatedId = serialNumber.Id,
                 EventTypeColor = "success"
             });

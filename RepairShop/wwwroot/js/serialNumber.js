@@ -38,6 +38,7 @@ function loadDataTable() {
             url: '/Admin/SerialNumbers/Index?handler=All'
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
+        "order": [[5, "desc"]],
         "columns": [
             {
                 data: 'value',
@@ -55,7 +56,14 @@ function loadDataTable() {
             },
             {
                 data: 'client.name',
-                "width": "20%",
+                "width": "10%",
+                "render": function (data, type, row) {
+                    return data || 'N/A';
+                }
+            },
+            {
+                data: 'client.branch',
+                "width": "10%",
                 "render": function (data, type, row) {
                     return data || 'N/A';
                 }
@@ -168,6 +176,9 @@ function applyFilters() {
 function clearFilters() {
     $('#modelFilter').val('All');
     $('#clientFilter').val('All');
+    dataTable.order([
+        [5, "desc"]
+    ]).draw();
     dataTable.columns().search('').draw();
     toastr.info('All filters cleared');
 }

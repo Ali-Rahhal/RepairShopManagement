@@ -168,6 +168,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 value = sn.Value,
                 modelName = sn.Model.Name,
                 clientName = sn.Client.Name,
+                clientBranch = sn.Client.Branch ?? "N/A",
                 modelId = sn.ModelId,
                 clientId = sn.ClientId,
                 receivedDate = sn.ReceivedDate.ToString("dd-MM-yyyy HH:mm tt"),
@@ -199,7 +200,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 serialNumberId = serialNumber.Id,
                 serialNumberValue = serialNumber.Value,
                 modelName = serialNumber.Model.Name,
-                clientName = serialNumber.Client.Name,
+                clientName = $"{serialNumber.Client.Name}{(serialNumber.Client.Branch != null ? $" - {serialNumber.Client.Branch}" : "")}",
                 modelId = serialNumber.ModelId,
                 clientId = serialNumber.ClientId,
                 hasActiveWarranty = serialNumber.Warranty != null && serialNumber.Warranty.Status == "Active",
@@ -223,7 +224,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             .Select(mc => new
             {
                 id = mc.Id,
-                text = $"Contract #{mc.Id} - {mc.Client.Name} ({mc.Status})"
+                text = $"Contract #{mc.Id} - {mc.Client.Name}{(mc.Client.Branch != null ? $" - {mc.Client.Branch}" : "")} ({mc.Status})"
             })
             .ToList();
 
@@ -250,7 +251,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
             ClientList = clients.Select(c => new SelectListItem
             {
-                Text = c.Name,
+                Text = $"{c.Name}{(c.Branch != null ? $" - {c.Branch}" : "")}",
                 Value = c.Id.ToString()
             });
 

@@ -27,13 +27,13 @@ function loadDataTable() {
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "order": [
-            [8, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
+            [9, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
             [4, "asc"],   // Within equal modification times, sort by status
-            [6, "desc"]   // Within equal statuses, sort by newest creation date
+            [7, "desc"]   // Within equal statuses, sort by newest creation date
         ],
         "columnDefs": [
             {
-                "targets": 3, // Status column
+                "targets": 4, // Status column
                 "type": "status-priority"
             }
         ],
@@ -52,7 +52,7 @@ function loadDataTable() {
             },
             {
                 data: 'serialNumber',
-                "width": "15%",
+                "width": "10%",
                 render: function (data) {
                     return data || 'N/A';
                 }
@@ -60,10 +60,23 @@ function loadDataTable() {
             {
                 data: 'duDescription',
                 "width": "15%",
-                render: function (data) {
+                render: function (data, type, row) {
                     var text = '';
                     if (data) {
                         text = data.length > 20 ? data.substring(0, 20) + '...' : data;
+                        // Add view full description button if text is truncated
+                        if (data.length > 20) {
+                            const safeDescription = data.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                            return `
+                                ${text} 
+                                <button class="btn btn-sm btn-outline-info ms-1 p-0" 
+                                        style="width: 20px; height: 20px; font-size: 10px;"
+                                        onclick="showFullDescription('${safeDescription}')"
+                                        title="View full description">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            `;
+                        }
                     }
                     return text || 'N/A';
                 }
@@ -90,7 +103,14 @@ function loadDataTable() {
             },
             {
                 data: 'client.name',
-                "width": "15%",
+                "width": "10%",
+                render: function (data) {
+                    return data || 'N/A';
+                }
+            },
+            {
+                data: 'client.branch',
+                "width": "10%",
                 render: function (data) {
                     return data || 'N/A';
                 }
@@ -179,19 +199,19 @@ function loadDataTable() {
 
     // Add event listeners for filters
     $('#clientFilter').on('change', function () {
-        applyFilters();
+        dataTable.draw();
     });
 
     $('#statusFilter').on('change', function () {
-        applyFilters();
+        dataTable.draw();
     });
 
     $('#minDate').on('change', function () {
-        applyFilters();
+        dataTable.draw();
     });
 
     $('#maxDate').on('change', function () {
-        applyFilters();
+        dataTable.draw();
     });
 
     // robust status-priority sorter (register before DataTable init) -----
@@ -271,21 +291,15 @@ function populateClientFilter(clients) {
     });
 }
 
-function applyFilters() {
-    // The filtering is handled by the custom search function
-    dataTable.draw();
-}
-
 function clearFilters() {
     $('#clientFilter').val('All');
     $('#statusFilter').val('All');
     $('#minDate').val('');
     $('#maxDate').val('');
-    // Reset to initial ordering: [3, "asc"], [5, "desc"]
     dataTable.order([
-        [8, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
+        [9, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
         [4, "asc"],   // Within equal modification times, sort by status
-        [6, "desc"]   // Within equal statuses, sort by newest creation date
+        [7, "desc"]   // Within equal statuses, sort by newest creation date
     ]).draw();
 
     // Clear any search filters
@@ -294,6 +308,28 @@ function clearFilters() {
     if (typeof toastr !== 'undefined') {
         toastr.info('All filters and sorting reset');
     }
+}
+
+function showFullDescription(description) {
+    // Create a temporary div to escape HTML properly
+    const tempDiv = document.createElement('div');
+    tempDiv.textContent = description;
+    const escapedDescription = tempDiv.innerHTML;
+
+    Swal.fire({
+        title: '<i class="bi bi-card-text"></i> Full Description',
+        html: `
+            <div style="text-align: left; max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #dee2e6;">
+                <p style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">${escapedDescription}</p>
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Close',
+        width: '600px',
+        customClass: {
+            popup: 'swal-wide'
+        }
+    });
 }
 
 // Function to change status from "New" to "InProgress"
