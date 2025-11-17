@@ -87,10 +87,19 @@ function loadDataTable() {
                 render: function (data, type, row) {
                     let text = '';
                     if (data) {
-                        text = data.length > 20 ? data.substring(0, 20) + '...' : data;
+                        // Remove newlines and extra spaces for the truncated display
+                        const cleanData = data.replace(/\s+/g, ' ').trim();
+                        text = cleanData.length > 20 ? cleanData.substring(0, 20) + '...' : cleanData;
+
                         // Add view full description button if text is truncated
-                        if (data.length > 20) {
-                            const safeDescription = data.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                        if (cleanData.length > 20) {
+                            // Properly escape the string for HTML attribute including newlines
+                            const safeDescription = data
+                                .replace(/"/g, '&quot;')
+                                .replace(/'/g, '&#39;')
+                                .replace(/\r?\n/g, '\\n') // Escape newlines
+                                .replace(/\t/g, '\\t');   // Escape tabs
+
                             return `
                                 ${text} 
                                 <button class="btn btn-sm btn-outline-info ms-1 p-0" 

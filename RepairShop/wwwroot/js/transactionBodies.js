@@ -75,7 +75,7 @@ function loadDataTable() {
             {
                 data: 'id',//this column is only visible to admins
                 "render": function (data, type, row) {
-                    if (hStatus === "Completed" || hStatus === "OutOfService" || hStatus === "Delivered") {//only show this column if the header status is completed.
+                    if (hStatus === "Completed" || hStatus === "OutOfService" || hStatus === "Delivered" || hStatus === "Processed") {//only show this column if the header status is completed.
                         return `<div class="w-100 d-flex justify-content-center" role="group">
                                     <button class="btn btn-outline-primary mx-2" title="View History"
                                         onclick="showTBHistory('${row.brokenPartName}', '${row.createdDate}', 

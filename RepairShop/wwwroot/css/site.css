@@ -68,3 +68,8 @@ body {
 .swal-wide {
     width: 400px !important;
 }
+
+.swal-wide-process-tran {
+    width: 600px !important;
+    max-width: 90vw;
+}

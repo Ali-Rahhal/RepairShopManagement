@@ -77,14 +77,9 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 {
                     await _unitOfWork.TransactionHeader.AddAsy(thForUpsert);
                     TempData["success"] = "Transaction created successfully";
+                    await _unitOfWork.SaveAsy();
                 }
-                else
-                {
-                    thForUpsert.LastModifiedDate = DateTime.Now;
-                    await _unitOfWork.TransactionHeader.UpdateAsy(thForUpsert);
-                    TempData["success"] = "Transaction updated successfully";
-                }
-                await _unitOfWork.SaveAsy();
+                
 
                 return RedirectToPage("Index");
             }

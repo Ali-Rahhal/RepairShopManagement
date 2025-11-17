@@ -133,7 +133,7 @@ namespace RepairShop.Areas.Admin.Pages.History
                     EventType = "Defective Unit Reported",
                     Date = du.ReportedDate,
                     Description = "Defective unit reported",
-                    Details = $"Issue: {du.Description}",
+                    Details = $"Issue: {(du.Description.Length > 100 ? du.Description.Substring(0, 100) + "..." : du.Description)}",
                     Status = SD.Status_DU_Reported,
                     RelatedId = du.Id,
                     EventTypeColor = "danger"
@@ -185,16 +185,16 @@ namespace RepairShop.Areas.Admin.Pages.History
 
                 if (transaction.CompletedOrOutOfServiceDate.HasValue)
                 {
-                    var eventType = (transaction.Status == SD.Status_Job_Completed || transaction.Status == SD.Status_Job_Delivered) ? "Repair Completed" : "Marked Out of Service";
+                    var eventType = (transaction.Status == SD.Status_Job_Completed || transaction.Status == SD.Status_Job_Delivered || transaction.Status == SD.Status_Job_Processed) ? "Repair Completed" : "Marked Out of Service";
                     timelineEvents.Add(new TimelineEvent
                     {
                         EventType = eventType,
                         Date = transaction.CompletedOrOutOfServiceDate.Value,
                         Description = eventType,
                         Details = $"Job finalized with status: {transaction.Status}",
-                        Status = (transaction.Status == SD.Status_Job_Completed || transaction.Status == SD.Status_Job_Delivered) ? SD.Status_Job_Completed : SD.Status_Job_OutOfService,
+                        Status = (transaction.Status == SD.Status_Job_Completed || transaction.Status == SD.Status_Job_Delivered || transaction.Status == SD.Status_Job_Processed) ? SD.Status_Job_Completed : SD.Status_Job_OutOfService,
                         RelatedId = transaction.Id,
-                        EventTypeColor = (transaction.Status == SD.Status_Job_Completed || transaction.Status == SD.Status_Job_Delivered) ? "success" : "dark"
+                        EventTypeColor = (transaction.Status == SD.Status_Job_Completed || transaction.Status == SD.Status_Job_Delivered || transaction.Status == SD.Status_Job_Processed) ? "success" : "dark"
                     });
                 }
 
@@ -207,9 +207,24 @@ namespace RepairShop.Areas.Admin.Pages.History
                         Date = transaction.DeliveredDate.Value,
                         Description = eventType,
                         Details = $"Job finalized and delivery is complete",
-                        Status = transaction.Status,
+                        Status = SD.Status_Job_Delivered,
                         RelatedId = transaction.Id,
                         EventTypeColor = "primary"
+                    });
+                }
+
+                if (transaction.ProcessedDate.HasValue)
+                {
+                    var eventType = "Processing Completed";
+                    timelineEvents.Add(new TimelineEvent
+                    {
+                        EventType = eventType,
+                        Date = transaction.ProcessedDate.Value,
+                        Description = eventType,
+                        Details = $"Job processed successfully",
+                        Status = transaction.Status,
+                        RelatedId = transaction.Id,
+                        EventTypeColor = "success"
                     });
                 }
             }
@@ -352,7 +367,7 @@ namespace RepairShop.Areas.Admin.Pages.History
                 TotalRepairJobs = transactionHeaders.Count,
                 TotalPartsReplaced = transactionBodies.Count(tb => tb.Status == SD.Status_Part_Replaced),
                 TotalPartsFixed = transactionBodies.Count(tb => tb.Status == SD.Status_Part_Fixed),
-                CompletedJobs = transactionHeaders.Count(th => th.Status == SD.Status_Job_Completed || th.Status == SD.Status_Job_Delivered),
+                CompletedJobs = transactionHeaders.Count(th => th.Status == SD.Status_Job_Completed || th.Status == SD.Status_Job_Delivered || th.Status == SD.Status_Job_Processed),
                 OutOfServiceJobs = transactionHeaders.Count(th => th.Status == SD.Status_Job_OutOfService)
             };
         }

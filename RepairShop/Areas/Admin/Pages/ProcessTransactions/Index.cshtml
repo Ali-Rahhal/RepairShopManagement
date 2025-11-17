@@ -1,7 +1,8 @@
 ﻿@page
-@model RepairShop.Areas.User.Pages.TransactionHeaders.IndexModel
+@model RepairShop.Areas.Admin.Pages.ProcessTransactions.IndexModel
 @{
 }
+
 <div class="card shadow border-0 my-4">
     <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
         <div class="row">
@@ -18,6 +19,14 @@
                 <!-- Filters -->
                 <div class="row align-items-center">
                     <input hidden id="isAdmin" value="@User.IsInRole(SD.Role_Admin).ToString()" />
+                    <div class="col-6 col-xl-3">
+                        <label for="minDate" class="col-form-label fw-bold">From Date:</label>
+                        <input type="date" id="minDate" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-6 col-xl-3">
+                        <label for="maxDate" class="col-form-label fw-bold">To Date:</label>
+                        <input type="date" id="maxDate" class="form-control form-control-sm">
+                    </div>
                     <div class="col-6 col-xl-2">
                         <label for="clientFilter" class="col-form-label fw-bold">Filter by Client:</label>
                         <select id="clientFilter" class="form-select form-select-sm">
@@ -28,21 +37,9 @@
                         <label for="statusFilter" class="col-form-label fw-bold">Filter by Status:</label>
                         <select id="statusFilter" class="form-select form-select-sm">
                             <option value="All">All Statuses</option>
-                            <option value="New">New</option>
-                            <option value="InProgress">In Progress</option>
-                            <option value="Completed">Completed</option>
-                            <option value="OutOfService">Out of Service</option>
                             <option value="Delivered">Delivered</option>
                             <option value="Processed">Processed</option>
                         </select>
-                    </div>
-                    <div class="col-6 col-xl-3">
-                        <label for="minDate" class="col-form-label fw-bold">From Date:</label>
-                        <input type="date" id="minDate" class="form-control form-control-sm">
-                    </div>
-                    <div class="col-6 col-xl-3">
-                        <label for="maxDate" class="col-form-label fw-bold">To Date:</label>
-                        <input type="date" id="maxDate" class="form-control form-control-sm">
                     </div>
                     <div class="col-6 col-xl-2">
                         <label for="resetFiltersBtn" class="col-form-label fw-bold">Reset Filters:</label>
@@ -53,34 +50,24 @@
                     </div>
                 </div>
             </div>
-
-            <div class="col-12 col-xl-3 text-end">
-                @* @if (User.IsInRole(SD.Role_User))
-                {
-                    <a asp-page="Upsert" class="btn btn-primary">
-                        <i class="bi bi-plus-circle"></i> Create New Transaction
-                    </a>
-                } *@
-                <a asp-page="Upsert" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Create New Transaction
-                </a>
-
-            </div>
         </div>
         <div class="table-responsive">
             <table id="tblData" class="table table-bordered table-striped" style="width:100%">
                 <thead>
                     <tr class="table-primary">
-                        <th>User Name</th><!-- (Admin only) -->
+                        <th>Client</th>
+                        <th>Branch</th>
+                        <th>Received Date</th>
+                        <th>Fixed Date</th>
                         <th>Model</th>
                         <th>Serial Number</th>
-                        <th>Du Description</th>
-                        <th>Status</th>
-                        <th>Client Name</th>
-                        <th>Branch</th>
-                        <th>Created Date</th>
-                        <th></th><!-- Parts, Edit, Delete... -->
-                        <th></th><!-- Modified date(hidden) -->
+                        <th>Issue</th>
+                        <th>Spare Parts</th>
+                        <th>Cost</th>
+                        <th>Labor Fees</th>
+                        <th>Comment</th>
+                        <th></th>
+                        <th></th> <!-- status col (for ordering rows) -->
                     </tr>
                 </thead>
             </table>
@@ -90,5 +77,5 @@
 </div>
 
 @section Scripts {
-    <script src="~/js/transactionHeaders.js" asp-append-version="true"></script>
+    <script src="~/js/processTransactions.js" asp-append-version="true"></script>
 }

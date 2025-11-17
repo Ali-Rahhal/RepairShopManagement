@@ -61,12 +61,21 @@ function loadDataTable() {
                 data: 'duDescription',
                 "width": "15%",
                 render: function (data, type, row) {
-                    var text = '';
+                    let text = '';
                     if (data) {
-                        text = data.length > 20 ? data.substring(0, 20) + '...' : data;
+                        // Remove newlines and extra spaces for the truncated display
+                        const cleanData = data.replace(/\s+/g, ' ').trim();
+                        text = cleanData.length > 20 ? cleanData.substring(0, 20) + '...' : cleanData;
+
                         // Add view full description button if text is truncated
-                        if (data.length > 20) {
-                            const safeDescription = data.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+                        if (cleanData.length > 20) {
+                            // Properly escape the string for HTML attribute including newlines
+                            const safeDescription = data
+                                .replace(/"/g, '&quot;')
+                                .replace(/'/g, '&#39;')
+                                .replace(/\r?\n/g, '\\n') // Escape newlines
+                                .replace(/\t/g, '\\t');   // Escape tabs
+
                             return `
                                 ${text} 
                                 <button class="btn btn-sm btn-outline-info ms-1 p-0" 
@@ -78,7 +87,7 @@ function loadDataTable() {
                             `;
                         }
                     }
-                    return text || 'N/A';
+                    return text || 'No description';
                 }
             },
             {
@@ -96,6 +105,8 @@ function loadDataTable() {
                             return `<span class="badge bg-danger">${data}</span>`;
                         case "Delivered":
                             return `<span class="badge bg-primary">${data}</span>`;
+                        case "Processed":
+                            return `<span class="badge bg-dark">${data}</span>`;
                         default:
                             return `<p>${data}</p>`;
                     }
@@ -147,9 +158,7 @@ function loadDataTable() {
                         ? `<a onClick="ChangeStatusToInProgress('/User/TransactionHeaders/Index?handler=ChangeStatus&id=${data}')" title="Start Work" class="btn btn-success mx-2"><i class="bi bi-play-circle"></i></a>`
                         : `<a href="/User/TransactionBodies/Index?HeaderId=${data}" title="View Parts" class="btn btn-info mx-2"><i class="bi bi-tools"></i></a>`;
 
-                    let secondButton = (row.status === "New" || row.status === "InProgress")
-                        ? `<a href="/User/TransactionHeaders/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>`
-                        : `<a title="Edit(Transaction is completed)" class="btn btn-dark mx-2"><i class="bi bi-pencil-square"></i></a>`;
+                    let secondButton = `<a href="/User/TransactionHeaders/Upsert?id=${data}" title="Defective Unit Info" class="btn btn-primary mx-2"><i class="bi bi-info-circle"></i></a>`;
 
                     let thirdButton = ``;
                     if (row.status === "New") {
@@ -164,11 +173,11 @@ function loadDataTable() {
                     else if (row.status === "OutOfService") {
                         thirdButton = `<a title="Deliver(Transaction is out of service)" class="btn btn-dark mx-2"><i class="bi bi-truck"></i></a>`;
                     }
-                    else if (row.status === "Delivered") {
+                    else if (row.status === "Delivered" || row.status === "Processed") {
                         thirdButton = `<a href="/User/TransactionHeaders/Index?handler=DownloadPdf&id=${data}" title="Download PDF Report" class="btn btn-info mx-2" target="_blank"> <i class="bi bi-file-earmark-pdf"></i></a>`;
                     }
 
-                    let fourthButton = `<button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}', '${row.deliveredDate}')"
+                    let fourthButton = `<button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}', '${row.deliveredDate}', '${row.processedDate}')"
                                         title="View History" class="btn btn-outline-primary mx-2"> 
                                             <i class="bi bi-clock-history"></i>
                                         </button>`;
@@ -235,8 +244,9 @@ function loadDataTable() {
             case 'inprogress': return 2;
             case 'completed': return 3;
             case 'delivered': return 4;
-            case 'outofservice': return 5;
-            default: return 5;
+            case 'processed': return 5;
+            case 'outofservice': return 6;
+            default: return 7;
         }
     };
 
@@ -402,7 +412,7 @@ function ToBeDelivered(url) {
     });
 }
 
-function showHistory(id, created, inProgress, completedOrOutOfService, delivered) {
+function showHistory(id, created, inProgress, completedOrOutOfService, delivered, processed) {
     // Format dates nicely
     const formatDate = (d) => {
         const date = new Date(d);
@@ -423,6 +433,7 @@ function showHistory(id, created, inProgress, completedOrOutOfService, delivered
             <p><strong>In Progress:</strong> ${formatDate(inProgress)}</p>
             <p><strong>Completed / Out of Service:</strong> ${formatDate(completedOrOutOfService)}</p>
             <p><strong>Delivered:</strong> ${formatDate(delivered)}</p>
+            <p><strong>Processed:</strong> ${formatDate(processed)}</p>
         </div>
     `;
 

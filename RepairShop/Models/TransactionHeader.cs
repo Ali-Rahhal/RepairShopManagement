@@ -23,6 +23,7 @@ namespace RepairShop.Models
         public DateTime? InProgressDate { get; set; }
         public DateTime? CompletedOrOutOfServiceDate { get; set; }
         public DateTime? DeliveredDate { get; set; }
+        public DateTime? ProcessedDate { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
         public Double? LaborFees { get; set; }

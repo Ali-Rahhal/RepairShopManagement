@@ -246,7 +246,7 @@
                                                         {
                                                             <tr>
                                                                 <td>@du.ReportedDate.ToString("dd-MM-yyyy hh:mm tt")</td>
-                                                                <td>@du.Description</td>
+                                                                <td>@(du.Description.Length > 100 ? du.Description.Substring(0, 100) + "..." : du.Description)</td>
                                                                 <td>
                                                                     <span class="badge bg-@(du.Status == SD.Status_DU_Reported ? "warning" : du.Status == SD.Status_DU_Fixed ? "success" : "secondary")">
                                                                         @du.Status
@@ -295,6 +295,7 @@
                                                             <th>In Progress Date</th>
                                                             <th>Completed Date</th>
                                                             <th>Delivered Date</th>
+                                                            <th>Processed Date</th>
                                                             <th>Technician</th>
                                                         </tr>
                                                     </thead>
@@ -304,13 +305,14 @@
                                                             <tr>
                                                                 <td>@job.CreatedDate.ToString("dd-MM-yyyy hh:mm tt")</td>
                                                                 <td>
-                                                                    <span class="badge bg-@(job.Status == SD.Status_Job_New ? "secondary" : job.Status == SD.Status_Job_InProgress ? "warning" : job.Status == SD.Status_Job_Completed ? "success" : job.Status == SD.Status_Job_Delivered ? "primary" : "dark")">
+                                                                    <span class="badge bg-@(job.Status == SD.Status_Job_New ? "secondary" : job.Status == SD.Status_Job_InProgress ? "warning" : (job.Status == SD.Status_Job_Completed || job.Status == SD.Status_Job_Processed) ? "success" : job.Status == SD.Status_Job_Delivered ? "primary" : "dark")">
                                                                         @job.Status
                                                                     </span>
                                                                 </td>
                                                                 <td>@(job.InProgressDate?.ToString("dd-MM-yyyy hh:mm tt") ?? "-")</td>
                                                                 <td>@(job.CompletedOrOutOfServiceDate?.ToString("dd-MM-yyyy hh:mm tt") ?? "-")</td>
                                                                 <td>@(job.DeliveredDate?.ToString("dd-MM-yyyy hh:mm tt") ?? "-")</td>
+                                                                <td>@(job.ProcessedDate?.ToString("dd-MM-yyyy hh:mm tt") ?? "-")</td>
                                                                 <td>@job.User?.UserName</td>
                                                             </tr>
                                                         }

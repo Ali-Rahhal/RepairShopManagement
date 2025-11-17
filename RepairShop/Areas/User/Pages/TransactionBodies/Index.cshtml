@@ -36,7 +36,7 @@
                         <i class="bi bi-plus-circle"></i> Add New Part
                         </a>
                     } *@
-                    @if (Model.HeaderStatus != SD.Status_Job_Completed && Model.HeaderStatus != SD.Status_Job_OutOfService && Model.HeaderStatus != SD.Status_Job_Delivered)
+                    @if (Model.HeaderStatus != SD.Status_Job_Completed && Model.HeaderStatus != SD.Status_Job_OutOfService && Model.HeaderStatus != SD.Status_Job_Delivered && Model.HeaderStatus != SD.Status_Job_Processed)
                     {
                         <a asp-page="Upsert" asp-route-headerId="@Model.HeaderId" class="btn btn-primary">
                         <i class="bi bi-plus-circle"></i> Add New Part

@@ -116,16 +116,12 @@
                         }
 
                         <div class="row pt-2">
-                            <div class="col-6 col-md-3">
-                                @if (Model.thForUpsert.Id != 0)
-                                {
-                                    <button type="submit" class="btn btn-primary form-control">Update</button>
-                                }
-                                else
-                                {
+                            @if (Model.thForUpsert.Id == 0)
+                            {
+                                <div class="col-6 col-md-3">
                                     <button type="submit" class="btn btn-primary form-control" id="submitBtn" disabled>Create Transaction</button>
-                                }
-                            </div>
+                                </div>
+                            }
                             <div class="col-6 col-md-3">
                                 <a asp-page="Index" class="btn btn-outline-primary form-control">
                                     Back to List

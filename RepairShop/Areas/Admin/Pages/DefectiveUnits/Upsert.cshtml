@@ -261,7 +261,39 @@
             // Initialize accessories section based on current state
             toggleAccessoriesSection();
 
-            // Enhanced Enter key flow
+            // NEW: Shift+Enter functionality for textareas
+            function handleTextareaKeydown(e) {
+                if (e.key === 'Enter' && e.shiftKey) {
+                    e.preventDefault();
+
+                    // Get current cursor position
+                    const start = this.selectionStart;
+                    const end = this.selectionEnd;
+
+                    // Insert newline at cursor position
+                    this.value = this.value.substring(0, start) + '\n' + this.value.substring(end);
+
+                    // Move cursor to after the newline
+                    this.selectionStart = this.selectionEnd = start + 1;
+
+                    // Trigger input event for any validation or live updates
+                    this.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+
+            // Apply Shift+Enter to description and accessories textareas
+            const descriptionTextarea = document.querySelector('textarea[name="DefectiveUnitForUpsert.Description"]');
+            const accessoriesTextarea = document.querySelector('textarea[name="DefectiveUnitForUpsert.Accessories"]');
+
+            if (descriptionTextarea) {
+                descriptionTextarea.addEventListener('keydown', handleTextareaKeydown);
+            }
+
+            if (accessoriesTextarea) {
+                accessoriesTextarea.addEventListener('keydown', handleTextareaKeydown);
+            }
+
+            // Enhanced Enter key flow (excluding textareas when Shift is pressed)
             const searchInput = document.getElementById('serialNumberSearch');
             searchInput.focus();
             searchInput.addEventListener('keydown', function (e) {
@@ -273,6 +305,13 @@
 
             // Handle Enter navigation (after search)
             document.addEventListener('keydown', function (e) {
+                // Don't handle Enter if it's Shift+Enter in a textarea
+                if (e.key === 'Enter' && e.shiftKey &&
+                    (e.target.matches('textarea[name="DefectiveUnitForUpsert.Description"]') ||
+                     e.target.matches('textarea[name="DefectiveUnitForUpsert.Accessories"]'))) {
+                    return; // Let the textarea handle Shift+Enter
+                }
+
                 if (e.key === 'Enter') {
                     const active = document.activeElement;
 
@@ -308,7 +347,6 @@
                         } else if(next.tagName === 'SELECT' && !next.classList.contains('ts-hidden-accessible')) {
                             e.preventDefault();
                             next.focus();
-
                             next.click();
                         } else {
                             next.focus();
