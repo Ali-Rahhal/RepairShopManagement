@@ -252,6 +252,8 @@ function loadDataTable() {
                     const currentComment = row.comment && row.comment !== 'N/A' ? row.comment : '';
                     if (row.status === 'Processed') return `<a title="for future development" class="btn btn-dark mx-2"><i class="bi bi-file-earmark-pdf"></a>`;
 
+                    if (row.laborFees === 0) return `<a onClick="EnterLaborFees(${data})" title="Enter Labor Fees" class="btn btn-warning mx-2"><i class="bi bi-currency-dollar"></i></a>`;
+
                     return `<a onClick="ToBeProcessed('/Admin/ProcessTransactions/Index?handler=ProcessTransaction&id=${data}', '${currentComment.replace(/'/g, "\\'")}')" 
                                 title="Mark as processed" class="btn btn-success mx-2">
                                 <i class="bi bi-check-circle"></i>
@@ -419,6 +421,78 @@ function showFullPartsDescription(description) {
         icon: 'info',
         confirmButtonText: 'Close',
         width: '600px'
+    });
+}
+
+
+function EnterLaborFees(transactionId) {
+    Swal.fire({
+        title: "Enter Labor Fees",
+        html: `
+            <div class="text-start">
+                <p class="mb-3">Please enter the labor fees for this transaction:</p>
+                <div class="form-group">
+                    <label for="laborFees" class="form-label">Labor Fees ($):</label>
+                    <input type="number" id="laborFees" class="form-control" 
+                           step="0.01" min="0" value="0" 
+                           placeholder="Enter labor fees amount">
+                </div>
+            </div>
+        `,
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonColor: "#28a745",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Save",
+        cancelButtonText: "Cancel",
+        preConfirm: () => {
+            const laborFees = document.getElementById('laborFees').value;
+            if (!laborFees || laborFees < 0) {
+                Swal.showValidationMessage('Please enter a valid labor fees amount');
+                return false;
+            }
+            return {
+                laborFees: parseFloat(laborFees)
+            };
+        },
+        customClass: {
+            popup: 'swal-wide'
+        }
+    }).then((laborResult) => {
+        if (laborResult.isConfirmed) {
+            const laborFees = laborResult.value.laborFees;
+
+            // Create POST data - ensure values are not null/undefined
+            const postData = {
+                id: parseInt(transactionId), // Convert to int
+                laborFees: parseFloat(laborFees) // Convert to double
+            };
+
+            // Get anti-forgery token
+            const token = $('input[name="__RequestVerificationToken"]').val();
+
+            $.ajax({
+                url: '/Admin/ProcessTransactions/Index?handler=SetLaborFees',
+                method: 'POST',
+                headers: {
+                    "RequestVerificationToken": token
+                },
+                data: postData,
+                success: function (data) {
+                    if (data.success) {
+                        dataTable.ajax.reload();
+                        toastr.success(data.message);
+                    }
+                    else {
+                        toastr.error(data.message);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    const errorMessage = error && error.response && error.response.statusText ? error.response.statusText : 'An error occurred';
+                    toastr.error(`Error setting labor fees: ${errorMessage}.`);
+                }
+            });
+        }
     });
 }
 

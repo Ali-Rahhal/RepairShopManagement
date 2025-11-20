@@ -165,10 +165,10 @@ function loadDataTable() {
                         thirdButton = `<a title="Complete(Transaction needs to be in progress)" class="btn btn-dark mx-2"><i class="bi bi-check-circle"></i></a>`;
                     }
                     else if (row.status === "InProgress") {
-                        thirdButton = `<a onClick="ToBeCompleted('/User/TransactionHeaders/Index?handler=CompleteStatus&id=${data}')" title="Complete" class="btn btn-success mx-2"><i class="bi bi-check-circle"></i></a>`;
+                        thirdButton = `<a onClick="ToBeCompleted('/User/TransactionHeaders/Index?handler=CanComplete&id=${data}')" title="Complete" class="btn btn-success mx-2"><i class="bi bi-check-circle"></i></a>`;
                     }
                     else if (row.status === "Completed") {
-                        thirdButton = `<a onClick="ToBeDelivered('/User/TransactionHeaders/Index?handler=DeliverStatus&id=${data}')" title="Deliver" class="btn btn-outline-success mx-2"><i class="bi bi-truck"></i></a>`;
+                        thirdButton = `<a onClick="ToBeDelivered(${data})" title="Deliver" class="btn btn-outline-success mx-2"><i class="bi bi-truck"></i></a>`;
                     }
                     else if (row.status === "OutOfService") {
                         thirdButton = `<a title="Deliver(Transaction is out of service)" class="btn btn-dark mx-2"><i class="bi bi-truck"></i></a>`;
@@ -385,7 +385,7 @@ function Delete(url) {
     });
 }
 
-function ToBeDelivered(url) {
+function ToBeDelivered(transactionId) {
     Swal.fire({
         title: "Are you sure you want to mark this task as delivered?",
         text: "You won't be able to revert this!",
@@ -396,8 +396,15 @@ function ToBeDelivered(url) {
         confirmButtonText: "Yes, mark as delivered"
     }).then((result) => {
         if (result.isConfirmed) {
+            const token = $('input[name="__RequestVerificationToken"]').val();
+            const postData = {
+                id: parseInt(transactionId),
+                __RequestVerificationToken: token
+            };
             $.ajax({
-                url: url,
+                url: '/User/TransactionHeaders/Index?handler=DeliverStatus',
+                type: 'POST',
+                data: postData,
                 success: function (data) {
                     if (data.success) {
                         dataTable.ajax.reload();
@@ -449,35 +456,105 @@ function showHistory(id, created, inProgress, completedOrOutOfService, delivered
 }
 
 function ToBeCompleted(url) {
+    // First, check if the transaction can be completed
+    $.ajax({
+        url: url,
+        method: 'GET',
+        success: function (data) {
+            if (data.success) {
+                // If backend validation passed, show labor fees SweetAlert
+                showLaborFeesDialog(url);
+            }
+            else {
+                // Handle validation errors
+                const params = new URLSearchParams(url.split("?")[1]);
+                const headerId = params.get("id");
+                if (data.message.includes("Parts must be reported before marking as completed")) {
+                    window.location.href = `/User/TransactionBodies/Upsert?headerId=${headerId}&fromCompletionBtn=true`;
+                } else if (data.message.includes("You have pending parts")) {
+                    window.location.href = `/User/TransactionBodies/Index?headerId=${headerId}&fromCompletionBtn=true`;
+                } else {
+                    toastr.error(data.message);
+                }
+            }
+        },
+        error: function (xhr, status, error) {
+            toastr.error('Error checking transaction status: ' + error);
+        }
+    });
+}
+
+function showLaborFeesDialog(url) {
     Swal.fire({
-        title: "Are you sure you want to mark this task as complete?",
-        text: "You won't be able to revert this!",
-        icon: "question",
+        title: "Enter Labor Fees",
+        html: `
+            <div class="text-start">
+                <p class="mb-3">Please enter the labor fees for this transaction:</p>
+                <div class="form-group">
+                    <label for="laborFees" class="form-label">Labor Fees ($):</label>
+                    <input type="number" id="laborFees" class="form-control" 
+                           step="0.01" min="0" value="0" 
+                           placeholder="Enter labor fees amount">
+                </div>
+            </div>
+        `,
+        icon: "info",
         showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, mark as complete"
-    }).then((result) => {
-        if (result.isConfirmed) {
+        confirmButtonColor: "#28a745",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Save & Complete",
+        cancelButtonText: "Cancel",
+        preConfirm: () => {
+            const laborFees = document.getElementById('laborFees').value;
+            if (!laborFees || laborFees < 0) {
+                Swal.showValidationMessage('Please enter a valid labor fees amount');
+                return false;
+            }
+            return {
+                laborFees: parseFloat(laborFees)
+            };
+        },
+        customClass: {
+            popup: 'swal-wide'
+        }
+    }).then((laborResult) => {
+        if (laborResult.isConfirmed) {
+            const laborFees = laborResult.value.laborFees;
+
+            // Extract ID from validation URL
+            const params = new URLSearchParams(url.split("?")[1]);
+            const headerId = params.get("id");
+
+            // Create POST data - ensure values are not null/undefined
+            const postData = {
+                id: parseInt(headerId), // Convert to int
+                laborFees: parseFloat(laborFees) // Convert to double
+            };
+
+            // Get anti-forgery token
+            const token = $('input[name="__RequestVerificationToken"]').val();
+
             $.ajax({
-                url: url,
+                url: '/User/TransactionHeaders/Index?handler=CompleteStatus',
+                method: 'POST',
+                headers: {
+                    "RequestVerificationToken": token
+                },
+                data: postData,
                 success: function (data) {
                     if (data.success) {
                         dataTable.ajax.reload();
                         toastr.success(data.message);
                     }
                     else {
-                        const params = new URLSearchParams(url.split("?")[1]);
-                        const headerId = params.get("id");
-                        if (data.message.includes("Parts must be reported before marking as completed")) {
-                            window.location.href = `/User/TransactionBodies/Upsert?headerId=${headerId}&fromCompletionBtn=true`;
-                        } else if (data.message.includes("You have pending parts")) {
-                            window.location.href = `/User/TransactionBodies/Index?headerId=${headerId}&fromCompletionBtn=true`;
-                        }
                         toastr.error(data.message);
                     }
+                },
+                error: function (xhr, status, error) {
+                    const errorMessage = error && error.response && error.response.statusText ? error.response.statusText : 'An error occurred';
+                    toastr.error(`Error completing transaction: ${errorMessage}.`);
                 }
-            })
+            });
         }
     });
 }

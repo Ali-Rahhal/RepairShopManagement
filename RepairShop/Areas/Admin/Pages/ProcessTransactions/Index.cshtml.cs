@@ -51,6 +51,27 @@ namespace RepairShop.Areas.Admin.Pages.ProcessTransactions
             return new JsonResult(new { data = formattedData });
         }
 
+        public async Task<JsonResult> OnPostSetLaborFees(int id, double laborFees)
+        {
+            var TH = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id && o.IsActive == true);
+            if (TH == null)
+            {
+                return new JsonResult(new { success = false, message = "Error while updating labor fees" });
+            }
+
+            // Update labor fees
+            if (laborFees <= 0)
+            {
+                return new JsonResult(new { success = false, message = "Labor fees must be greater than 0" });
+            }
+
+            TH.LaborFees = laborFees;
+
+            await _unitOfWork.TransactionHeader.UpdateAsy(TH);
+            await _unitOfWork.SaveAsy();
+            return new JsonResult(new { success = true, message = "Transaction labor fees updated successfully" });
+        }
+
         // NEW: Method to process transaction
         public async Task<JsonResult> OnGetProcessTransaction(int id, string comment = "")
         {

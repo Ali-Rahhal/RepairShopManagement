@@ -103,8 +103,8 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             return new JsonResult(new { success = true, message = "Transaction deleted successfully" });
         }
 
-        //AJAX CALL for completing the transaction
-        public async Task<IActionResult> OnGetCompleteStatus(int? id)//The route is /User/TransactionHeaders/Index?handler=CompleteStatus&id=1
+        // Method to validate if transaction can be completed
+        public async Task<JsonResult> OnGetCanComplete(int? id)
         {
             var THToBeCompleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id && o.IsActive == true, includeProperties: "BrokenParts,DefectiveUnit");
             if (THToBeCompleted == null)
@@ -128,6 +128,22 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             {
                 return new JsonResult(new { success = false, message = "Parts must be reported before marking as completed" });
             }
+
+            // If all checks pass
+            return new JsonResult(new { success = true, message = "Transaction can be completed" });
+        }
+
+        // Method to actually complete the transaction with labor fees
+        public async Task<JsonResult> OnPostCompleteStatus(int id, double laborFees)
+        {
+            var THToBeCompleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id && o.IsActive == true, includeProperties: "BrokenParts,DefectiveUnit");
+            if (THToBeCompleted == null)
+            {
+                return new JsonResult(new { success = false, message = "Error while completing" });
+            }
+
+            // Update labor fees
+            THToBeCompleted.LaborFees = laborFees;
 
             //check if there are non-repairable parts
             var nonRepairableParts = THToBeCompleted.BrokenParts.Count(o => o.IsActive == true && (o.Status == SD.Status_Part_NotReplaceable
@@ -157,7 +173,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
         }
 
         //AJAX CALL for marking transaction as delivered
-        public async Task<IActionResult> OnGetDeliverStatus(int? id)//The route is /User/TransactionHeaders/Index?handler=DeliverStatus&id=1
+        public async Task<IActionResult> OnPostDeliverStatus(int id)//The route is /User/TransactionHeaders/Index?handler=DeliverStatus&id=1
         {
             var THToBeCompleted = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == id && o.IsActive == true);
             if (THToBeCompleted == null)
