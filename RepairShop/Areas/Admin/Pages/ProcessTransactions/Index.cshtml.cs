@@ -35,7 +35,13 @@ namespace RepairShop.Areas.Admin.Pages.ProcessTransactions
                 modelName = t.DefectiveUnit?.SerialNumber?.Model?.Name ?? "N/A",
                 serialNumber = t.DefectiveUnit?.SerialNumber?.Value ?? "N/A",
                 issue = t.DefectiveUnit?.Description ?? "N/A",
-                spareParts = t.BrokenParts?.Where(bp => bp.Status == SD.Status_Part_Replaced).Select(bp => bp.Part?.Name ?? "N/A").ToList<string>() ?? [],
+                spareParts = t.BrokenParts?.Where(bp => bp.Status == SD.Status_Part_Replaced)
+                                .Select(bp => new 
+                                    { 
+                                        Name = bp.Part?.Name ?? "N/A",
+                                        Price = bp.Part?.Price ?? 0
+                                    })
+                                        .ToList() ?? [],
                 cost = t.BrokenParts?.Where(bp => bp.Status == SD.Status_Part_Replaced).Sum(bp => bp.Part?.Price ?? 0),
                 laborFees = t.LaborFees ?? 0,
                 comment = t.Comment ?? "N/A",

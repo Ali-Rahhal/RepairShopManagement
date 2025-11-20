@@ -132,43 +132,57 @@ function loadDataTable() {
                     if (!data || data.length === 0) return '<span class="text-muted">No parts</span>';
 
                     // Filter out "N/A" parts and count occurrences of valid parts
-                    const validParts = data.filter(part => part !== "N/A");
+                    const validParts = data.filter(part => part.name && part.name !== "N/A");
 
                     if (validParts.length === 0) return '<span class="text-muted">No parts</span>';
 
-                    const partCounts = {};
+                    // Group parts by name and calculate total price for each
+                    const partGroups = {};
                     validParts.forEach(part => {
-                        partCounts[part] = (partCounts[part] || 0) + 1;
+                        if (!partGroups[part.name]) {
+                            partGroups[part.name] = {
+                                count: 0,
+                                totalPrice: 0
+                            };
+                        }
+                        partGroups[part.name].count++;
+                        partGroups[part.name].totalPrice += part.price || 0;
                     });
 
-                    // Create HTML with each valid part on a new line
-                    const partsHtml = Object.entries(partCounts)
-                        .map(([partName, count]) => {
-                            if (count > 1) {
-                                return `${partName} (${count})`;
+                    // Create display text with name, count, and price
+                    const partsArray = Object.entries(partGroups)
+                        .map(([partName, info]) => {
+                            const priceText = info.totalPrice > 0 ? ` - $${info.totalPrice.toFixed(2)}` : '';
+                            if (info.count >= 1) {
+                                return `${partName} (${info.count})${priceText}`;
                             }
-                            return partName;
-                        })
-                        .join('<br>');
+                            return `${partName}${priceText}`;
+                        });
 
-                    var text = '';
-                    if (partsHtml) {
-                        text = partsHtml.length > 20 ? partsHtml.substring(0, 20) + '...' : partsHtml;
-                        // Add view full parts list button if text is truncated
-                        if (partsHtml.length > 20) {
-                            const safeDescription = partsHtml.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-                            return `
-                                ${text} 
-                                <button class="btn btn-sm btn-outline-info ms-1 p-0" 
-                                        style="width: 20px; height: 20px; font-size: 10px;"
-                                        onclick="showFullDescription('${safeDescription}')"
-                                        title="View full parts list">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            `;
-                        }
+                    // Create HTML version for table display
+                    const partsHtml = partsArray.join('<br>');
+
+                    // Create plain text version for length calculation
+                    const partsText = partsArray.join(', ');
+
+                    // Check if we need to truncate
+                    if (partsText.length > 20) {
+                        const truncatedText = partsText.substring(0, 20) + '...';
+                        const safeDescription = partsHtml.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+                        return `
+                            ${truncatedText} 
+                            <button class="btn btn-sm btn-outline-info ms-1 p-0" 
+                                    style="width: 20px; height: 20px; font-size: 10px;"
+                                    onclick="showFullPartsDescription('${safeDescription}')"
+                                    title="View full parts list">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        `;
                     }
-                    return text || 'N/A';
+
+                    // If not truncated, return the HTML version with line breaks
+                    return partsHtml || '<span class="text-muted">No parts</span>';
                 }
             },
             {
@@ -383,6 +397,28 @@ function showFullDescription(description) {
         customClass: {
             popup: 'swal-wide'
         }
+    });
+}
+function showFullPartsDescription(description) {
+    // Allow <br>, escape everything else
+    const safeDescription = description
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+        .replace(/&lt;br&gt;/g, "<br>"); // re-enable <br>
+
+    Swal.fire({
+        title: '<i class="bi bi-card-text"></i> Full Description',
+        html: `
+            <div style="text-align: left; max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #dee2e6;">
+                <p style="margin: 0; white-space: normal;">${safeDescription}</p>
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Close',
+        width: '600px'
     });
 }
 
