@@ -18,6 +18,7 @@
         <form method="post" class="row">
             <input type="hidden" asp-for="DefectiveUnitForUpsert.Id" id="duId" />
             <input type="hidden" asp-for="DefectiveUnitForUpsert.SerialNumberId" id="selectedSerialId" />
+
             @if(Model.DefectiveUnitForUpsert.Id != 0)
             {
                 <input type="hidden" asp-for="DefectiveUnitForUpsert.ReportedDate" />
@@ -56,7 +57,9 @@
                         </div>
 
                         <!-- New Serial Number Creation Fields (Hidden by default) -->
-                        <div id="newSerialFields" class="border p-3 rounded mb-4" style="display: none;">
+                        <div id="newSerialFields"
+                             class="border p-3 rounded mb-4"
+                             style="display:@(Model.ShowNewSerialSection ? "block" : "none")">
                             <h6 class="text-primary mb-3">
                                 <i class="bi bi-plus-circle"></i> Create New Serial Number
                             </h6>
@@ -92,7 +95,10 @@
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label asp-for="NewSerialNumber.MaintenanceContractId" class="form-label fw-bold">Maintenance Contract (Optional)</label>
-                                        <select asp-for="NewSerialNumber.MaintenanceContractId" class="form-select" id="newSerialContract">
+                                        <select asp-for="NewSerialNumber.MaintenanceContractId"
+                                                asp-items="Model.MaintenanceContractList"
+                                                class="form-select"
+                                                id="newSerialContract">
                                             <option value="">--Select Contract--</option>
                                         </select>
                                         <span asp-validation-for="NewSerialNumber.MaintenanceContractId" class="text-danger"></span>
@@ -211,6 +217,14 @@
     }
     <script src="~/js/DUserialNumberSearch.js" asp-append-version="true"></script>
     <script>
+        @if (Model.ShowNewSerialSection)
+        {
+            <text>
+                document.addEventListener('DOMContentLoaded', function () {
+                    document.getElementById("submitBtn").disabled = false;
+                });
+            </text>
+        }
         document.addEventListener('DOMContentLoaded', function() {
             // If editing, load the existing serial number details
             let idOfDu = document.getElementById("duId").value;
@@ -237,10 +251,12 @@
                 }
             });
 
-            new TomSelect('#newSerialContract', {
-                placeholder: '-- Select Client First --',
-                create: false
-            });
+            if (!document.getElementById('newSerialContract').tomselect) {
+                new TomSelect('#newSerialContract', {
+                    placeholder: '-- Select Contract --',
+                    create: false
+                });
+            }
 
             // Handle HasAccessories checkbox change
             const hasAccessoriesCheckbox = document.getElementById('hasAccessoriesCheckbox');

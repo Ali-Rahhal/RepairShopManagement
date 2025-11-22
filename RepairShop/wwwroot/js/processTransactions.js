@@ -115,7 +115,7 @@ function loadDataTable() {
                                 ${text} 
                                 <button class="btn btn-sm btn-outline-info ms-1 p-0" 
                                         style="width: 20px; height: 20px; font-size: 10px;"
-                                        onclick="showFullDescription('${safeDescription}')"
+                                        onclick="showFullDescription('${safeDescription}', 'issue')"
                                         title="View full description">
                                     <i class="bi bi-eye"></i>
                                 </button>
@@ -234,7 +234,7 @@ function loadDataTable() {
                                 ${text} 
                                 <button class="btn btn-sm btn-outline-info ms-1 p-0" 
                                         style="width: 20px; height: 20px; font-size: 10px;"
-                                        onclick="showFullDescription('${safeDescription}')"
+                                        onclick="showFullDescription('${safeDescription}', 'comment')"
                                         title="View full comment">
                                     <i class="bi bi-eye"></i>
                                 </button>
@@ -380,14 +380,15 @@ function clearFilters() {
     }
 }
 
-function showFullDescription(description) {
+function showFullDescription(description, source) {
     // Create a temporary div to escape HTML properly
     const tempDiv = document.createElement('div');
     tempDiv.textContent = description;
     const escapedDescription = tempDiv.innerHTML;
+    const title = source === 'issue' ? 'Full Issue Description' : source === 'comment' ? 'Full Comment' : 'Full Description';
 
     Swal.fire({
-        title: '<i class="bi bi-card-text"></i> Full Description',
+        title: `<i class="bi bi-card-text"></i> ${title}`,
         html: `
             <div style="text-align: left; max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #dee2e6;">
                 <p style="margin: 0; white-space: pre-wrap; word-wrap: break-word;">${escapedDescription}</p>
@@ -412,7 +413,7 @@ function showFullPartsDescription(description) {
         .replace(/&lt;br&gt;/g, "<br>"); // re-enable <br>
 
     Swal.fire({
-        title: '<i class="bi bi-card-text"></i> Full Description',
+        title: '<i class="bi bi-card-text"></i> Spare Parts',
         html: `
             <div style="text-align: left; max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #dee2e6;">
                 <p style="margin: 0; white-space: normal;">${safeDescription}</p>

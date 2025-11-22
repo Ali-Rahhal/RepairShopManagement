@@ -18,6 +18,7 @@ function loadDataTable() {
             dataSrc: 'data'
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
+        order: [[0, "desc"]],
         columns: [
             {
                 data: 'contractNumber',
@@ -153,6 +154,9 @@ function clearFilters() {
     if (statusFilter) {
         statusFilter.value = 'All';
     }
+    dataTable.order([
+        [0, "desc"]
+    ]).draw();
     dataTable.columns().search('').draw();
 
     toastr.info('Filters cleared');

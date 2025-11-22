@@ -67,13 +67,36 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
                     return NotFound();
                 }
 
+                // Check maximum length and minimum length
+                if (SerialNumberForUpsert.Value.Length < 3 || SerialNumberForUpsert.Value.Length > 40)
+                {
+                    ModelState.AddModelError("SerialNumberForUpsert.Value", "Serial number must be between 3 and 40 characters long.");
+                    await PopulateDropdowns();
+                    if (SerialNumberForUpsert.ClientId > 0)
+                    {
+                        await PopulateMaintenanceContracts(SerialNumberForUpsert.ClientId);
+                    }
+                    return Page();
+                }
+
+                // Check if serial number contains spaces
+                if (SerialNumberForUpsert.Value.Trim().Contains(' '))
+                {
+                    ModelState.AddModelError("SerialNumberForUpsert.Value", "Serial number cannot contain spaces.");
+                    await PopulateDropdowns();
+                    if (SerialNumberForUpsert.ClientId > 0)
+                    {
+                        await PopulateMaintenanceContracts(SerialNumberForUpsert.ClientId);
+                    }
+                    return Page();
+                }
+
                 // Check if serial number already exists (for create operation)
                 if (SerialNumberForUpsert.Id == 0)
                 {
                     var existingSerialNumber = await _unitOfWork.SerialNumber.GetAsy(
                         sn => sn.Value == SerialNumberForUpsert.Value && sn.IsActive == true
                     );
-
                     if (existingSerialNumber != null)
                     {
                         ModelState.AddModelError("SerialNumberForUpsert.Value", "Serial number already exists.");
@@ -90,6 +113,23 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
                 }
                 else
                 {
+                    // For updates, check if serial number conflicts with OTHER records
+                    var conflictingSerialNumber = await _unitOfWork.SerialNumber.GetAsy(
+                        sn => sn.Value == SerialNumberForUpsert.Value
+                           && sn.IsActive == true
+                           && sn.Id != SerialNumberForUpsert.Id
+                    );
+                    if (conflictingSerialNumber != null)
+                    {
+                        ModelState.AddModelError("SerialNumberForUpsert.Value", $"Serial number '{SerialNumberForUpsert.Value}' already exists.");
+                        await PopulateDropdowns();
+                        if (SerialNumberForUpsert.ClientId > 0)
+                        {
+                            await PopulateMaintenanceContracts(SerialNumberForUpsert.ClientId);
+                        }
+                        return Page();
+                    }
+
                     await _unitOfWork.SerialNumber.UpdateAsy(SerialNumberForUpsert);
                     TempData["success"] = "Serial number updated successfully";
                 }
@@ -166,7 +206,7 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
 
             MaintenanceContractList = contracts.Select(mc => new SelectListItem
             {
-                Text = $"Contract #{mc.Id} - {mc.Status}",
+                Text = $"Contract #{mc.Id} - {mc.Client.Name}{(mc.Client.Branch != null ? $" - {mc.Client.Branch}" : "")} ({mc.Status})",
                 Value = mc.Id.ToString()
             }).ToList();
 

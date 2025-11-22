@@ -24,6 +24,8 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         [BindProperty]
         public SerialNumber NewSerialNumber { get; set; } // For creating new serial numbers
 
+        public bool ShowNewSerialSection { get; set; }
+
         public IEnumerable<SelectListItem> ModelList { get; set; }
         public IEnumerable<SelectListItem> ClientList { get; set; }
         public IEnumerable<SelectListItem> MaintenanceContractList { get; set; }
@@ -95,6 +97,32 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
                 if (creatingNewSerial)
                 {
+                    // Check if sn contains characters btw 3 and 40
+                    if (NewSerialNumber.Value.Length < 3 || NewSerialNumber.Value.Length > 40)
+                    {
+                        ModelState.AddModelError("NewSerialNumber.Value", "Serial number must be between 3 and 40 characters.");
+                        await PopulateDropdowns();
+                        ShowNewSerialSection = true;
+                        if (NewSerialNumber.ClientId > 0)
+                        {
+                            await PopulateMaintenanceContracts(NewSerialNumber.ClientId);
+                        }
+                        return Page();
+                    }
+
+                    // Check if sn contains spaces
+                    if (NewSerialNumber.Value.Trim().Contains(' '))
+                    {
+                        ModelState.AddModelError("NewSerialNumber.Value", "Serial number cannot contain spaces.");
+                        await PopulateDropdowns();
+                        ShowNewSerialSection = true;
+                        if (NewSerialNumber.ClientId > 0)
+                        {
+                            await PopulateMaintenanceContracts(NewSerialNumber.ClientId);
+                        }
+                        return Page();
+                    }
+
                     // Validate new serial number
                     var existingSerialNumber = await _unitOfWork.SerialNumber.GetAsy(
                         sn => sn.Value == NewSerialNumber.Value && sn.IsActive == true
@@ -104,6 +132,11 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                     {
                         ModelState.AddModelError("NewSerialNumber.Value", "Serial number already exists. Please user another value.");
                         await PopulateDropdowns();
+                        ShowNewSerialSection = true;
+                        if (NewSerialNumber.ClientId > 0)
+                        {
+                            await PopulateMaintenanceContracts(NewSerialNumber.ClientId);
+                        }
                         return Page();
                     }
 
@@ -148,6 +181,16 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             }
 
             await PopulateDropdowns();
+
+            if (creatingNewSerial)
+            {
+                ShowNewSerialSection = true;
+                if (NewSerialNumber.ClientId > 0)
+                {
+                    await PopulateMaintenanceContracts(NewSerialNumber.ClientId);
+                }
+            }
+
             return Page();
         }
 
@@ -260,6 +303,27 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             {
                 new SelectListItem { Text = "Select a client first", Value = "" }
             };
+        }
+
+        private async Task PopulateMaintenanceContracts(int clientId)
+        {
+            var contracts = (await _unitOfWork.MaintenanceContract.GetAllAsy(
+                mc => mc.IsActive == true && mc.ClientId == clientId,
+                includeProperties: "Client"
+            ))
+            .OrderBy(mc => mc.Id)
+            .ToList();
+
+            MaintenanceContractList = contracts.Select(mc => new SelectListItem
+            {
+                Text = $"Contract #{mc.Id} - {mc.Client.Name}{(mc.Client.Branch != null ? $" - {mc.Client.Branch}" : "")} ({mc.Status})",
+                Value = mc.Id.ToString()
+            }).ToList();
+
+            // Add empty option
+            var maintenanceContractList = MaintenanceContractList.ToList();
+            maintenanceContractList.Insert(0, new SelectListItem { Text = "No Contract", Value = "" });
+            MaintenanceContractList = maintenanceContractList;
         }
     }
 }

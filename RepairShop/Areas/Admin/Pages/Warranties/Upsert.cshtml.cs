@@ -122,6 +122,15 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                         return Page();
                     }
 
+                    // Check for spaces
+                    if(NewSerialNumbersInput.Trim().Contains(' '))
+                    {
+                        ModelState.AddModelError("NewSerialNumbersInput", "Spaces are not allowed in serial numbers, please use semicolons.");
+                        await PopulateDropdowns();
+                        await PopulateMaintenanceContracts(SelectedClientId);
+                        return Page();
+                    }
+
                     if (SelectedModelId == 0)
                     {
                         ModelState.AddModelError("SelectedModelId", "Please select a model.");
@@ -146,12 +155,24 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                         .Distinct()
                         .ToList();
 
-                    if (!serialNumberValues.Any())
+                    if (serialNumberValues.Count == 0)
                     {
                         ModelState.AddModelError("NewSerialNumbersInput", "Please enter valid serial numbers separated by semicolons.");
                         await PopulateDropdowns();
                         await PopulateMaintenanceContracts(SelectedClientId);
                         return Page();
+                    }
+
+                    // Check if serial numbers are btw 3 and 40 characters
+                    foreach (var sn in serialNumberValues)
+                    {
+                        if (sn.Length < 3 || sn.Length > 40)
+                        {
+                            ModelState.AddModelError("NewSerialNumbersInput", "Serial numbers must be between 3 and 40 characters.");
+                            await PopulateDropdowns();
+                            await PopulateMaintenanceContracts(SelectedClientId);
+                            return Page();
+                        }
                     }
 
                     // Check for duplicate serial numbers

@@ -17,7 +17,15 @@ function loadDataTable() {
             dataSrc: 'data'
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
+        "order": [[0, "desc"]],
         columns: [
+            {
+                data: 'id',
+                width: "5%",
+                render: function (data) {
+                    return `<span class="fw-bold">${data}</span>`;
+                }
+            },
             {
                 data: 'coveredCount',
                 width: "8%",
@@ -28,17 +36,28 @@ function loadDataTable() {
             {
                 data: 'serialNumbers',
                 width: "15%",
-                render: function (data) {
-                    if (!data || data.length === 0) return '<span class="text-muted">N/A</span>';
-                    if (data.length === 1) return `<span class="fw-bold">${data[0]}</span>`;
+                render: function (data, type, row) {
 
-                    const firstItem = data[0];
-                    const remainingCount = data.length - 1;
+                    if (!data || data.length === 0)
+                        return '<span class="text-muted">N/A</span>';
+
+                    if (data.length === 1)
+                        return `<span class="fw-bold">${data[0]}</span>`;
+
+                    const first = data[0];
+                    const remaining = data.length - 1;
+                    const allSerials = data.join('<br>'); // For SweetAlert
+
                     return `
-                        <div>
-                            <div class="fw-bold">${firstItem}</div>
-                            <small class="text-muted">+${remainingCount} more serial number${remainingCount > 1 ? 's' : ''}</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold">${first}</span>
+                            <button type="button" class="btn btn-sm btn-outline-info ms-1 p-0" 
+                                    style="width: 20px; height: 20px; font-size: 10px;" 
+                                    onclick="showFullSerials('${allSerials}')">
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
+                        <small class="text-muted">+${remaining} more serial number${remaining > 1 ? 's' : ''}</small>
                     `;
                 }
             },
@@ -149,9 +168,9 @@ function loadDataTable() {
     });
 
     if (isAdmin()) {
-        dataTable.column(8).visible(true);   // show admin column
+        dataTable.column(9).visible(true);   // show admin column
     } else {
-        dataTable.column(8).visible(false);
+        dataTable.column(9).visible(false);
     }
 
     // Add event listener for status filter
@@ -165,9 +184,9 @@ function applyStatusFilter() {
     const status = document.getElementById('statusFilter').value;
 
     if (status === 'All') {
-        dataTable.column(7).search('').draw(); // Status column is now at index 7
+        dataTable.column(8).search('').draw(); // Status column is now at index 7
     } else {
-        dataTable.column(7).search('^' + status + '$', true, false).draw();
+        dataTable.column(8).search('^' + status + '$', true, false).draw();
     }
 }
 
@@ -176,9 +195,35 @@ function clearFilters() {
     if (statusFilter) {
         statusFilter.value = 'All';
     }
+    dataTable.order([
+        [0, "desc"]
+    ]).draw();
     dataTable.columns().search('').draw();
 
     toastr.info('Filters cleared');
+}
+
+function showFullSerials(description) {
+    // Allow <br>, escape everything else
+    const safeDescription = description
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+        .replace(/&lt;br&gt;/g, "<br>"); // re-enable <br>
+
+    Swal.fire({
+        title: '<i class="bi bi-card-text"></i> Covered Serial Numbers',
+        html: `
+            <div style="text-align: left; max-height: 400px; overflow-y: auto; background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #dee2e6;">
+                <p style="margin: 0; white-space: normal;">${safeDescription}</p>
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Close',
+        width: '400px'
+    });
 }
 
 function Delete(url) {

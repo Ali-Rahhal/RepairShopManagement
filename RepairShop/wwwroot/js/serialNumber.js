@@ -38,7 +38,7 @@ function loadDataTable() {
             url: '/Admin/SerialNumbers/Index?handler=All'
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        "order": [[5, "desc"]],
+        "order": [[6, "desc"]],
         "columns": [
             {
                 data: 'value',
@@ -66,6 +66,13 @@ function loadDataTable() {
                 "width": "10%",
                 "render": function (data, type, row) {
                     return data || 'N/A';
+                }
+            },
+            {
+                data: 'warrantyId',
+                "width": "15%",
+                "render": function (data, type, row) {
+                    return  (data !== null) ? `Warranty: #${data}`: 'No Warranty' ;
                 }
             },
             {
@@ -116,12 +123,6 @@ function loadDataTable() {
             "zeroRecords": "No matching serial numbers found"
         }
     });
-
-    if (isAdmin()) {
-        dataTable.column(5).visible(true);   // show admin column
-    } else {
-        dataTable.column(5).visible(false);
-    }
 
     // Add event listeners for filters
     $('#modelFilter').on('change', function () {
@@ -177,7 +178,7 @@ function clearFilters() {
     $('#modelFilter').val('All');
     $('#clientFilter').val('All');
     dataTable.order([
-        [5, "desc"]
+        [6, "desc"]
     ]).draw();
     dataTable.columns().search('').draw();
     toastr.info('All filters cleared');
