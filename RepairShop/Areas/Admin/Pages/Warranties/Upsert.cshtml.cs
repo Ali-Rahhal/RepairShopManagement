@@ -122,6 +122,15 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                         return Page();
                     }
 
+                    // Check for spaces
+                    if (NewSerialNumbersInput.Trim().Contains(' '))
+                    {
+                        ModelState.AddModelError("NewSerialNumbersInput", "Spaces are not allowed in serial numbers, please use semicolons.");
+                        await PopulateDropdowns();
+                        await PopulateMaintenanceContracts(SelectedClientId);
+                        return Page();
+                    }
+
                     if (SelectedModelId == 0)
                     {
                         ModelState.AddModelError("SelectedModelId", "Please select a model.");
@@ -138,9 +147,9 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                         return Page();
                     }
 
-                    // Parse serial numbers using SPACES as separators
+                    // Parse serial numbers
                     var serialNumberValues = NewSerialNumbersInput
-                        .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                        .Split(';', StringSplitOptions.RemoveEmptyEntries)
                         .Select(sn => sn.Trim())
                         .Where(sn => !string.IsNullOrWhiteSpace(sn))
                         .Distinct()
@@ -148,7 +157,7 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
 
                     if (serialNumberValues.Count == 0)
                     {
-                        ModelState.AddModelError("NewSerialNumbersInput", "Please enter valid serial numbers separated by spaces.");
+                        ModelState.AddModelError("NewSerialNumbersInput", "Please enter valid serial numbers separated by semicolons.");
                         await PopulateDropdowns();
                         await PopulateMaintenanceContracts(SelectedClientId);
                         return Page();

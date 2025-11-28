@@ -25,10 +25,10 @@
                             <div class="mb-3">
                                 <label class="form-label fw-bold">New Serial Numbers</label>
                                 <textarea asp-for="NewSerialNumbersInput" class="form-control" rows="3"
-                                          placeholder="Enter serial numbers separated by spaces&#10;Example: SN001 SN002 SN003"></textarea>
+                                          placeholder="Enter serial numbers separated by semicolons (;)&#10;Example: SN001;SN002;SN003"></textarea>
                                 <span asp-validation-for="NewSerialNumbersInput" class="text-danger"></span>
                                 <small class="form-text text-muted">
-                                    Enter new serial numbers separated by spaces. These will be created and assigned to this warranty.
+                                    Enter new serial numbers separated by semicolons. These will be created and assigned to this warranty.
                                 </small>
                             </div>
 
