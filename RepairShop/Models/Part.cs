@@ -6,6 +6,8 @@ namespace RepairShop.Models
     public class Part
     {
         public int Id { get; set; }
+        [MaxLength(50)]
+        public string? Code { get; set; }
         [Required]
         public string Name { get; set; }
 

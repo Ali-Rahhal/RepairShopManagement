@@ -1,11 +1,14 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using RepairShop.Models.Helpers;
+using System.ComponentModel.DataAnnotations;
 
 namespace RepairShop.Models
 {
     public class DefectiveUnit
     {
         public int Id { get; set; }
+        [MaxLength(50)]
+        public string? Code { get; set; }
         public DateTime ReportedDate { get; set; } = DateTime.Now;
         public string Description { get; set; } // e.g. "Screen flickering", "Power failure"
         public bool HasAccessories { get; set; } = false;

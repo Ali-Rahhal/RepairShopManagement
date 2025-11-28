@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RepairShop.Data;
 
@@ -11,9 +12,11 @@ using RepairShop.Data;
 namespace RepairShop.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251128133319_CopyIdValuesIntoCodeCol")]
+    partial class CopyIdValuesIntoCodeCol
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -262,7 +265,7 @@ namespace RepairShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Clients", (string)null);
+                    b.ToTable("Clients");
                 });
 
             modelBuilder.Entity("RepairShop.Models.DefectiveUnit", b =>
@@ -307,7 +310,7 @@ namespace RepairShop.Migrations
 
                     b.HasIndex("SerialNumberId");
 
-                    b.ToTable("DefectiveUnits", (string)null);
+                    b.ToTable("DefectiveUnits");
                 });
 
             modelBuilder.Entity("RepairShop.Models.MaintenanceContract", b =>
@@ -342,7 +345,7 @@ namespace RepairShop.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("MaintenanceContracts", (string)null);
+                    b.ToTable("MaintenanceContracts");
                 });
 
             modelBuilder.Entity("RepairShop.Models.Model", b =>
@@ -370,7 +373,7 @@ namespace RepairShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Models", (string)null);
+                    b.ToTable("Models");
                 });
 
             modelBuilder.Entity("RepairShop.Models.Part", b =>
@@ -404,7 +407,7 @@ namespace RepairShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Parts", (string)null);
+                    b.ToTable("Parts");
                 });
 
             modelBuilder.Entity("RepairShop.Models.SerialNumber", b =>
@@ -451,7 +454,7 @@ namespace RepairShop.Migrations
 
                     b.HasIndex("WarrantyId");
 
-                    b.ToTable("SerialNumbers", (string)null);
+                    b.ToTable("SerialNumbers");
                 });
 
             modelBuilder.Entity("RepairShop.Models.TransactionBody", b =>
@@ -507,7 +510,7 @@ namespace RepairShop.Migrations
 
                     b.HasIndex("TransactionHeaderId");
 
-                    b.ToTable("TransactionBodies", (string)null);
+                    b.ToTable("TransactionBodies");
                 });
 
             modelBuilder.Entity("RepairShop.Models.TransactionHeader", b =>
@@ -566,7 +569,7 @@ namespace RepairShop.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TransactionHeaders", (string)null);
+                    b.ToTable("TransactionHeaders");
                 });
 
             modelBuilder.Entity("RepairShop.Models.Warranty", b =>
@@ -596,7 +599,7 @@ namespace RepairShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Warranties", (string)null);
+                    b.ToTable("Warranties");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

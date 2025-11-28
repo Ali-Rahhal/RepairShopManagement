@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace RepairShop.Models
@@ -6,6 +7,8 @@ namespace RepairShop.Models
     public class Model
     {
         public int Id { get; set; }
+        [MaxLength(50)]
+        public string? Code { get; set; }
         public string Name { get; set; }
         public string Category { get; set; }
         public bool IsActive { get; set; } = true;
