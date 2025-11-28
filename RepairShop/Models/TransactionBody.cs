@@ -6,10 +6,10 @@ namespace RepairShop.Models
 {
     public class TransactionBody
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         [MaxLength(50)]
         public string? Code { get; set; }
-        public int? PartId { get; set; }   // Nullable if sometimes no replacement part is used
+        public long? PartId { get; set; }   // Nullable if sometimes no replacement part is used
         [ValidateNever]
         public Part Part { get; set; }
         [Required]
@@ -24,7 +24,7 @@ namespace RepairShop.Models
         public DateTime? NotReplaceableDate { get; set; }
         public bool IsActive { get; set; } = true;
 
-        public int TransactionHeaderId { get; set; }
+        public long TransactionHeaderId { get; set; }
         [ValidateNever]
         public TransactionHeader TransactionHeader { get; set; } //belongs to a transaction header
     }

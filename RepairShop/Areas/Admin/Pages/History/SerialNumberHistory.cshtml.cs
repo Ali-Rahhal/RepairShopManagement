@@ -410,7 +410,7 @@ namespace RepairShop.Areas.Admin.Pages.History
         public string Description { get; set; }
         public string Details { get; set; }
         public string Status { get; set; }
-        public int RelatedId { get; set; }
+        public long RelatedId { get; set; }
         public string EventTypeColor { get; set; } // Bootstrap color class
     }
 }

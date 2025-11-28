@@ -5,7 +5,7 @@ namespace RepairShop.Models
 {
     public class MaintenanceContract
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         [MaxLength(50)]
         public string? Code { get; set; }
         public DateTime StartDate { get; set; }
@@ -14,7 +14,7 @@ namespace RepairShop.Models
         public string Status { get; set; }// active or expired
         public bool IsActive { get; set; } = true;
 
-        public int ClientId { get; set; }
+        public long ClientId { get; set; }
         [ValidateNever]
         public Client Client { get; set; } // belongs to client
     }

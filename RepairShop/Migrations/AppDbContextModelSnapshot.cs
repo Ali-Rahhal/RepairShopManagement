@@ -228,11 +228,11 @@ namespace RepairShop.Migrations
 
             modelBuilder.Entity("RepairShop.Models.Client", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Address")
                         .IsRequired()
@@ -262,16 +262,16 @@ namespace RepairShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Clients", (string)null);
+                    b.ToTable("Clients");
                 });
 
             modelBuilder.Entity("RepairShop.Models.DefectiveUnit", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Accessories")
                         .HasColumnType("nvarchar(max)");
@@ -296,8 +296,8 @@ namespace RepairShop.Migrations
                     b.Property<DateTime?>("ResolvedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("SerialNumberId")
-                        .HasColumnType("int");
+                    b.Property<long>("SerialNumberId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -307,19 +307,19 @@ namespace RepairShop.Migrations
 
                     b.HasIndex("SerialNumberId");
 
-                    b.ToTable("DefectiveUnits", (string)null);
+                    b.ToTable("DefectiveUnits");
                 });
 
             modelBuilder.Entity("RepairShop.Models.MaintenanceContract", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<int>("ClientId")
-                        .HasColumnType("int");
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Code")
                         .HasMaxLength(50)
@@ -342,16 +342,16 @@ namespace RepairShop.Migrations
 
                     b.HasIndex("ClientId");
 
-                    b.ToTable("MaintenanceContracts", (string)null);
+                    b.ToTable("MaintenanceContracts");
                 });
 
             modelBuilder.Entity("RepairShop.Models.Model", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -370,16 +370,16 @@ namespace RepairShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Models", (string)null);
+                    b.ToTable("Models");
                 });
 
             modelBuilder.Entity("RepairShop.Models.Part", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -404,19 +404,19 @@ namespace RepairShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Parts", (string)null);
+                    b.ToTable("Parts");
                 });
 
             modelBuilder.Entity("RepairShop.Models.SerialNumber", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<int>("ClientId")
-                        .HasColumnType("int");
+                    b.Property<long>("ClientId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Code")
                         .HasMaxLength(50)
@@ -425,11 +425,11 @@ namespace RepairShop.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("MaintenanceContractId")
-                        .HasColumnType("int");
+                    b.Property<long?>("MaintenanceContractId")
+                        .HasColumnType("bigint");
 
-                    b.Property<int>("ModelId")
-                        .HasColumnType("int");
+                    b.Property<long>("ModelId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("ReceivedDate")
                         .HasColumnType("datetime2");
@@ -438,8 +438,8 @@ namespace RepairShop.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("WarrantyId")
-                        .HasColumnType("int");
+                    b.Property<long?>("WarrantyId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -451,16 +451,16 @@ namespace RepairShop.Migrations
 
                     b.HasIndex("WarrantyId");
 
-                    b.ToTable("SerialNumbers", (string)null);
+                    b.ToTable("SerialNumbers");
                 });
 
             modelBuilder.Entity("RepairShop.Models.TransactionBody", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("BrokenPartName")
                         .IsRequired()
@@ -485,8 +485,8 @@ namespace RepairShop.Migrations
                     b.Property<DateTime?>("NotReplaceableDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("PartId")
-                        .HasColumnType("int");
+                    b.Property<long?>("PartId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("ReplacedDate")
                         .HasColumnType("datetime2");
@@ -495,8 +495,8 @@ namespace RepairShop.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TransactionHeaderId")
-                        .HasColumnType("int");
+                    b.Property<long>("TransactionHeaderId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("WaitingPartDate")
                         .HasColumnType("datetime2");
@@ -507,16 +507,16 @@ namespace RepairShop.Migrations
 
                     b.HasIndex("TransactionHeaderId");
 
-                    b.ToTable("TransactionBodies", (string)null);
+                    b.ToTable("TransactionBodies");
                 });
 
             modelBuilder.Entity("RepairShop.Models.TransactionHeader", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Code")
                         .HasMaxLength(50)
@@ -531,8 +531,8 @@ namespace RepairShop.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("DefectiveUnitId")
-                        .HasColumnType("int");
+                    b.Property<long>("DefectiveUnitId")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime?>("DeliveredDate")
                         .HasColumnType("datetime2");
@@ -566,16 +566,16 @@ namespace RepairShop.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("TransactionHeaders", (string)null);
+                    b.ToTable("TransactionHeaders");
                 });
 
             modelBuilder.Entity("RepairShop.Models.Warranty", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Code")
                         .HasMaxLength(50)
@@ -596,7 +596,7 @@ namespace RepairShop.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Warranties", (string)null);
+                    b.ToTable("Warranties");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>

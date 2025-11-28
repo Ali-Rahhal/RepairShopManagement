@@ -14,7 +14,7 @@ namespace RepairShop.Services
         }
 
         // =============================== PART ===============================
-        public async Task DeletePartAsync(int partId)
+        public async Task DeletePartAsync(long partId)
         {
             var tbs = await _uow.TransactionBody.GetAllAsy(
                 tb => tb.PartId == partId && tb.IsActive,
@@ -36,7 +36,7 @@ namespace RepairShop.Services
         }
 
         // =============================== TRANSACTION BODY ===============================
-        public async Task DeleteTransactionBodyAsync(int tbId)
+        public async Task DeleteTransactionBodyAsync(long tbId)
         {
             var tb = await _uow.TransactionBody.GetAsy(
                 t => t.Id == tbId && t.IsActive,
@@ -64,7 +64,7 @@ namespace RepairShop.Services
         }
 
         // =============================== TRANSACTION HEADER ===============================
-        public async Task DeleteTransactionHeaderAsync(int thId)
+        public async Task DeleteTransactionHeaderAsync(long thId)
         {
             var tbs = await _uow.TransactionBody.GetAllAsy(
                 tb => tb.TransactionHeaderId == thId && tb.IsActive,
@@ -96,7 +96,7 @@ namespace RepairShop.Services
         }
 
         // =============================== DEFECTIVE UNIT ===============================
-        public async Task DeleteDefectiveUnitAsync(int duId)
+        public async Task DeleteDefectiveUnitAsync(long duId)
         {
             var th = await _uow.TransactionHeader.GetAsy(
                 th => th.DefectiveUnitId == duId && th.IsActive,
@@ -128,7 +128,7 @@ namespace RepairShop.Services
         }
 
         // =============================== SERIAL NUMBER ===============================
-        public async Task DeleteSerialNumberAsync(int snId)
+        public async Task DeleteSerialNumberAsync(long snId)
         {
             var dus = await _uow.DefectiveUnit.GetAllAsy(
                 d => d.SerialNumberId == snId && d.IsActive,
@@ -150,7 +150,7 @@ namespace RepairShop.Services
         }
 
         // =============================== MAINTENANCE CONTRACT ===============================
-        public async Task DeleteMaintenanceContractAsync(int mcId)
+        public async Task DeleteMaintenanceContractAsync(long mcId)
         {
             var sns = await _uow.SerialNumber.GetAllAsy(
                 sn => sn.MaintenanceContractId == mcId && sn.IsActive,
@@ -175,7 +175,7 @@ namespace RepairShop.Services
         }
 
         // =============================== WARRANTY ===============================
-        public async Task DeleteWarrantyAsync(int warrantyId)
+        public async Task DeleteWarrantyAsync(long warrantyId)
         {
             var sns = await _uow.SerialNumber.GetAllAsy(
                 sn => sn.WarrantyId == warrantyId && sn.IsActive,
@@ -200,7 +200,7 @@ namespace RepairShop.Services
         }
 
         // =============================== MODEL ===============================
-        public async Task DeleteModelAsync(int modelId)
+        public async Task DeleteModelAsync(long modelId)
         {
             var sns = await _uow.SerialNumber.GetAllAsy(
                 sn => sn.ModelId == modelId && sn.IsActive,
@@ -222,7 +222,7 @@ namespace RepairShop.Services
         }
 
         // =============================== CLIENT ===============================
-        public async Task DeleteClientAsync(int clientId)
+        public async Task DeleteClientAsync(long clientId)
         {
             var mcs = await _uow.MaintenanceContract.GetAllAsy(
                 mc => mc.ClientId == clientId && mc.IsActive,

@@ -8,12 +8,12 @@ namespace RepairShop.Models
 {
     public class TransactionHeader
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         [MaxLength(50)]
         public string? Code { get; set; }
 
         [Required]
-        public int DefectiveUnitId { get; set; }
+        public long DefectiveUnitId { get; set; }
         [ValidateNever]
         [DeleteBehavior(DeleteBehavior.Restrict)] // Add this to prevent cascade issues
         public DefectiveUnit DefectiveUnit { get; set; } //belongs to defective unit

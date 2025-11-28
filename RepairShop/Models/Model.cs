@@ -6,7 +6,7 @@ namespace RepairShop.Models
 {
     public class Model
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         [MaxLength(50)]
         public string? Code { get; set; }
         public string Name { get; set; }

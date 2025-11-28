@@ -305,7 +305,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             };
         }
 
-        private async Task PopulateMaintenanceContracts(int clientId)
+        private async Task PopulateMaintenanceContracts(long clientId)
         {
             var contracts = (await _unitOfWork.MaintenanceContract.GetAllAsy(
                 mc => mc.IsActive == true && mc.ClientId == clientId,

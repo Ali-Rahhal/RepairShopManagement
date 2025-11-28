@@ -6,7 +6,7 @@ namespace RepairShop.Models
 {
     public class DefectiveUnit
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         [MaxLength(50)]
         public string? Code { get; set; }
         public DateTime ReportedDate { get; set; } = DateTime.Now;
@@ -17,7 +17,7 @@ namespace RepairShop.Models
         public bool IsActive { get; set; } = true;
 
         // Relationships
-        public int SerialNumberId { get; set; }
+        public long SerialNumberId { get; set; }
         [ValidateNever]
         public SerialNumber SerialNumber { get; set; } // which device failed
 

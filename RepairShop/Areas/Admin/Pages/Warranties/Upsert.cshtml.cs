@@ -255,7 +255,7 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
             MaintenanceContractList = new List<SelectListItem> { new SelectListItem { Text = "No Contract", Value = "" } };
         }
 
-        private async Task PopulateMaintenanceContracts(int clientId)
+        private async Task PopulateMaintenanceContracts(long clientId)
         {
             var contracts = (await _unitOfWork.MaintenanceContract.GetAllAsy(
                 mc => mc.IsActive == true && mc.ClientId == clientId,

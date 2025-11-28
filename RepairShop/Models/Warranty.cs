@@ -5,7 +5,7 @@ namespace RepairShop.Models
 {
     public class Warranty
     {
-        public int Id { get; set; }
+        public long Id { get; set; }
         [MaxLength(50)]
         public string? Code { get; set; }
         public DateTime StartDate { get; set; }

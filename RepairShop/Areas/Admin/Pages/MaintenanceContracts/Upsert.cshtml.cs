@@ -22,7 +22,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
         public MaintenanceContract MaintenanceContractForUpsert { get; set; }
 
         [BindProperty]
-        public List<int> SelectedSerialNumberIds { get; set; } = new();
+        public List<long> SelectedSerialNumberIds { get; set; } = new();
 
         public IEnumerable<SelectListItem> ClientList { get; set; }
 
@@ -84,7 +84,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                 MaintenanceContractForUpsert.Status = MaintenanceContractForUpsert.EndDate < DateTime.Now ? "Expired" : "Active";
 
                 bool isNew = MaintenanceContractForUpsert.Id == 0;
-                int contractId;
+                long contractId;
 
                 if (isNew)
                 {
@@ -175,13 +175,13 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
             });
         }
 
-        private async Task<(bool isValid, string errorMessage)> ValidateAndAssignSerialNumbers(int contractId, List<int> selectedSerialNumberIds)
+        private async Task<(bool isValid, string errorMessage)> ValidateAndAssignSerialNumbers(long contractId, List<long> selectedSerialNumberIds)
         {
             if (selectedSerialNumberIds == null || selectedSerialNumberIds.Count == 0)
                 return (true, "");
 
             var errorMessages = new List<string>();
-            var validSerialNumberIds = new List<int>();
+            var validSerialNumberIds = new List<long>();
 
             foreach (var serialNumberId in selectedSerialNumberIds)
             {
