@@ -19,6 +19,33 @@ namespace RepairShop.Repository
             _db = db;
         }
 
+        public async Task AddAsy(Model model)
+        {
+            await _db.Models.AddAsync(model);
+
+            await _db.SaveChangesAsync();
+
+            model.Code = model.Id.ToString();
+
+            await UpdateAsy(model);
+
+            await Task.CompletedTask;
+        }
+
+        public async Task AddRangeAsy(IEnumerable<Model> models)
+        {
+            await _db.Models.AddRangeAsync(models);
+            await _db.SaveChangesAsync();
+            foreach (var model in models)
+            {
+                model.Code = model.Id.ToString();
+            }
+
+            await UpdateRangeAsy(models);
+
+            await Task.CompletedTask;
+        }
+
         public async Task UpdateAsy(Model model)
         {
             _db.Models.Update(model);

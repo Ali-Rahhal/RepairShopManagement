@@ -10,6 +10,10 @@ namespace RepairShop.Repository.IRepository
 {
     public interface IDefectiveUnitRepository : IRepository<DefectiveUnit>
     {
+        Task AddAsy(DefectiveUnit defectiveUnit);
+
+        Task AddRangeAsy(IEnumerable<DefectiveUnit> defectiveUnits);
+
         Task UpdateAsy(DefectiveUnit defectiveUnit);
 
         Task UpdateRangeAsy(IEnumerable<DefectiveUnit> defectiveUnits);

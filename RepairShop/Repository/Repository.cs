@@ -22,15 +22,15 @@ namespace RepairShop.Repository
             dbSet = _db.Set<T>();//means for example _db.Categories == dbSet
         }
 
-        public async Task AddAsy(T entity)
-        {
-            await dbSet.AddAsync(entity);
-        }
+        //public async Task AddAsy(T entity)
+        //{
+        //    await dbSet.AddAsync(entity);
+        //}
 
-        public async Task AddRangeAsy(IEnumerable<T> entity)
-        {
-            await dbSet.AddRangeAsync(entity);
-        }
+        //public async Task AddRangeAsy(IEnumerable<T> entity)
+        //{
+        //    await dbSet.AddRangeAsync(entity);
+        //}
 
         public async Task<T> GetAsy(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked = false)//includeProperties is for including data like the Category var in Product class
         {

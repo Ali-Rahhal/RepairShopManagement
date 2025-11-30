@@ -10,6 +10,10 @@ namespace RepairShop.Repository.IRepository
 {
     public interface IModelRepository : IRepository<Model>
     {
+        Task AddAsy(Model model);
+
+        Task AddRangeAsy(IEnumerable<Model> models);
+
         Task UpdateAsy(Model model);
 
         Task UpdateRangeAsy(IEnumerable<Model> models);

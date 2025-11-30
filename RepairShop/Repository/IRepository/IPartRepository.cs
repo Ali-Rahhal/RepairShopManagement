@@ -10,6 +10,10 @@ namespace RepairShop.Repository.IRepository
 {
     public interface IPartRepository : IRepository<Part>
     {
+        Task AddAsy(Part part);
+
+        Task AddRangeAsy(IEnumerable<Part> parts);
+
         Task UpdateAsy(Part part);
 
         Task UpdateRangeAsy(IEnumerable<Part> parts);

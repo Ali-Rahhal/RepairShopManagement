@@ -10,6 +10,10 @@ namespace RepairShop.Repository.IRepository
 {
     public interface ITransactionHeaderRepository : IRepository<TransactionHeader>
     {
+        Task AddAsy(TransactionHeader transactionHeader);
+
+        Task AddRangeAsy(IEnumerable<TransactionHeader> transactionHeaders);
+
         Task UpdateAsy(TransactionHeader transactionHeader);
 
         Task UpdateRangeAsy(IEnumerable<TransactionHeader> transactionHeaders);

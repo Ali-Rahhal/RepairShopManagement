@@ -10,6 +10,10 @@ namespace RepairShop.Repository.IRepository
 {
     public interface IMaintenanceContractRepository : IRepository<MaintenanceContract>
     {
+        Task AddAsy(MaintenanceContract maintenanceContract);
+
+        Task AddRangeAsy(IEnumerable<MaintenanceContract> maintenanceContracts);
+
         Task UpdateAsy(MaintenanceContract maintenanceContract);
 
         Task UpdateRangeAsy(IEnumerable<MaintenanceContract> maintenanceContracts);

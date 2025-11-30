@@ -19,6 +19,33 @@ namespace RepairShop.Repository
             _db = db;
         }
 
+        public async Task AddAsy(TransactionHeader transactionHeader)
+        {
+            await _db.TransactionHeaders.AddAsync(transactionHeader);
+
+            await _db.SaveChangesAsync();
+
+            transactionHeader.Code = transactionHeader.Id.ToString();
+
+            await UpdateAsy(transactionHeader);
+
+            await Task.CompletedTask;
+        }
+
+        public async Task AddRangeAsy(IEnumerable<TransactionHeader> transactionHeaders)
+        {
+            await _db.TransactionHeaders.AddRangeAsync(transactionHeaders);
+            await _db.SaveChangesAsync();
+            foreach (var transactionHeader in transactionHeaders)
+            {
+                transactionHeader.Code = transactionHeader.Id.ToString();
+            }
+
+            await UpdateRangeAsy(transactionHeaders);
+
+            await Task.CompletedTask;
+        }
+
         public async Task UpdateAsy(TransactionHeader transactionHeader)
         {
             _db.TransactionHeaders.Update(transactionHeader);

@@ -10,6 +10,10 @@ namespace RepairShop.Repository.IRepository
 {
     public interface ITransactionBodyRepository : IRepository<TransactionBody>
     {
+        Task AddAsy(TransactionBody transactionBody);
+
+        Task AddRangeAsy(IEnumerable<TransactionBody> transactionBodies);
+
         Task UpdateAsy(TransactionBody transactionBody);
 
         Task UpdateRangeAsy(IEnumerable<TransactionBody> transactionBodies);

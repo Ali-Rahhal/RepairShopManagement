@@ -19,15 +19,42 @@ namespace RepairShop.Repository
             _db = db;
         }
 
+        public async Task AddAsy(Warranty warranty)
+        {
+            await _db.Warranties.AddAsync(warranty);
+
+            await _db.SaveChangesAsync();
+
+            warranty.Code = warranty.Id.ToString();
+
+            await UpdateAsy(warranty);
+
+            await Task.CompletedTask;
+        }
+
+        public async Task AddRangeAsy(IEnumerable<Warranty> warranties)
+        {
+            await _db.Warranties.AddRangeAsync(warranties);
+            await _db.SaveChangesAsync();
+            foreach (var warranty in warranties)
+            {
+                warranty.Code = warranty.Id.ToString();
+            }
+
+            await UpdateRangeAsy(warranties);
+
+            await Task.CompletedTask;
+        }
+
         public async Task UpdateAsy(Warranty warranty)
         {
             _db.Warranties.Update(warranty);
             await Task.CompletedTask;
         }
 
-        public async Task UpdateRangeAsy(IEnumerable<Warranty> warrantys)
+        public async Task UpdateRangeAsy(IEnumerable<Warranty> warranties)
         {
-            _db.Warranties.UpdateRange(warrantys);
+            _db.Warranties.UpdateRange(warranties);
             await Task.CompletedTask;
         }
 

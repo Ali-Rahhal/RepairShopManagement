@@ -10,6 +10,10 @@ namespace RepairShop.Repository.IRepository
 {
     public interface ISerialNumberRepository : IRepository<SerialNumber>
     {
+        Task AddAsy(SerialNumber serialNumber);
+
+        Task AddRangeAsy(IEnumerable<SerialNumber> serialNumbers);
+
         Task UpdateAsy(SerialNumber serialNumber);
 
         Task UpdateRangeAsy(IEnumerable<SerialNumber> serialNumbers);

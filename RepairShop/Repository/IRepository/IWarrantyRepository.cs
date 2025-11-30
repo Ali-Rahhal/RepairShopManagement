@@ -10,6 +10,10 @@ namespace RepairShop.Repository.IRepository
 {
     public interface IWarrantyRepository : IRepository<Warranty>
     {
+        Task AddAsy(Warranty warranty);
+
+        Task AddRangeAsy(IEnumerable<Warranty> warranties);
+
         Task UpdateAsy(Warranty warranty);
 
         Task UpdateRangeAsy(IEnumerable<Warranty> warranties);

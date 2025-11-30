@@ -19,6 +19,33 @@ namespace RepairShop.Repository
             _db = db;
         }
 
+        public async Task AddAsy(MaintenanceContract maintenanceContract)
+        {
+            await _db.MaintenanceContracts.AddAsync(maintenanceContract);
+
+            await _db.SaveChangesAsync();
+
+            maintenanceContract.Code = maintenanceContract.Id.ToString();
+
+            await UpdateAsy(maintenanceContract);
+
+            await Task.CompletedTask;
+        }
+
+        public async Task AddRangeAsy(IEnumerable<MaintenanceContract> maintenanceContracts)
+        {
+            await _db.MaintenanceContracts.AddRangeAsync(maintenanceContracts);
+            await _db.SaveChangesAsync();
+            foreach (var maintenanceContract in maintenanceContracts)
+            {
+                maintenanceContract.Code = maintenanceContract.Id.ToString();
+            }
+
+            await UpdateRangeAsy(maintenanceContracts);
+
+            await Task.CompletedTask;
+        }
+
         public async Task UpdateAsy(MaintenanceContract maintenanceContract)
         {
             _db.MaintenanceContracts.Update(maintenanceContract);

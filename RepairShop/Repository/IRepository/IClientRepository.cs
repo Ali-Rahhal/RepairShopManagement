@@ -10,6 +10,10 @@ namespace RepairShop.Repository.IRepository
 {
     public interface IClientRepository : IRepository<Client>
     {
+        Task AddAsy(Client client);
+
+        Task AddRangeAsy(IEnumerable<Client> clients);
+
         Task UpdateAsy(Client client);
 
         Task UpdateRangeAsy(IEnumerable<Client> clients);

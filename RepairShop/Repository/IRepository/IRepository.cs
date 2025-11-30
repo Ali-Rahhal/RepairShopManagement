@@ -14,9 +14,9 @@ namespace RepairShop.Repository.IRepository
 
         Task<T> GetAsy(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked = false);
 
-        Task AddAsy(T entity);
+        //Task AddAsy(T entity);
 
-        Task AddRangeAsy(IEnumerable<T> entity);
+        //Task AddRangeAsy(IEnumerable<T> entity);
 
         Task RemoveAsy(T entity);
 
