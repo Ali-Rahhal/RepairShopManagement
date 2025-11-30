@@ -21,10 +21,22 @@
 
                         @if (Model.WarrantyForUpsert.Id == 0)
                         {
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Upload Excel with Serial Numbers (Optional)</label>
+                                <div class="input-group">
+                                    <input type="file" id="excelFileInput" class="form-control" accept=".xls,.xlsx" />
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="clearFileInput" title="Clear file and serial numbers">
+                                        <i class="bi bi-x"></i>
+                                    </button>
+                                </div>
+                                <small class="form-text text-muted">
+                                    The Excel file should contain only one column named like "SerialNumber" or similar, containing serial numbers.
+                                </small>
+                            </div>
                             <!-- Bulk Serial Number Creation for new warranties -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">New Serial Numbers</label>
-                                <textarea asp-for="NewSerialNumbersInput" class="form-control" rows="3"
+                                <textarea asp-for="NewSerialNumbersInput" class="form-control" id="newSerialNumbersInputTA" rows="3"
                                           placeholder="Enter serial numbers separated by semicolons (;)&#10;Example: SN001;SN002;SN003"></textarea>
                                 <span asp-validation-for="NewSerialNumbersInput" class="text-danger"></span>
                                 <small class="form-text text-muted">
@@ -135,9 +147,84 @@
     @{
         <partial name="_ValidationScriptsPartial" />
     }
+    <script src="~/lib/xlsx/xlsx.full.min.js" asp-append-version="true"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const fileInput = document.getElementById('excelFileInput');
+            const clearFileBtn = document.getElementById('clearFileInput');
+            const textarea = document.getElementById('newSerialNumbersInputTA');
 
+            // File input change event
+            fileInput.addEventListener('change', function (e) {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function (evt) {
+                    const data = evt.target.result;
+
+                    // Read Excel using XLSX library
+                    const workbook = XLSX.read(data, { type: 'binary' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const sheet = workbook.Sheets[firstSheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 }); // array of arrays
+
+                    if (!jsonData || jsonData.length < 2) {
+                        toastr.error('Excel must have at least 1 column and some rows.');
+                        return;
+                    }
+
+                    // Find column that looks like "Serial Number"
+                    const headerRow = jsonData[0];
+                    let serialColIndex = -1;
+                    headerRow.forEach((h, i) => {
+                        if (h && h.toString().toLowerCase().includes('serial')) {
+                            serialColIndex = i;
+                        }
+                    });
+
+                    if (serialColIndex === -1) {
+                        toastr.error('No column found that looks like serial numbers.');
+                        return;
+                    }
+
+                    // Extract serial numbers from that column
+                    const serialNumbers = [];
+                    for (let i = 1; i < jsonData.length; i++) {
+                        const val = jsonData[i][serialColIndex];
+                        if (val && val.toString().trim() !== '') {
+                            serialNumbers.push(val.toString().trim());
+                        }
+                    }
+
+                    // Fill textarea with semicolon-separated serial numbers
+                    if (textarea) {
+                        textarea.value = serialNumbers.join(';');
+                        textarea.focus();
+                    }
+
+                    // Show success message
+                    toastr.success(`Loaded ${serialNumbers.length} serial numbers from Excel file`);
+                };
+
+                reader.readAsBinaryString(file);
+            });
+
+            // Clear file input and textarea
+            clearFileBtn.addEventListener('click', function() {
+                // Clear file input
+                fileInput.value = '';
+
+                // Clear textarea
+                if (textarea) {
+                    textarea.value = '';
+                }
+
+                // Show confirmation message
+                toastr.info('File and serial numbers cleared');
+            });
+
+            // Initialize TomSelect components
             new TomSelect('#modelSelect', {
                 placeholder: '-- Select Model --',
                 create: false,

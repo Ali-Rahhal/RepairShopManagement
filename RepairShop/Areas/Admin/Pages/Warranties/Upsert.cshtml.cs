@@ -206,6 +206,10 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                         newSerialNumbers.Add(serialNumber);
                     }
 
+                    // Add new serial numbers to database
+                    await _unitOfWork.SerialNumber.AddRangeAsy(newSerialNumbers);
+                    await _unitOfWork.SaveAsy();
+
                     // Create warranty with serial numbers
                     WarrantyForUpsert.SerialNumbers = newSerialNumbers;
                     await _unitOfWork.Warranty.AddAsy(WarrantyForUpsert);
