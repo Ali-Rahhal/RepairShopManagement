@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	
 	<!-- 🔽 Version Information -->
-	<Version>1.4.4</Version>
-	<FileVersion>1.4.4.0</FileVersion>
-	<InformationalVersion>1.4.4 - 10th Release (created an new V2 db with long pks and fks and new col 'code' for tables)</InformationalVersion>
+	<Version>1.4.5</Version>
+	<FileVersion>1.4.5.0</FileVersion>
+	<InformationalVersion>1.4.5 - 11th Release (code field will now be filled with th pk string when adding to rows to table)</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
