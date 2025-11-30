@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	
 	<!-- 🔽 Version Information -->
-	<Version>1.4.5</Version>
-	<FileVersion>1.4.5.0</FileVersion>
-	<InformationalVersion>1.4.5 - 11th Release (code field will now be filled with th pk string when adding to rows to table)</InformationalVersion>
+	<Version>1.4.6</Version>
+	<FileVersion>1.4.6.0</FileVersion>
+	<InformationalVersion>1.4.6 - 12th Release (Added a btn that extracts SNs from excel file in warranty upsert page)</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
