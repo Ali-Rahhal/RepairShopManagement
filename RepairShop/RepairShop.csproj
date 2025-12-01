@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	
 	<!-- 🔽 Version Information -->
-	<Version>1.4.6</Version>
-	<FileVersion>1.4.6.0</FileVersion>
-	<InformationalVersion>1.4.6 - 12th Release (Added a btn that extracts SNs from excel file in warranty upsert page)</InformationalVersion>
+	<Version>1.5.0</Version>
+	<FileVersion>1.5.0.0</FileVersion>
+	<InformationalVersion>1.5.0 - 13th Release (Added a btn in SNclient list to show history; Added an InactiveReason field for SNs; Changed the way SNs are assigned to MCs; Fixed the upsert Update bug)</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -136,7 +136,7 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
                     snFromDb.ModelId = SerialNumberForUpsert.ModelId;
                     snFromDb.ClientId = SerialNumberForUpsert.ClientId;
                     snFromDb.MaintenanceContractId = SerialNumberForUpsert.MaintenanceContractId;
-                    await _unitOfWork.SerialNumber.UpdateAsy(SerialNumberForUpsert);
+                    await _unitOfWork.SerialNumber.UpdateAsy(snFromDb);
                     TempData["success"] = "Serial number updated successfully";
                 }
 
