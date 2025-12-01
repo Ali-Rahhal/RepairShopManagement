@@ -218,7 +218,11 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                 else
                 {
                     // UPDATE EXISTING WARRANTY (serial numbers remain unchanged)
-                    await _unitOfWork.Warranty.UpdateAsy(WarrantyForUpsert);
+                    var warrantyFromDb = await _unitOfWork.Warranty.GetAsy(w => w.Id == WarrantyForUpsert.Id && w.IsActive == true);
+                    if (warrantyFromDb == null) return NotFound();
+                    warrantyFromDb.StartDate = WarrantyForUpsert.StartDate;
+                    warrantyFromDb.EndDate = WarrantyForUpsert.EndDate;
+                    await _unitOfWork.Warranty.UpdateAsy(warrantyFromDb);
                     TempData["success"] = "Warranty updated successfully";
                 }
 

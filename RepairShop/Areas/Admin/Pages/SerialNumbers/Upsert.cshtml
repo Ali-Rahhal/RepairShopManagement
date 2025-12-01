@@ -32,7 +32,7 @@
                         </div>
 
                         <div class="py-2 col-12">
-                            <label asp-for="SerialNumberForUpsert.ModelId" class="ms-2 text-muted"></label>
+                            <label asp-for="SerialNumberForUpsert.ModelId" class="ms-2 text-muted">Model</label>
                             <select asp-for="SerialNumberForUpsert.ModelId" asp-items="@Model.ModelList" 
                                     class="form-select border-0 shadow" id="modelSelect">
                                 <option disabled selected>--Select Model--</option>
@@ -41,7 +41,7 @@
                         </div>
 
                         <div class="py-2 col-12">
-                            <label asp-for="SerialNumberForUpsert.ClientId" class="ms-2 text-muted"></label>
+                            <label asp-for="SerialNumberForUpsert.ClientId" class="ms-2 text-muted">Client</label>
                             <select asp-for="SerialNumberForUpsert.ClientId" asp-items="@Model.ClientList" 
                                     class="form-select border-0 shadow" id="clientDropdown">
                                 <option disabled selected>--Select Client--</option>
@@ -50,7 +50,7 @@
                         </div>
 
                         <div class="py-2 col-12">
-                            <label asp-for="SerialNumberForUpsert.MaintenanceContractId" class="ms-2 text-muted"></label>
+                            <label asp-for="SerialNumberForUpsert.MaintenanceContractId" class="ms-2 text-muted">Contract</label>
                             <select asp-for="SerialNumberForUpsert.MaintenanceContractId" asp-items="@Model.MaintenanceContractList" class="form-select border-0 shadow" id="contractDropdown">
                                 <option value="">--Select Maintenance Contract (Optional)--</option>
                             </select>

@@ -55,7 +55,14 @@ namespace RepairShop.Areas.User.Pages.Clients
                 }
                 else
                 {
-                    await _unitOfWork.Client.UpdateAsy(clientForUpsert);
+                    var clientFromDb = await _unitOfWork.Client.GetAsy(c => c.Id == clientForUpsert.Id && c.IsActive == true);
+                    if (clientFromDb == null) return NotFound();
+                    clientFromDb.Name = clientForUpsert.Name;
+                    clientFromDb.Branch = clientForUpsert.Branch;
+                    clientFromDb.Phone = clientForUpsert.Phone;
+                    clientFromDb.Email = clientForUpsert.Email;
+                    clientFromDb.Address = clientForUpsert.Address;
+                    await _unitOfWork.Client.UpdateAsy(clientFromDb);
                     TempData["success"] = "Client updated successfully";
                 }
                 await _unitOfWork.SaveAsy();

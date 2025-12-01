@@ -54,7 +54,11 @@ namespace RepairShop.Areas.Admin.Pages.Models
                 }
                 else
                 {
-                    await _unitOfWork.Model.UpdateAsy(ModelForUpsert);
+                    var modelFromDb = await _unitOfWork.Model.GetAsy(m => m.Id == ModelForUpsert.Id && m.IsActive == true);
+                    if (modelFromDb == null) return NotFound();
+                    modelFromDb.Name = ModelForUpsert.Name;
+                    modelFromDb.Category = ModelForUpsert.Category;
+                    await _unitOfWork.Model.UpdateAsy(modelFromDb);
                     TempData["success"] = "Model updated successfully";
                 }
 

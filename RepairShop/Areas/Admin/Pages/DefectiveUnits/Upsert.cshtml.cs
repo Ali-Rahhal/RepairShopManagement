@@ -172,7 +172,13 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 }
                 else
                 {
-                    await _unitOfWork.DefectiveUnit.UpdateAsy(DefectiveUnitForUpsert);
+                    var duFromDb = await _unitOfWork.DefectiveUnit.GetAsy(du => du.Id == DefectiveUnitForUpsert.Id && du.IsActive == true);
+                    if (duFromDb == null) return NotFound();
+                    duFromDb.SerialNumberId = DefectiveUnitForUpsert.SerialNumberId;
+                    duFromDb.Description = DefectiveUnitForUpsert.Description;
+                    duFromDb.HasAccessories = DefectiveUnitForUpsert.HasAccessories;
+                    duFromDb.Accessories = DefectiveUnitForUpsert.Accessories;
+                    await _unitOfWork.DefectiveUnit.UpdateAsy(duFromDb);
                     await _unitOfWork.SaveAsy();
 
                     TempData["success"] = "Defective unit updated successfully";

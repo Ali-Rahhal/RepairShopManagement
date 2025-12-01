@@ -54,7 +54,13 @@ namespace RepairShop.Areas.Admin.Pages.Parts
                 }
                 else
                 {
-                    await _unitOfWork.Part.UpdateAsy(PartForUpsert);
+                    var partFromDb = await _unitOfWork.Part.GetAsy(p => p.Id == PartForUpsert.Id && p.IsActive == true);
+                    if (partFromDb == null) return NotFound();
+                    partFromDb.Name = PartForUpsert.Name;
+                    partFromDb.Category = PartForUpsert.Category;
+                    partFromDb.Quantity = PartForUpsert.Quantity;
+                    partFromDb.Price = PartForUpsert.Price;
+                    await _unitOfWork.Part.UpdateAsy(partFromDb);
                     TempData["success"] = "Part updated successfully";
                 }
 

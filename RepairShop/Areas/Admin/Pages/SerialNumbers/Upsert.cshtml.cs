@@ -130,6 +130,12 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
                         return Page();
                     }
 
+                    var snFromDb = await _unitOfWork.SerialNumber.GetAsy(s => s.Id == SerialNumberForUpsert.Id && s.IsActive == true);
+                    if (snFromDb == null) return NotFound();
+                    snFromDb.Value = SerialNumberForUpsert.Value;
+                    snFromDb.ModelId = SerialNumberForUpsert.ModelId;
+                    snFromDb.ClientId = SerialNumberForUpsert.ClientId;
+                    snFromDb.MaintenanceContractId = SerialNumberForUpsert.MaintenanceContractId;
                     await _unitOfWork.SerialNumber.UpdateAsy(SerialNumberForUpsert);
                     TempData["success"] = "Serial number updated successfully";
                 }
