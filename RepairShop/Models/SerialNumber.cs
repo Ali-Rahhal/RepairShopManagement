@@ -12,6 +12,9 @@ namespace RepairShop.Models
         public DateTime ReceivedDate { get; set; } = DateTime.Now;
         public bool IsActive { get; set; } = true;
 
+        [MaxLength(500)]
+        public string? InactiveReason { get; set; }
+
         public long ModelId { get; set; }
         [ValidateNever]
         public Model Model { get; set; } // belongs to Model

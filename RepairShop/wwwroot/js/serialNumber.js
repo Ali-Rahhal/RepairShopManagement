@@ -111,7 +111,7 @@ function loadDataTable() {
                 "render": function (data) {
                     return `<div class="w-100 d-flex justify-content-center" role="group">
                         <a href="/Admin/SerialNumbers/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                        <a onClick="Delete('/Admin/SerialNumbers/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                        <a onClick="Delete(${data})" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                     </div>`;
                 },
                 "width": "15%",
@@ -184,33 +184,51 @@ function clearFilters() {
     toastr.info('All filters cleared');
 }
 
-function Delete(url) {
+function Delete(serialNumberId) {
     Swal.fire({
-        title: "Are you sure you want to delete this serial number?",
-        text: "This action cannot be undone!",
+        title: "Are you sure you want to deactivate this serial number?",
+        text: "Please provide a reason (required).",
         icon: "warning",
+        input: "text",
+        inputPlaceholder: "Enter deactivation reason...",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",
         cancelButtonColor: "#d33",
-        confirmButtonText: "Yes, delete it!"
+        confirmButtonText: "Confirm",
+        inputValidator: (value) => {
+            if (!value || value.trim() === '') {
+                return "A reason is required!";
+            }
+        }
     }).then((result) => {
         if (result.isConfirmed) {
+
+            const postData = {
+                id: serialNumberId,
+                reason: result.value.trim()
+            };
+
+            // Get anti-forgery token
+            const token = $('input[name="__RequestVerificationToken"]').val();
+
             $.ajax({
-                url: url,
-                type: 'GET',
+                url: '/Admin/SerialNumbers/Index?handler=Delete',
+                type: "POST",
+                headers: {
+                    "RequestVerificationToken": token
+                },
+                data: postData,
                 success: function (data) {
                     if (data.success) {
                         dataTable.ajax.reload(null, false);
-                        // Reload filters to reflect changes
                         loadFilters();
                         toastr.success(data.message);
-                    }
-                    else {
+                    } else {
                         toastr.error(data.message);
                     }
                 },
                 error: function () {
-                    toastr.error('An error occurred while deleting the serial number');
+                    toastr.error("An error occurred while deleting the serial number");
                 }
             });
         }

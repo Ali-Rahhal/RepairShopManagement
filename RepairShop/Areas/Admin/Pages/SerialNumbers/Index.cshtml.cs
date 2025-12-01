@@ -32,7 +32,7 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
         }
 
         // API for Delete
-        public async Task<IActionResult> OnGetDelete(int? id)
+        public async Task<IActionResult> OnPostDelete(int? id, string reason)
         {
             var serialNumberToBeDeleted = await _unitOfWork.SerialNumber.GetAsy(sn => sn.Id == id && sn.IsActive == true);
             if (serialNumberToBeDeleted == null)
@@ -48,6 +48,8 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
             {
                 return new JsonResult(new { success = false, message = "Serial number cannot be deleted because it is used in defective units" });
             }
+
+            serialNumberToBeDeleted.InactiveReason = reason;
 
             await _unitOfWork.SerialNumber.RemoveAsy(serialNumberToBeDeleted);
             await _unitOfWork.SaveAsy();
