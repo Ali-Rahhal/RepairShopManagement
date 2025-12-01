@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using System.Net;
 
 namespace RepairShop.Areas.Admin.Pages.History
 {
@@ -19,13 +20,20 @@ namespace RepairShop.Areas.Admin.Pages.History
 
         public SerialNumberHistoryVM? SerialNumberHistory { get; set; }
         public string SearchTerm { get; set; }
+        public string? ReturnUrl { get; set; }
 
-        public async Task<IActionResult> OnGet(string? searchTerm = null)
+        public async Task<IActionResult> OnGet(string? searchTerm = null, string? returnUrl = null)
         {
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 SearchTerm = searchTerm.Trim();
                 await LoadSerialNumberHistory(SearchTerm);
+            }
+
+            // Decode and store the return URL
+            if (!string.IsNullOrEmpty(returnUrl))
+            {
+                ReturnUrl = WebUtility.UrlDecode(returnUrl);
             }
 
             return Page();

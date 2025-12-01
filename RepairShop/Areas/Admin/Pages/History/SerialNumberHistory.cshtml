@@ -18,6 +18,17 @@
                     </div>
                 </div>
                 <div class="card-body p-4">
+                    <!-- Back Button Row -->
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            @if (!string.IsNullOrEmpty(Model.ReturnUrl))
+                            {
+                                <a href="@Model.ReturnUrl" class="btn btn-outline-primary">
+                                    <i class="bi bi-arrow-left me-1"></i>Back to Serial Numbers List
+                                </a>
+                            }
+                        </div>
+                    </div>
                     <!-- Search Section -->
                     <div class="row mb-4">
                         <div class="col-12">
