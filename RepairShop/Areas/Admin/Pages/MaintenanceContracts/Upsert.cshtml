@@ -1,356 +1,87 @@
 ﻿@page
 @model RepairShop.Areas.Admin.Pages.MaintenanceContracts.UpsertModel
+@{
+    ViewData["Title"] = Model.MaintenanceContractForUpsert.Id == 0 
+        ? "Create Maintenance Contract" 
+        : "Edit Maintenance Contract";
+}
 
 <div class="card shadow border-0 my-4 w-100 w-xl-60 mx-auto">
-    <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
-        <div class="row">
-            <div class="col-12 text-center">
-                <h2 class="text-white py-2">
-                    @(Model.MaintenanceContractForUpsert.Id != 0 ? "Edit" : "Create") Maintenance Contract
-                </h2>
-            </div>
-        </div>
+    <div class="card-header text-white bg-primary bg-gradient py-3">
+        <h2 class="text-center mb-0">@ViewData["Title"]</h2>
     </div>
+
     <div class="card-body p-4">
-        <form method="post" class="row" id="maintenanceContractForm">
+
+        <form method="post" id="maintenanceContractForm" class="row g-4">
             <input type="hidden" asp-for="MaintenanceContractForUpsert.Id" />
-            <div class="row">
-                <div class="col-12 mx-auto">
-                    <div class="border p-4">
-                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                        <div class="mb-3">
-                            <label asp-for="MaintenanceContractForUpsert.ClientId" class="form-label fw-bold"></label>
-                            <select asp-for="MaintenanceContractForUpsert.ClientId" asp-items="@Model.ClientList"
-                                    class="form-select" id="clientSelect">
-                                <option disabled selected>-- Select Client --</option>
-                            </select>
-                            <span asp-validation-for="MaintenanceContractForUpsert.ClientId" class="text-danger"></span>
+            <!-- Client Selection -->
+            <div class="col-12">
+                <label asp-for="MaintenanceContractForUpsert.ClientId" class="form-label fw-bold">
+                    <i class="bi bi-person-circle me-1"></i> Client
+                </label>
+
+                <select asp-for="MaintenanceContractForUpsert.ClientId" asp-items="@Model.ClientList"
+                        class="form-select form-select-lg">
+                    <option value="">-- Select Client --</option>
+                </select>
+
+                <small class="text-muted">Select the customer this maintenance contract belongs to.</small>
+                <span asp-validation-for="MaintenanceContractForUpsert.ClientId" class="text-danger"></span>
+            </div>
+
+            <!-- Dates Section -->
+            <div class="col-12">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-light fw-bold">
+                        <i class="bi bi-calendar-range me-1"></i> Contract Duration
+                    </div>
+                    <div class="card-body row g-4">
+                        <div class="col-md-6">
+                            <label asp-for="MaintenanceContractForUpsert.StartDate" class="form-label fw-bold">
+                                Start Date
+                            </label>
+                            <input asp-for="MaintenanceContractForUpsert.StartDate" type="date" class="form-control form-control-lg" />
+                            <span asp-validation-for="MaintenanceContractForUpsert.StartDate" class="text-danger"></span>
                         </div>
 
-                        <!-- Serial Numbers Selection Section -->
-                        <div class="mb-3" id="serialNumbersSection" style="display: none;">
-                            <label class="form-label fw-bold">Select Serial Numbers</label>
-                            <div class="alert alert-info">
-                                <i class="bi bi-info-circle"></i> Only serial numbers without maintenance contracts or with expired contracts can be selected.
-                            </div>
-
-                            <!-- Search Bar -->
-                            <div class="mb-3">
-                                <div class="input-group">
-                                    <input type="text" id="serialNumberSearch" class="form-control" placeholder="Search by serial number or model name..." />
-                                    <button type="button" id="searchButton" class="btn btn-outline-primary">
-                                        <i class="bi bi-search"></i> Search
-                                    </button>
-                                </div>
-                                <small class="form-text text-muted">Enter at least 2 characters to search</small>
-                            </div>
-
-                            <!-- Selected Serial Numbers -->
-                            <div class="mb-3" id="selectedSerialNumbersSection" style="display: none;">
-                                <label class="form-label fw-bold">Selected Serial Numbers</label>
-                                <div id="selectedSerialNumbersList" class="border rounded p-2 bg-light">
-                                    <!-- Selected items will appear here -->
-                                </div>
-                            </div>
-
-                            <!-- Search Results -->
-                            <div class="border rounded p-3" style="max-height: 400px; overflow-y: auto;">
-                                <div id="searchResults">
-                                    <div class="text-center text-muted py-3">
-                                        Select a client and search for serial numbers to display results.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label asp-for="MaintenanceContractForUpsert.StartDate" class="form-label fw-bold"></label>
-                                    <input asp-for="MaintenanceContractForUpsert.StartDate" type="date" class="form-control" />
-                                    <span asp-validation-for="MaintenanceContractForUpsert.StartDate" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label asp-for="MaintenanceContractForUpsert.EndDate" class="form-label fw-bold"></label>
-                                    <input asp-for="MaintenanceContractForUpsert.EndDate" type="date" class="form-control" />
-                                    <span asp-validation-for="MaintenanceContractForUpsert.EndDate" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                        @if (Model.MaintenanceContractForUpsert.Id != 0)
-                        {
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Contract Number</label>
-                                <input type="text" class="form-control" value="CONTRACT-@Model.MaintenanceContractForUpsert.Id.ToString("D4")" readonly />
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Status</label>
-                                <input type="text" class="form-control" value="@Model.MaintenanceContractForUpsert.Status" readonly />
-                                <small class="form-text text-muted">Status is automatically calculated based on end date.</small>
-                            </div>
-                        }
-
-                        <div class="row pt-3">
-                            <div class="col-6 col-md-3">
-                                @if (Model.MaintenanceContractForUpsert.Id != 0)
-                                {
-                                    <button type="submit" class="btn btn-primary form-control">Update</button>
-                                }
-                                else
-                                {
-                                    <button type="submit" class="btn btn-primary form-control">Create</button>
-                                }
-                            </div>
-                            <div class="col-6 col-md-3">
-                                <a asp-page="Index" class="btn btn-outline-primary form-control">
-                                    Back to List
-                                </a>
-                            </div>
+                        <div class="col-md-6">
+                            <label asp-for="MaintenanceContractForUpsert.EndDate" class="form-label fw-bold">
+                                End Date
+                            </label>
+                            <input asp-for="MaintenanceContractForUpsert.EndDate" type="date" class="form-control form-control-lg" />
+                            <span asp-validation-for="MaintenanceContractForUpsert.EndDate" class="text-danger"></span>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Buttons -->
+            <div class="col-12 d-flex align-items-center justify-content-between mt-2 flex-wrap gap-2">
+
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="bi bi-check2-circle me-1"></i>
+                    @(Model.MaintenanceContractForUpsert.Id != 0 ? "Update Contract" : "Create Contract")
+                </button>
+
+                <a asp-page="Index" class="btn btn-outline-primary px-4">
+                    <i class="bi bi-arrow-left me-1"></i> Back to List
+                </a>
+
+                @if (Model.MaintenanceContractForUpsert.Id != 0)
+                {
+                    <a asp-page="AssignSerialNumbers" asp-route-id="@Model.MaintenanceContractForUpsert.Id"
+                       class="btn btn-success px-4 ms-auto">
+                        <i class="bi bi-upc-scan me-1"></i> Manage Serial Numbers
+                    </a>
+                }
+            </div>
         </form>
+
     </div>
 </div>
 
 @section Scripts {
-    @{
-        <partial name="_ValidationScriptsPartial" />
-    }
-    <script>
-        // Global variable to store serial number details
-        let serialNumberDetails = new Map();
-        let selectedSerialNumbers = new Set(@Html.Raw(Json.Serialize(Model.SelectedSerialNumberIds)));
-
-        document.addEventListener('DOMContentLoaded', function () {
-            // Initialize TomSelect for client dropdown
-            new TomSelect('#clientSelect', {
-                placeholder: '-- Select Client --',
-                create: false,
-                sortField: { field: 'text', direction: 'asc' }
-            });
-
-            const clientSelect = document.getElementById('clientSelect');
-            const serialNumbersSection = document.getElementById('serialNumbersSection');
-            const searchInput = document.getElementById('serialNumberSearch');
-            const searchButton = document.getElementById('searchButton');
-            const searchResults = document.getElementById('searchResults');
-            const selectedSerialNumbersSection = document.getElementById('selectedSerialNumbersSection');
-            const selectedSerialNumbersList = document.getElementById('selectedSerialNumbersList');
-
-            // Get the existing small text element
-            const existingSmallText = document.querySelector('.form-text.text-muted');
-
-            function showSearchMessage(message) {
-                if (existingSmallText) {
-                    existingSmallText.innerHTML = `<span class="text-danger">${message}</span>`;
-                }
-            }
-
-            function clearSearchMessage() {
-                if (existingSmallText) {
-                    existingSmallText.innerHTML = 'Enter at least 2 characters to search';
-                }
-            }
-
-            // Show/hide serial numbers section based on client selection
-            clientSelect.addEventListener('change', function () {
-                clearSearchMessage();
-                if (this.value) {
-                    serialNumbersSection.style.display = 'block';
-                    updateSelectedSerialNumbersDisplay();
-                } else {
-                    serialNumbersSection.style.display = 'none';
-                    searchResults.innerHTML = '<div class="text-center text-muted py-3">Select a client and search for serial numbers to display results.</div>';
-                }
-            });
-
-            // Search functionality
-            searchButton.addEventListener('click', performSearch);
-            searchInput.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') {
-                    performSearch();
-                }
-            });
-
-            function performSearch() {
-                const clientId = clientSelect.value;
-                const searchTerm = searchInput.value.trim();
-
-                clearSearchMessage();
-
-                if (!clientId) {
-                    showSearchMessage('Please select a client first.');
-                    return;
-                }
-
-                if (searchTerm.length < 2) {
-                    showSearchMessage('Please enter at least 2 characters to search.');
-                    return;
-                }
-
-                searchResults.innerHTML = '<div class="text-center py-3"><div class="spinner-border" role="status"></div><div>Searching...</div></div>';
-
-                fetch(`?handler=SearchSerialNumbers&clientId=${clientId}&searchTerm=${encodeURIComponent(searchTerm)}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.error) {
-                            showSearchMessage(data.error);
-                            searchResults.innerHTML = '<div class="text-center text-muted py-3">Search failed. Please try again.</div>';
-                            return;
-                        }
-
-                        if (!data || data.length === 0) {
-                            searchResults.innerHTML = '<div class="text-center text-muted py-3">No serial numbers found matching your search.</div>';
-                            return;
-                        }
-
-                        // Store serial number details for later use
-                        data.forEach(sn => {
-                            serialNumberDetails.set(sn.id, sn);
-                        });
-
-                        displaySearchResults(data);
-                    })
-                    .catch(error => {
-                        console.error('Error searching serial numbers:', error);
-                        showSearchMessage('Failed to search serial numbers. Please try again.');
-                        searchResults.innerHTML = '<div class="text-center text-muted py-3">Search failed. Please try again.</div>';
-                    });
-            }
-
-            function displaySearchResults(serialNumbers) {
-                let html = '';
-                let availableCount = 0;
-
-                serialNumbers.forEach(sn => {
-                    const isSelected = selectedSerialNumbers.has(sn.id);
-                    const isAvailable = sn.isAvailable;
-
-                    if (isAvailable) availableCount++;
-
-                    html += `
-                        <div class="form-check serial-number-item mb-2 ${!isAvailable ? 'text-muted' : ''}">
-                            <input class="form-check-input" type="checkbox"
-                                   value="${sn.id}"
-                                   id="sn_${sn.id}"
-                                   ${isSelected ? 'checked' : ''}
-                                   ${!isAvailable ? 'disabled' : ''}
-                                   onchange="toggleSerialNumber(${sn.id}, this.checked)">
-                            <label class="form-check-label" for="sn_${sn.id}">
-                                <strong>${sn.value}</strong> - ${sn.model}
-                                <small class="text-muted">(Received: ${sn.receivedDate})</small>
-                                ${sn.currentContract && sn.currentContract !== 'None'
-                                    ? `<span class="badge ${sn.hasActiveContract ? 'bg-warning' : 'bg-secondary'} ms-2">
-                                        ${sn.hasActiveContract ? 'Active Contract' : 'Expired Contract'} (${sn.contractEndDate})
-                                      </span>`
-                                    : '<span class="badge bg-success ms-2">Available</span>'}
-                            </label>
-                        </div>
-                    `;
-                });
-
-                // Add summary
-                html = `
-                    <div class="mb-2 p-2 bg-light rounded">
-                        <small><strong>${availableCount}</strong> of <strong>${serialNumbers.length}</strong> serial numbers available for assignment</small>
-                    </div>
-                    ${html}
-                `;
-
-                searchResults.innerHTML = html;
-            }
-
-            window.toggleSerialNumber = function (serialNumberId, isSelected) {
-                if (isSelected) {
-                    selectedSerialNumbers.add(serialNumberId);
-                } else {
-                    selectedSerialNumbers.delete(serialNumberId);
-                }
-
-                // Update hidden form fields
-                updateSelectedSerialNumbersForm();
-                updateSelectedSerialNumbersDisplay();
-            }
-
-            function updateSelectedSerialNumbersForm() {
-                // Remove existing hidden inputs
-                document.querySelectorAll('input[name="SelectedSerialNumberIds"]').forEach(input => input.remove());
-
-                // Add new hidden inputs for selected serial numbers
-                selectedSerialNumbers.forEach(id => {
-                    const input = document.createElement('input');
-                    input.type = 'hidden';
-                    input.name = 'SelectedSerialNumberIds';
-                    input.value = id;
-                    document.getElementById('maintenanceContractForm').appendChild(input);
-                });
-            }
-
-            function updateSelectedSerialNumbersDisplay() {
-                if (selectedSerialNumbers.size > 0) {
-                    selectedSerialNumbersSection.style.display = 'block';
-
-                    let html = '<div class="d-flex flex-wrap gap-2">';
-
-                    selectedSerialNumbers.forEach(id => {
-                        const sn = serialNumberDetails.get(id);
-                        if (sn) {
-                            // Only show value and model name
-                            html += `
-                                <span class="badge bg-primary p-2">
-                                    ${sn.value} - ${sn.model}
-                                </span>
-                            `;
-                        } else {
-                            // Fallback if details are not available
-                            html += `
-                                <span class="badge bg-secondary p-2">
-                                    SN-${id}
-                                </span>
-                            `;
-                        }
-                    });
-
-                    html += '</div>';
-                    selectedSerialNumbersList.innerHTML = html;
-                } else {
-                    selectedSerialNumbersSection.style.display = 'none';
-                    selectedSerialNumbersList.innerHTML = '';
-                }
-            }
-
-            // Initialize selected serial numbers display
-            updateSelectedSerialNumbersForm();
-            updateSelectedSerialNumbersDisplay();
-
-            // Show serial numbers section if editing existing contract
-            @if (Model.MaintenanceContractForUpsert.Id != 0 && Model.MaintenanceContractForUpsert.ClientId > 0)
-            {
-                        <text>
-                        serialNumbersSection.style.display = 'block';
-                        // Load initial serial number details for existing selections
-                        if (selectedSerialNumbers.size > 0) {
-                            const clientId = @Model.MaintenanceContractForUpsert.ClientId;
-                            fetch(`?handler=SearchSerialNumbers&clientId=${clientId}&searchTerm=`)
-                                .then(response => response.json())
-                                .then(data => {
-                                    if (data && !data.error) {
-                                        data.forEach(sn => {
-                                            serialNumberDetails.set(sn.id, sn);
-                                        });
-                                        updateSelectedSerialNumbersDisplay();
-                                    }
-                                });
-                        }
-                        </text>
-            }
-        });
-    </script>
+    <partial name="_ValidationScriptsPartial" />
 }

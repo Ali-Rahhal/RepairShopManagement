@@ -36,6 +36,7 @@ builder.Services.AddScoped<AppDbContext>();
 builder.Services.AddScoped<DeleteService>();
 builder.Services.AddScoped<DUReportService>();
 builder.Services.AddScoped<TransactionReportService>();
+builder.Services.AddScoped<IMaintenanceContractService, MaintenanceContractService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

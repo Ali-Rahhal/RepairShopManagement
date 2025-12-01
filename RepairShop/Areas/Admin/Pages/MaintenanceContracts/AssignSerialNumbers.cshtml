@@ -1,0 +1,160 @@
+﻿@page "{id:int}"
+@model RepairShop.Areas.Admin.Pages.MaintenanceContracts.AssignSerialNumbersModel
+@{
+    ViewData["Title"] = "Assign Serial Numbers";
+}
+
+<div class="card shadow border-0 my-4 w-100 w-xl-75 mx-auto">
+    <div class="card-header text-white bg-primary py-3">
+        <h3 class="mb-0">
+            Assign Serial Numbers to Contract — CONTRACT-@Model.ContractDisplayId
+        </h3>
+    </div>
+
+    <div class="card-body">
+
+        <!-- Search Bar -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <input id="searchBox" type="text" class="form-control form-control-lg"
+                       placeholder="Search serial numbers or models..."
+                       onkeyup="filterLists()" />
+            </div>
+        </div>
+
+        <form method="post" id="assignForm">
+            <input type="hidden" asp-for="ContractId" />
+
+            <div class="row g-4">
+
+                <!-- AVAILABLE -->
+                <div class="col-md-5">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light fw-bold">
+                            Available Serial Numbers
+                            <span class="badge bg-secondary float-end" id="availableCount">
+                                @Model.AvailableSerialNumbers.Count
+                            </span>
+                        </div>
+                        <div class="card-body p-0">
+                            <select id="availableList" class="form-select border-0 list-large" size="15" multiple>
+                                @foreach (var sn in Model.AvailableSerialNumbers)
+                                {
+                                    <option value="@sn.Id">@sn.Value (@sn.ModelName) Received: @sn.ReceivedDate.ToString("dd/MM/yyyy")</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BUTTONS -->
+                <div class="col-md-2 d-flex flex-column align-items-center justify-content-center">
+                    <button type="button" id="btnAdd" class="btn btn-primary btn-lg w-100 mb-3 shadow-sm">
+                        Add →
+                    </button>
+                    <button type="button" id="btnRemove" class="btn btn-danger btn-lg w-100 shadow-sm">
+                        ← Remove
+                    </button>
+                </div>
+
+                <!-- ASSIGNED -->
+                <div class="col-md-5">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-light fw-bold">
+                            Assigned Serial Numbers
+                            <span class="badge bg-secondary float-end" id="assignedCount">
+                                @Model.AssignedSerialNumbers.Count
+                            </span>
+                        </div>
+                        <div class="card-body p-0">
+                            <select id="assignedList" name="SelectedSerialNumberIds"
+                                    class="form-select border-0 list-large" size="15" multiple>
+                                @foreach (var sn in Model.AssignedSerialNumbers)
+                                {
+                                    <option value="@sn.Id">@sn.Value (@sn.ModelName) Received: @sn.ReceivedDate.ToString("dd/MM/yyyy")</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <button type="submit" class="btn btn-success btn-lg px-4 shadow-sm">
+                        Save Assignment
+                    </button>
+                    <a asp-page="Upsert" asp-route-id="@Model.ContractId"
+                       class="btn btn-outline-secondary btn-lg ms-2">
+                        Back to Contract
+                    </a>
+                </div>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .list-large {
+            height: 430px;
+            padding: 10px;
+            font-size: 1rem;
+        }
+
+        select option {
+            padding: 6px;
+            margin-bottom: 3px;
+            border-radius: 4px;
+        }
+
+            select option:checked {
+                background: #007bff !important;
+                color: #fff !important;
+            }
+    </style>
+
+    <script>
+        function move(source, target) {
+            const selected = [...source.selectedOptions];
+            selected.forEach(opt => {
+                target.add(opt.cloneNode(true));
+                source.remove(opt.index);
+            });
+            updateCounts();
+        }
+
+        document.getElementById('btnAdd').onclick = () =>
+            move(document.getElementById('availableList'), document.getElementById('assignedList'));
+
+        document.getElementById('btnRemove').onclick = () =>
+            move(document.getElementById('assignedList'), document.getElementById('availableList'));
+
+        document.getElementById('assignForm').addEventListener('submit', () => {
+            const assigned = document.getElementById('assignedList');
+            [...assigned.options].forEach(o => o.selected = true);
+        });
+
+        function updateCounts() {
+            document.getElementById("availableCount").innerText =
+                document.getElementById("availableList").options.length;
+
+            document.getElementById("assignedCount").innerText =
+                document.getElementById("assignedList").options.length;
+        }
+
+        function filterLists() {
+            const search = document.getElementById("searchBox").value.toLowerCase();
+
+            const lists = [
+                ...document.querySelectorAll("#availableList option, #assignedList option")
+            ];
+
+            lists.forEach(opt => {
+                opt.style.display = opt.textContent.toLowerCase().includes(search) ? "" : "none";
+            });
+        }
+    </script>
+}
