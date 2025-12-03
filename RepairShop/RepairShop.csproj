@@ -40,8 +40,4 @@
     <PackageReference Include="PDFsharp-MigraDoc" Version="6.2.2" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Areas\User\Pages\PreventiveMaintenanceRecords\" />
-  </ItemGroup>
-
 </Project>

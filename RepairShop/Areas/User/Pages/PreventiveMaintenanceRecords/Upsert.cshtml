@@ -1,0 +1,82 @@
+﻿@page "{id?}"
+@model RepairShop.Areas.User.Pages.PreventiveMaintenanceRecords.UpsertModel
+
+<div class="card shadow border-0 my-4 w-100 w-xl-60 mx-auto">
+    <div class="card-header bg-primary text-white">
+        <h3 class="text-center">
+            @(Model.Record.Id == 0 ? "Add Preventive Maintenance Record" : "Edit Preventive Maintenance Record")
+        </h3>
+    </div>
+
+    <div class="card-body">
+        <form method="post">
+            <input type="hidden" asp-for="Record.Id" />
+            <input type="hidden" asp-for="clientId" />
+
+            @inject Microsoft.AspNetCore.Identity.SignInManager<AppUser> SignInManager;
+            <input hidden asp-for="Record.UserId" value="@SignInManager.UserManager.GetUserId(User)" />
+
+            <div class="mb-3">
+                <label asp-for="Record.DepartmentLocation" class="form-label fw-bold"></label>
+                <input asp-for="Record.DepartmentLocation" class="form-control" />
+                <span asp-validation-for="Record.DepartmentLocation" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold">Serial Number</label>
+                <input asp-for="SerialNumberValue" class="form-control" />
+                <span asp-validation-for="SerialNumberValue" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Record.IpAddress" class="form-label fw-bold"></label>
+                <input asp-for="Record.IpAddress" class="form-control" />
+                <span asp-validation-for="Record.IpAddress" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Record.PurchaseDate" class="form-label fw-bold"></label>
+                <input asp-for="Record.PurchaseDate" type="date" class="form-control" />
+                <span asp-validation-for="Record.PurchaseDate" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Record.Problem" class="form-label fw-bold"></label>
+                <textarea asp-for="Record.Problem" class="form-control"></textarea>
+                <span asp-validation-for="Record.Problem" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Record.Solution" class="form-label fw-bold"></label>
+                <textarea asp-for="Record.Solution" class="form-control"></textarea>
+                <span asp-validation-for="Record.Solution" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Record.CheckupDate" class="form-label fw-bold"></label>
+                <input asp-for="Record.CheckupDate" type="date" class="form-control" />
+                <span asp-validation-for="Record.CheckupDate" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Record.Comment" class="form-label fw-bold"></label>
+                <textarea asp-for="Record.Comment" class="form-control"></textarea>
+                <span asp-validation-for="Record.Comment" class="text-danger"></span>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a asp-page="Index" asp-route-clientId="@Model.clientId" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back
+                </a>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Save
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

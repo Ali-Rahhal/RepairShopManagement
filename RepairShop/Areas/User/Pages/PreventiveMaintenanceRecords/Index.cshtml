@@ -1,0 +1,80 @@
+﻿@page
+@model RepairShop.Areas.User.Pages.PreventiveMaintenanceRecords.IndexModel
+@{
+}
+<div class="card shadow border-0 my-4">
+    <div class="card-header text-white bg-primary bg-gradient m-lg-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">Preventive Maintenance Records</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <!-- Client Filter Section -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Client</label>
+                <select id="clientFilter" class="form-select" asp-items="Model.ClientList" asp-for="SelectedClientId">
+                </select>
+                <div class="form-text mt-1">Choose a client to load their maintenance records</div>
+            </div>
+
+            <div class="col-md-6 d-flex align-items-end gap-2">
+                <button id="btnLoadRecords" class="btn btn-primary px-4">
+                    <i class="bi bi-search"></i> Load
+                </button>
+                <button id="btnClearFilter" class="btn btn-outline-warning px-4">
+                    <i class="bi bi-x-circle"></i> Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Records Table Section (initially hidden) -->
+        <div id="recordsSection" class="d-none">
+            <div class="row pb-3">
+                <input hidden id="isAdmin" value="@User.IsInRole(SD.Role_Admin).ToString()" />
+                <div class="col-6">
+                    <h5 id="clientNameDisplay" class="text-primary mb-0"></h5>
+                </div>
+                <div class="col-6 text-end">
+                    <a id="btnAddNewRecord" asp-page="Upsert" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Add New Record
+                    </a>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table id="tblData" class="table table-bordered table-striped" style="width:100%">
+                    <thead>
+                        <tr class="table-primary">
+                            <th>Department/Location</th>
+                            <th>Model</th>
+                            <th>Serial Number</th>
+                            <th>Ip Address</th>
+                            <th>Purchase Date</th>
+                            <th>Problem</th>
+                            <th>Solution</th>
+                            <th>Checkup Date</th>
+                            <th>Comment</th>
+                            <th></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center py-5">
+            <div class="empty-state-icon mb-3">
+                <i class="bi bi-funnel display-1 text-muted"></i>
+            </div>
+            <h4 class="text-muted">No Client Selected</h4>
+            <p class="text-muted">Please select a client from the dropdown above to view their preventive maintenance records.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/preventiveMaintenance.js" asp-append-version="true"></script>
+}
