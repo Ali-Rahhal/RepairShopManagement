@@ -21,7 +21,7 @@ namespace RepairShop.Repository
         public IWarrantyRepository Warranty { get; private set; }
         public IMaintenanceContractRepository MaintenanceContract { get; private set; }
         public IDefectiveUnitRepository DefectiveUnit { get; private set; }
-
+        public IPreventiveMaintenanceRecordRepository PreventiveMaintenanceRecord { get; private set; }
 
 
         public UnitOfWork(AppDbContext db)
@@ -37,6 +37,7 @@ namespace RepairShop.Repository
             Warranty = new WarrantyRepository(_db);
             MaintenanceContract = new MaintenanceContractRepository(_db);
             DefectiveUnit = new DefectiveUnitRepository(_db);
+            PreventiveMaintenanceRecord = new PreventiveMaintenanceRecordRepository(_db);
         }
 
         public async Task SaveAsy()

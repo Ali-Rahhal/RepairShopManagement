@@ -27,5 +27,7 @@ namespace RepairShop.Models
         [JsonIgnore]
         public ICollection<SerialNumber> SerialNumbers { get; set; } //has many serial numbers
 
+        [ValidateNever]
+        public ICollection<PreventiveMaintenanceRecord> PreventiveMaintenanceRecords { get; set; }
     }
 }

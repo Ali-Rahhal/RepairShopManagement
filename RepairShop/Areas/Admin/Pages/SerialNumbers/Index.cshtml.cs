@@ -42,11 +42,18 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
 
             // Check if serial number is referenced in any defective units
             var isUsedInDefectiveUnits = (await _unitOfWork.DefectiveUnit
-                .GetAllAsy(du => du.IsActive == true && du.SerialNumberId == serialNumberToBeDeleted.Id));
+                .GetAllAsy(du => du.SerialNumberId == serialNumberToBeDeleted.Id && du.IsActive == true));
 
             if (isUsedInDefectiveUnits.Any())
             {
                 return new JsonResult(new { success = false, message = "Serial number cannot be deleted because it is used in defective units" });
+            }
+
+            var isUsedInPreventiveMaintenances = (await _unitOfWork.PreventiveMaintenanceRecord.GetAllAsy(pm => pm.SerialNumberId == serialNumberToBeDeleted.Id && pm.IsActive == true));
+
+            if (isUsedInPreventiveMaintenances.Any())
+            {
+                return new JsonResult(new { success = false, message = "Serial number cannot be deleted because it is used in preventive maintenance records" });
             }
 
             serialNumberToBeDeleted.InactiveReason = reason;

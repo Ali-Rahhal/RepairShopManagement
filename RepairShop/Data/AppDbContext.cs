@@ -20,6 +20,7 @@ namespace RepairShop.Data
         public DbSet<Warranty> Warranties { get; set; }
         public DbSet<MaintenanceContract> MaintenanceContracts { get; set; }
         public DbSet<DefectiveUnit> DefectiveUnits { get; set; }
+        public DbSet<PreventiveMaintenanceRecord> PreventiveMaintenanceRecords { get; set; }
         
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

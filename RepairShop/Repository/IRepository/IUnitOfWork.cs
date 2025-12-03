@@ -19,7 +19,7 @@ namespace RepairShop.Repository.IRepository
         IWarrantyRepository Warranty { get; }
         IMaintenanceContractRepository MaintenanceContract { get; }
         IDefectiveUnitRepository DefectiveUnit { get; }
-        
+        IPreventiveMaintenanceRecordRepository PreventiveMaintenanceRecord { get; }
 
 
         Task SaveAsy();
