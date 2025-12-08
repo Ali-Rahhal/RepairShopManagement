@@ -17,6 +17,19 @@ $(document).ready(function () {
     // Initialize the client filter
     initializeClientFilter();
 
+    // ⭐ RESTORE SELECTED CLIENT FROM localStorage
+    let savedClientId = localStorage.getItem("selectedClientId");
+
+    if (savedClientId && savedClientId !== "0") {
+        selectedClientId = savedClientId;
+
+        // Set it in TomSelect
+        $('#clientFilter')[0].tomselect.setValue(savedClientId);
+
+        // Auto-load records
+        loadRecordsForSelectedClient();
+    }
+
     // Don't load DataTable on page load anymore
     // loadDataTable(); // Remove this line
 
@@ -89,6 +102,8 @@ function loadRecordsForSelectedClient() {
     // Update Add New Record button route
     $('#btnAddNewRecord').attr('href', `/User/PreventiveMaintenanceRecords/Upsert?clientId=${selectedClientId}`);
 
+    localStorage.setItem("selectedClientId", selectedClientId);
+
     // Initialize or reload DataTable
     if (typeof dataTable === 'undefined') {
         loadDataTable();
@@ -98,6 +113,7 @@ function loadRecordsForSelectedClient() {
 }
 
 function clearFilter() {
+    localStorage.removeItem("selectedClientId");
     // Reset dropdown
     $('#clientFilter')[0].tomselect.clear();
     selectedClientId = 0;
@@ -116,6 +132,9 @@ function clearFilter() {
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         "stateSave": true,
+        stateLoadParams: function (settings, data) {
+            delete data.order; // remove saved order only
+        },
         "stateDuration": 86400,
         "ajax": {
             url: '/User/PreventiveMaintenanceRecords/Index?handler=All',
@@ -293,11 +312,6 @@ function loadDataTable() {
         "language": {
             "emptyTable": "No preventive maintenance records found for this client",
             "zeroRecords": "No matching records found"
-        }
-    });
-    dataTable.on('preDraw', function () {
-        if (!dataTable.order() || dataTable.order()[0][0] !== 10) {
-            dataTable.order([[10, 'desc']]);
         }
     });
 }
