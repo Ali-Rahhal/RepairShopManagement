@@ -38,7 +38,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             {
                 THList = (await _unitOfWork.TransactionHeader
                     .GetAllAsy(t => t.IsActive == true,
-                    includeProperties: "User,DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client")).ToList();
+                    includeProperties: "User,DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client,DefectiveUnit.SerialNumber.Client.ParentClient")).ToList();
             }
             else//If the user is not an admin get only their transactions
             {
@@ -48,7 +48,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
 
                 THList = (await _unitOfWork.TransactionHeader
                     .GetAllAsy(t => t.IsActive == true && t.UserId == userId,
-                    includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client")).ToList();
+                    includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client,DefectiveUnit.SerialNumber.Client.ParentClient")).ToList();
             }
 
             // Format the data for better display
@@ -60,7 +60,8 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 serialNumber = t.DefectiveUnit?.SerialNumber?.Value ?? "N/A",
                 duDescription = t.DefectiveUnit?.Description ?? "N/A",
                 status = t.Status,
-                client = t.DefectiveUnit?.SerialNumber?.Client != null ? new { name = t.DefectiveUnit.SerialNumber.Client.Name, branch = t.DefectiveUnit.SerialNumber.Client.Branch } : null,
+                clientName = t.DefectiveUnit?.SerialNumber.Client.ParentClient != null ? t.DefectiveUnit?.SerialNumber.Client.ParentClient.Name : t.DefectiveUnit?.SerialNumber.Client.Name,
+                branchName = t.DefectiveUnit?.SerialNumber.Client.ParentClient != null ? t.DefectiveUnit?.SerialNumber.Client.Name : "N/A",
                 lastModifiedDate = t.LastModifiedDate ?? t.CreatedDate,
                 createdDate = t.CreatedDate,
                 inProgressDate = t.InProgressDate,
@@ -199,7 +200,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
         {
             var transactionHeader = await _unitOfWork.TransactionHeader.GetAsy(
                 th => th.Id == id && th.IsActive == true,
-                includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client,User"
+                includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client,DefectiveUnit.SerialNumber.Client.ParentClient,User"
             );
 
             if (transactionHeader == null)

@@ -67,13 +67,23 @@
                                                 <strong>Model:</strong> @Model.SerialNumberHistory.SerialNumber.Model.Name
                                             </div>
                                             @{
-                                                var clientBranch = Model.SerialNumberHistory.SerialNumber.Client.Branch;
+                                                string clientName;
+                                                var clientBranch = "N/A";
+                                                if (Model.SerialNumberHistory.SerialNumber.Client.ParentClient != null)
+                                                {
+                                                    clientName = Model.SerialNumberHistory?.SerialNumber.Client.ParentClient?.Name ?? "N/A";
+                                                    clientBranch = Model.SerialNumberHistory?.SerialNumber.Client.Name ?? "N/A";
+                                                }
+                                                else
+                                                {
+                                                    clientName = Model.SerialNumberHistory?.SerialNumber.Client.Name ?? "N/A";
+                                                }
                                             }
                                             <div class="col-md-3">
-                                                <strong>Client:</strong> @($"{Model.SerialNumberHistory.SerialNumber.Client.Name}{(clientBranch != null ? $" - {clientBranch}" : "")}")
+                                                <strong>Client:</strong> @($"{clientName}{(clientBranch != "N/A" ? $" - {clientBranch}" : "")}")
                                             </div>
                                             <div class="col-md-3">
-                                                <strong>Received Date:</strong> @Model.SerialNumberHistory.SerialNumber.ReceivedDate.ToString("dd-MM-yyyy hh:mm tt")
+                                                <strong>Received Date:</strong> @(Model.SerialNumberHistory?.SerialNumber.ReceivedDate.ToString("dd-MM-yyyy hh:mm tt") ?? "N/A")
                                             </div>
                                             <div class="col-md-3">
                                                 <strong>Warranty:</strong>

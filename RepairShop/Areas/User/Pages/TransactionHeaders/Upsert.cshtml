@@ -96,10 +96,20 @@
                                         <strong>Model:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.SerialNumber?.Model?.Name ?? "N/A")</span>
                                     </div>
                                     @{
-                                        var clientBranch = Model.thForUpsert.DefectiveUnit?.SerialNumber?.Client?.Branch;
+                                        string clientName;
+                                        var clientBranch = "N/A";
+                                        if (Model.thForUpsert.DefectiveUnit?.SerialNumber?.Client?.ParentClient != null)
+                                        {
+                                            clientName = Model.thForUpsert.DefectiveUnit?.SerialNumber?.Client?.ParentClient?.Name ?? "N/A";
+                                            clientBranch = Model.thForUpsert.DefectiveUnit?.SerialNumber?.Client?.Name ?? "N/A";
+                                        }
+                                        else
+                                        {
+                                            clientName = Model.thForUpsert.DefectiveUnit?.SerialNumber?.Client?.Name ?? "N/A";
+                                        }
                                     }
                                     <div class="col-md-4">
-                                        <strong>Client:</strong> <span>@($"{Model.thForUpsert.DefectiveUnit?.SerialNumber?.Client?.Name}{(clientBranch != null ? $" - {clientBranch}" : "")}")</span>
+                                        <strong>Client:</strong> <span>@($"{clientName}{(clientBranch != "N/A" ? $" - {clientBranch}" : "")}")</span>
                                     </div>
                                     <div class="col-md-4">
                                         <strong>Reported Date:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.ReportedDate.ToString("yyyy-MM-dd") ?? "N/A")</span>

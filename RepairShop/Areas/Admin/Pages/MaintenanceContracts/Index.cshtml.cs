@@ -27,7 +27,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
         {
             var contractList = (await _unitOfWork.MaintenanceContract.GetAllAsy(
                 mc => mc.IsActive == true,
-                includeProperties: "Client"
+                includeProperties: "Client,Client.ParentClient"
             )).ToList();
 
             // Update status for contracts that have expired
@@ -57,8 +57,8 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
             {
                 id = mc.Id,
                 contractNumber = $"CONTRACT-{mc.Id:D4}",
-                clientName = mc.Client?.Name ?? "N/A",
-                clientBranch = mc.Client?.Branch ?? "N/A",
+                clientName = mc.Client?.ParentClient != null ? mc.Client?.ParentClient.Name : mc.Client?.Name,
+                clientBranch = mc.Client?.ParentClient != null ? mc.Client?.Name : "N/A",
                 startDate = mc.StartDate,
                 endDate = mc.EndDate,
                 status = mc.Status,

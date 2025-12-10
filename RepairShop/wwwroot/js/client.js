@@ -19,11 +19,8 @@ function loadDataTable() {
         "columns": [
             { data: 'name', "width": "14%" },
             {
-                data: 'branch',
-                "width": "14%",
-                "render": function (data) {
-                    return data || 'N/A';
-                }
+                data: 'branchCount',
+                "width": "14%"
             },
             { data: 'phone', "width": "20%" },
             { data: 'email', "width": "20%" },
@@ -35,7 +32,7 @@ function loadDataTable() {
                     return `<div class="w-100 d-flex justify-content-center" role="group">
                     <a href="/User/Clients/ClientSNIndex?id=${data}" title="View Serial Numbers" class="btn btn-info mx-2"><i class="bi bi-list"></i></a>
                     <a href="/User/Clients/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                    <!--onclick is for initiating Delete function and passing the url with id-->
+                    <a href="/User/Clients/ClientBranchIndex?id=${data}" title="View Branches" class="btn btn-warning mx-2"><i class="bi bi-people"></i></a>
                     <a onClick="Delete('/User/Clients/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                     </div>`
                 },

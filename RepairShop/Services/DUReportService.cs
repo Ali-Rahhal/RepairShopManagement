@@ -143,10 +143,22 @@ namespace RepairShop.Services
 
             var table = CreateBaseTable(section);
 
+            string clientName;
+            var branchName = "N/A";
+            if (du.SerialNumber.Client.ParentClient != null)
+            {
+                clientName = du.SerialNumber.Client.ParentClient.Name;
+                branchName = du.SerialNumber.Client.Name;
+            }
+            else
+            {
+                clientName = du.SerialNumber.Client.Name;
+            }
+
             AddTableRow(table, "Serial Number:", du.SerialNumber.Value);
             AddTableRow(table, "Model:", du.SerialNumber.Model?.Name ?? "N/A");
-            AddTableRow(table, "Client:", du.SerialNumber.Client?.Name ?? "N/A");
-            AddTableRow(table, "Branch:", du.SerialNumber.Client?.Branch ?? "N/A");
+            AddTableRow(table, "Client:", clientName);
+            AddTableRow(table, "Branch:", branchName);
             AddTableRow(table, "Received Date:", du.SerialNumber.ReceivedDate.ToString("dd/MM/yyyy HH:mm tt"));
         }
 

@@ -25,10 +25,22 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
         {
             var serialNumberList = (await _unitOfWork.SerialNumber.GetAllAsy(
                 sn => sn.IsActive == true,
-                includeProperties: "Model,Client,MaintenanceContract"
+                includeProperties: "Model,Client,Client.ParentClient,MaintenanceContract"
             )).ToList();
 
-            return new JsonResult(new { data = serialNumberList });
+            var formattedData = serialNumberList.Select(sn => new
+            {
+                id = sn.Id,
+                value = sn.Value,
+                modelName = sn.Model.Name,
+                clientName = sn.Client.ParentClient != null ? sn.Client.ParentClient.Name : sn.Client.Name,
+                branchName = sn.Client.ParentClient != null ? sn.Client.Name : "N/A",
+                maintenanceContractId = sn.MaintenanceContractId ?? null,
+                warrantyId = sn.WarrantyId ?? null,
+                receivedDate = sn.ReceivedDate
+            });
+
+            return new JsonResult(new { data = formattedData });
         }
 
         // API for Delete
@@ -79,7 +91,8 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
         // API for Clients (for filter dropdown)
         public async Task<JsonResult> OnGetClients()
         {
-            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true 
+            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true
+                            && c.ParentClient == null
                             && c.SerialNumbers.Any(sn => sn.IsActive == true),
                             includeProperties: "SerialNumbers"))
                                 .Select(c => new { id = c.Id, name = c.Name })

@@ -1,5 +1,5 @@
 ﻿@page
-@model RepairShop.Areas.User.Pages.Clients.UpsertModel
+@model RepairShop.Areas.User.Pages.Clients.ClientBranchUpsertModel
 @{
 }
 
@@ -8,41 +8,42 @@
         <div class="row">
             <div class="col-12 text-center">
                 <h2 class="text-white py-2">
-                    @(Model.clientForUpsert.Id != 0 ? "Edit" : "Create") Client
+                    @(Model.BranchForUpsert.Id != 0 ? "Edit" : "Create") Branch
                 </h2>
             </div>
         </div>
     </div>
     <div class="card-body p-4">
         <form method="post" class="row">
-            <input type="hidden" asp-for="clientForUpsert.Id" />
+            <input type="hidden" asp-for="BranchForUpsert.Id" />
+            <input type="hidden" asp-for="BranchForUpsert.ParentClientId" />
             <div class="row">
                 <div class="col-12">
                     <div class="border p-3">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                         <div class="form-floating py-2 col-12">
-                            <input asp-for="clientForUpsert.Name" class="form-control border-0 shadow" />
-                            <label asp-for="clientForUpsert.Name" class="ms-2"></label>
-                            <span asp-validation-for="clientForUpsert.Name" class="text-danger"></span>
+                            <input asp-for="BranchForUpsert.Name" class="form-control border-0 shadow" />
+                            <label asp-for="BranchForUpsert.Name" class="ms-2"></label>
+                            <span asp-validation-for="BranchForUpsert.Name" class="text-danger"></span>
                         </div>
                         <div class="form-floating py-2 col-12">
-                            <input asp-for="clientForUpsert.Phone" class="form-control border-0 shadow" />
-                            <label asp-for="clientForUpsert.Phone" class="ms-2"></label>
-                            <span asp-validation-for="clientForUpsert.Phone" class="text-danger"></span>
+                            <input asp-for="BranchForUpsert.Phone" class="form-control border-0 shadow" />
+                            <label asp-for="BranchForUpsert.Phone" class="ms-2"></label>
+                            <span asp-validation-for="BranchForUpsert.Phone" class="text-danger"></span>
                         </div>
                         <div class="form-floating py-2 col-12">
-                            <input asp-for="clientForUpsert.Email" class="form-control border-0 shadow" />
-                            <label asp-for="clientForUpsert.Email" class="ms-2"></label>
-                            <span asp-validation-for="clientForUpsert.Email" class="text-danger"></span>
+                            <input asp-for="BranchForUpsert.Email" class="form-control border-0 shadow" />
+                            <label asp-for="BranchForUpsert.Email" class="ms-2"></label>
+                            <span asp-validation-for="BranchForUpsert.Email" class="text-danger"></span>
                         </div>
                         <div class="form-floating py-2 col-12">
-                            <input asp-for="clientForUpsert.Address" class="form-control border-0 shadow" />
-                            <label asp-for="clientForUpsert.Address" class="ms-2"></label>
-                            <span asp-validation-for="clientForUpsert.Address" class="text-danger"></span>
+                            <input asp-for="BranchForUpsert.Address" class="form-control border-0 shadow" />
+                            <label asp-for="BranchForUpsert.Address" class="ms-2"></label>
+                            <span asp-validation-for="BranchForUpsert.Address" class="text-danger"></span>
                         </div>
                         <div class="row pt-2">
                             <div class="col-6 col-md-3">
-                                @if (Model.clientForUpsert.Id != 0)
+                                @if (Model.BranchForUpsert.Id != 0)
                                 {
                                     <button type="submit" class="btn btn-primary form-control">Update</button>
                                 }
@@ -52,7 +53,7 @@
                                 }
                             </div>
                             <div class="col-6 col-md-3">
-                                <a asp-page="Index" class="btn btn-outline-primary form-control">
+                                <a asp-page="ClientBranchIndex" asp-route-id="@Model.BranchForUpsert.ParentClientId" class="btn btn-outline-primary form-control">
                                     Back to List
                                 </a>
                             </div>

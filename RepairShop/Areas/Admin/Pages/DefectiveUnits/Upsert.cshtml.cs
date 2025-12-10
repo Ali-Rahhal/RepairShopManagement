@@ -206,18 +206,30 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             var sn = await _unitOfWork.SerialNumber.GetAsy(
                 sn => sn.IsActive == true &&
                     sn.Value.Equals(searchTerm),
-                includeProperties: "Model,Client,Warranty,MaintenanceContract"
+                includeProperties: "Model,Client,Client.ParentClient,Warranty,MaintenanceContract"
             );
 
             if (sn == null) return new JsonResult(null);
+
+            string clientName;
+            var branchName = "N/A";
+            if (sn.Client.ParentClient != null)
+            {
+                clientName = sn.Client.ParentClient.Name;
+                branchName = sn.Client.Name;
+            }
+            else
+            {
+                clientName = sn.Client.Name;
+            }
 
             var serialNumber = new
             {
                 id = sn.Id,
                 value = sn.Value,
                 modelName = sn.Model.Name,
-                clientName = sn.Client.Name,
-                clientBranch = sn.Client.Branch ?? "N/A",
+                clientName,
+                clientBranch = branchName,
                 modelId = sn.ModelId,
                 clientId = sn.ClientId,
                 receivedDate = sn.ReceivedDate.ToString("dd-MM-yyyy HH:mm tt"),
@@ -235,12 +247,24 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         {
             var serialNumber = await _unitOfWork.SerialNumber.GetAsy(
                 sn => sn.Id == id && sn.IsActive == true,
-                includeProperties: "Model,Client,Warranty,MaintenanceContract"
+                includeProperties: "Model,Client,Client.ParentClient,Warranty,MaintenanceContract"
             );
 
             if (serialNumber == null)
             {
                 return new JsonResult(new { success = false });
+            }
+
+            string clientName;
+            var branchName = "N/A";
+            if (serialNumber.Client.ParentClient != null)
+            {
+                clientName = serialNumber.Client.ParentClient.Name;
+                branchName = serialNumber.Client.Name;
+            }
+            else
+            {
+                clientName = serialNumber.Client.Name;
             }
 
             var result = new
@@ -249,7 +273,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 serialNumberId = serialNumber.Id,
                 serialNumberValue = serialNumber.Value,
                 modelName = serialNumber.Model.Name,
-                clientName = $"{serialNumber.Client.Name}{(serialNumber.Client.Branch != null ? $" - {serialNumber.Client.Branch}" : "")}",
+                clientName = $"{clientName}{(branchName != null ? $" - {branchName}" : "")}",
                 modelId = serialNumber.ModelId,
                 clientId = serialNumber.ClientId,
                 hasActiveWarranty = serialNumber.Warranty != null && serialNumber.Warranty.Status == "Active",
@@ -267,13 +291,15 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         {
             var contracts = (await _unitOfWork.MaintenanceContract.GetAllAsy(
                 mc => mc.IsActive == true && mc.ClientId == clientId,
-                includeProperties: "Client"
+                includeProperties: "Client,Client.ParentClient"
             ))
             .OrderBy(mc => mc.Id)
             .Select(mc => new
             {
                 id = mc.Id,
-                text = $"Contract #{mc.Id} - {mc.Client.Name}{(mc.Client.Branch != null ? $" - {mc.Client.Branch}" : "")} ({mc.Status})"
+                text = mc.Client.ParentClient != null 
+                    ? $"Contract #{mc.Id} - {mc.Client.ParentClient.Name} - {mc.Client.Name} ({mc.Status})" 
+                    : $"Contract #{mc.Id} - {mc.Client.Name} ({mc.Status})"
             })
             .ToList();
 
@@ -300,7 +326,9 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
             ClientList = clients.Select(c => new SelectListItem
             {
-                Text = $"{c.Name}{(c.Branch != null ? $" - {c.Branch}" : "")}",
+                Text = c.ParentClient != null
+                    ? $"{c.ParentClient.Name} - {c.Name}"
+                    : $"{c.Name}",
                 Value = c.Id.ToString()
             });
 
@@ -315,14 +343,16 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         {
             var contracts = (await _unitOfWork.MaintenanceContract.GetAllAsy(
                 mc => mc.IsActive == true && mc.ClientId == clientId,
-                includeProperties: "Client"
+                includeProperties: "Client,Client.ParentClient"
             ))
             .OrderBy(mc => mc.Id)
             .ToList();
 
             MaintenanceContractList = contracts.Select(mc => new SelectListItem
             {
-                Text = $"Contract #{mc.Id} - {mc.Client.Name}{(mc.Client.Branch != null ? $" - {mc.Client.Branch}" : "")} ({mc.Status})",
+                Text = mc.Client.ParentClient != null
+                    ? $"Contract #{mc.Id} - {mc.Client.ParentClient.Name} - {mc.Client.Name} ({mc.Status})"
+                    : $"Contract #{mc.Id} - {mc.Client.Name} ({mc.Status})",
                 Value = mc.Id.ToString()
             }).ToList();
 

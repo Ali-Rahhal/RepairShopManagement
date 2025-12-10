@@ -28,7 +28,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         {
             var defectiveUnitList = (await _unitOfWork.DefectiveUnit.GetAllAsy(
                 filter: du => du.IsActive == true,
-                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,SerialNumber.Warranty,SerialNumber.MaintenanceContract"
+                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,SerialNumber.Client.ParentClient,SerialNumber.Warranty,SerialNumber.MaintenanceContract"
             )).ToList();
 
             // Format the data for better display
@@ -41,8 +41,8 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 status = du.Status,
                 resolvedDate = du.ResolvedDate?.ToString("dd/MM/yyyy") ?? "Not resolved",
                 serialNumber = du.SerialNumber?.Value ?? "N/A",
-                clientName = du.SerialNumber?.Client?.Name ?? "N/A",
-                clientBranch = du.SerialNumber?.Client?.Branch ?? "N/A",
+                clientName = du.SerialNumber?.Client.ParentClient != null ? du.SerialNumber?.Client.ParentClient.Name : du.SerialNumber?.Client.Name,
+                clientBranch = du.SerialNumber?.Client.ParentClient != null ? du.SerialNumber?.Client.Name : "N/A",
                 warrantyCovered = du.SerialNumber?.WarrantyId != null ? "Yes" : "No",
                 contractCovered = du.SerialNumber?.MaintenanceContractId != null ? "Yes" : "No",
                 daysSinceReported = (DateTime.Now - du.ReportedDate).Days
@@ -101,7 +101,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         {
             var defectiveUnit = await _unitOfWork.DefectiveUnit.GetAsy(
                 du => du.IsActive == true && du.Id == id,
-                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,SerialNumber.Warranty,SerialNumber.MaintenanceContract"
+                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,SerialNumber.Client.ParentClient,SerialNumber.Warranty,SerialNumber.MaintenanceContract"
             );
 
             if (defectiveUnit == null)

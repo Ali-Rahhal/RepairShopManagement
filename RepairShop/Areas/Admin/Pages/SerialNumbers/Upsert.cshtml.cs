@@ -157,13 +157,15 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
         {
             var contracts = (await _unitOfWork.MaintenanceContract.GetAllAsy(
                 mc => mc.IsActive == true && mc.ClientId == clientId,
-                includeProperties: "Client"
+                includeProperties: "Client,Client.ParentClient"
             ))
             .OrderBy(mc => mc.Id)
             .Select(mc => new
             {
                 id = mc.Id,
-                text = $"Contract #{mc.Id} - {mc.Client.Name}{(mc.Client.Branch != null ? $" - {mc.Client.Branch}" : "")} ({mc.Status})"
+                text = mc.Client.ParentClient != null
+                    ? $"Contract #{mc.Id} - {mc.Client.ParentClient.Name} - {mc.Client.Name} ({mc.Status})"
+                    : $"Contract #{mc.Id} - {mc.Client.Name} ({mc.Status})"
             })
             .ToList();
 
@@ -184,13 +186,15 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
             });
 
             // Populate Clients dropdown
-            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true))
+            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true, includeProperties: "ParentClient"))
                 .OrderBy(c => c.Name)
                 .ToList();
 
             ClientList = clients.Select(c => new SelectListItem
             {
-                Text = $"{c.Name}{(c.Branch != null ? $" - {c.Branch}" : "")}",
+                Text = c.ParentClient != null
+                    ? $"{c.ParentClient.Name} - {c.Name}"
+                    : $"{c.Name}",
                 Value = c.Id.ToString()
             });
 
@@ -205,14 +209,16 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
         {
             var contracts = (await _unitOfWork.MaintenanceContract.GetAllAsy(
                 mc => mc.IsActive == true && mc.ClientId == clientId,
-                includeProperties: "Client"
+                includeProperties: "Client,Client.ParentClient"
             ))
             .OrderBy(mc => mc.Id)
             .ToList();
 
             MaintenanceContractList = contracts.Select(mc => new SelectListItem
             {
-                Text = $"Contract #{mc.Id} - {mc.Client.Name}{(mc.Client.Branch != null ? $" - {mc.Client.Branch}" : "")} ({mc.Status})",
+                Text = mc.Client.ParentClient != null
+                    ? $"Contract #{mc.Id} - {mc.Client.ParentClient.Name} - {mc.Client.Name} ({mc.Status})"
+                    : $"Contract #{mc.Id} - {mc.Client.Name} ({mc.Status})",
                 Value = mc.Id.ToString()
             }).ToList();
 

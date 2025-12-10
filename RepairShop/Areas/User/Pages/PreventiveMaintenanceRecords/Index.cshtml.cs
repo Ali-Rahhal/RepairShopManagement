@@ -27,14 +27,14 @@ namespace RepairShop.Areas.User.Pages.PreventiveMaintenanceRecords
         public async Task OnGet(long? clientId)
         {
             // Populate client dropdown
-            var clients = await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true);
+            var clients = await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true, includeProperties: "ParentClient");
 
             ClientList = clients
                 .OrderBy(c => c.Name)
                 .Select(c => new SelectListItem
                 {
                     Value = c.Id.ToString(),
-                    Text = $"{c.Name}{(c.Branch != null ? $" - {c.Branch}" : "")}"
+                    Text = c.ParentClientId != null ? $"{c.ParentClient?.Name ?? "N/A"}{($" - {c.Name}")}" : $"{c.Name}"
                 })
                 .ToList();
 

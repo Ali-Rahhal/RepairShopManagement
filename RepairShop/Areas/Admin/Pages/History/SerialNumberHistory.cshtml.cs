@@ -62,13 +62,15 @@ namespace RepairShop.Areas.Admin.Pages.History
 
             var serialNumbers = (await _unitOfWork.SerialNumber.GetAllAsy(
                 sn => sn.Value.ToLower().Contains(term.ToLower()) && sn.IsActive == true,
-                includeProperties: "Model,Client"
+                includeProperties: "Model,Client,Client.ParentClient"
             )).Take(10);
 
             var results = serialNumbers.Select(sn => new
             {
                 id = sn.Value,
-                text = $"{sn.Value} - {sn.Model.Name} ({sn.Client.Name}{(sn.Client.Branch != null ? $" - {sn.Client.Branch}" : "")})"
+                text = sn.Client.ParentClient != null
+                    ? $"{sn.Value} - {sn.Model.Name} ({sn.Client.ParentClient.Name} - {sn.Client.Name})"
+                    : $"{sn.Value} - {sn.Model.Name} ({sn.Client.Name})"
             }).ToList();
 
             return new JsonResult(new { results });
@@ -79,7 +81,7 @@ namespace RepairShop.Areas.Admin.Pages.History
             // Find the serial number
             var serialNumber = await _unitOfWork.SerialNumber.GetAsy(
                 sn => sn.Value.ToLower().Equals(searchTerm.ToLower()) && sn.IsActive == true,
-                includeProperties: "Model,Client,Warranty,MaintenanceContract"
+                includeProperties: "Model,Client,Client.ParentClient,Warranty,MaintenanceContract"
             );
 
             if (serialNumber == null)
@@ -122,13 +124,25 @@ namespace RepairShop.Areas.Admin.Pages.History
             // Create timeline events
             var timelineEvents = new List<TimelineEvent>();
 
+            string cName;
+            var cBranch = "";
+            if (serialNumber.Client.ParentClient != null)
+            {
+                cName = serialNumber.Client.ParentClient?.Name ?? "N/A";
+                cBranch = serialNumber.Client.Name ?? "N/A";
+            }
+            else
+            {
+                cName = serialNumber.Client.Name ?? "N/A";
+            }
+
             // Add serial number received event
             timelineEvents.Add(new TimelineEvent
             {
                 EventType = "Serial Number Received",
                 Date = serialNumber.ReceivedDate,
                 Description = $"Serial number {serialNumber.Value} was received",
-                Details = $"Model: {serialNumber.Model.Name}, Client: {serialNumber.Client.Name}{(serialNumber.Client.Branch != null ? $" - {serialNumber.Client.Branch}" : "")}",
+                Details = $"Model: {serialNumber.Model.Name}, Client: {cName} {cBranch}",
                 RelatedId = serialNumber.Id,
                 EventTypeColor = "success"
             });

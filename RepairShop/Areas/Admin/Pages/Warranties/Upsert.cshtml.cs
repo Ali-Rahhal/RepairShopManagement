@@ -249,13 +249,15 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
             });
 
             // Populate Clients dropdown
-            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true))
+            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true, includeProperties: "ParentClient"))
                 .OrderBy(c => c.Name)
                 .ToList();
 
             ClientList = clients.Select(c => new SelectListItem
             {
-                Text = $"{c.Name}{(c.Branch != null ? $" - {c.Branch}" : "")}",
+                Text = c.ParentClient != null
+                    ? $"{c.ParentClient.Name} - {c.Name}"
+                    : $"{c.Name}",
                 Value = c.Id.ToString()
             });
 

@@ -26,7 +26,7 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
         {
             var warrantyList = (await _unitOfWork.Warranty.GetAllAsy(
                 w => w.IsActive == true,
-                includeProperties: "SerialNumbers,SerialNumbers.Model,SerialNumbers.Client"
+                includeProperties: "SerialNumbers,SerialNumbers.Model,SerialNumbers.Client,SerialNumbers.Client.ParentClient"
             )).ToList();
 
             // Update status for warranties that have expired
@@ -62,7 +62,9 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                 //modelNames = w.SerialNumbers?.Select(sn => sn.Model?.Name ?? "N/A").Distinct().ToList() ?? new List<string>(),
                 //clientNames = w.SerialNumbers?.Select(sn => sn.Client?.Name ?? "N/A").Distinct().ToList() ?? new List<string>(),
                 modelName = w.SerialNumbers?.FirstOrDefault()?.Model?.Name ?? "N/A",
-                clientName = $"{w.SerialNumbers?.FirstOrDefault()?.Client?.Name}{(w.SerialNumbers?.FirstOrDefault()?.Client?.Branch != null ? $" - {w.SerialNumbers?.FirstOrDefault()?.Client?.Branch}" : "")}",
+                clientName = w.SerialNumbers?.FirstOrDefault()?.Client.ParentClient != null ? 
+                    $"{w.SerialNumbers?.FirstOrDefault()?.Client.ParentClient?.Name} - {w.SerialNumbers?.FirstOrDefault()?.Client.Name}" :
+                    $"{w.SerialNumbers?.FirstOrDefault()?.Client.Name}", 
                 daysRemaining = (w.EndDate - DateTime.Now).Days,
                 isExpired = w.EndDate < DateTime.Now,
                 coveredCount = w.SerialNumbers?.Count ?? 0
@@ -90,13 +92,15 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
         {
             var serialNumbers = (await _unitOfWork.SerialNumber.GetAllAsy(
                 sn => sn.IsActive == true,
-                includeProperties: "Model,Client"
+                includeProperties: "Model,Client,Client.ParentClient"
             ))
             .Select(sn => new {
                 id = sn.Id,
                 value = sn.Value,
                 modelName = sn.Model.Name,
-                clientName = sn.Client.Name
+                clientName = sn.Client.ParentClient != null ?
+                    $"{sn.Client.ParentClient?.Name} - {sn.Client.Name}" :
+                    $"{sn.Client.Name}"
             })
             .OrderBy(sn => sn.value)
             .ToList();

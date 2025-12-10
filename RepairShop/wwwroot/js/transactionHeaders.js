@@ -19,7 +19,7 @@ function loadDataTable() {
             url: '/User/TransactionHeaders/Index?handler=All',
             dataSrc: function (json) {
                 // Extract unique clients for the filter
-                var clients = [...new Set(json.data.map(item => item.client.name))];
+                var clients = [...new Set(json.data.map(item => item.clientName))];
                 populateClientFilter(clients);
 
                 return json.data;
@@ -113,14 +113,14 @@ function loadDataTable() {
                 }
             },
             {
-                data: 'client.name',
+                data: 'clientName',
                 "width": "10%",
                 render: function (data) {
                     return data || 'N/A';
                 }
             },
             {
-                data: 'client.branch',
+                data: 'branchName',
                 "width": "10%",
                 render: function (data) {
                     return data || 'N/A';
@@ -260,7 +260,7 @@ function loadDataTable() {
 
             var rowData = dataTable.row(dataIndex).data();
             var createdDate = new Date(rowData.createdDate);
-            var clientName = rowData.client.name;
+            var clientName = rowData.clientName;
             var status = rowData.status;
 
             // Date filter

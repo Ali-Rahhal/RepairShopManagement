@@ -22,14 +22,14 @@ namespace RepairShop.Areas.Admin.Pages.ProcessTransactions
         {
             var THList = (await _unitOfWork.TransactionHeader
                     .GetAllAsy(t => (t.Status == SD.Status_Job_Delivered || t.Status == SD.Status_Job_Processed) && t.IsActive == true,
-                    includeProperties: "BrokenParts,BrokenParts.Part,DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client"))
+                    includeProperties: "BrokenParts,BrokenParts.Part,DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client,DefectiveUnit.SerialNumber.Client.ParentClient"))
                     .ToList();
 
             var formattedData = THList.Select(t => new
             {
                 id = t.Id,
-                clientName = t.DefectiveUnit?.SerialNumber?.Client?.Name ?? "N/A",
-                clientBranch = t.DefectiveUnit?.SerialNumber?.Client?.Branch ?? "N/A",
+                clientName = t.DefectiveUnit.SerialNumber.Client.ParentClient != null ? t.DefectiveUnit.SerialNumber.Client.ParentClient.Name : t.DefectiveUnit.SerialNumber.Client.Name,
+                clientBranch = t.DefectiveUnit.SerialNumber.Client.ParentClient != null ? t.DefectiveUnit.SerialNumber.Client.Name : "N/A",
                 receivedDate = t.DefectiveUnit?.SerialNumber?.ReceivedDate.ToString("dd-MM-yyyy HH:mm tt") ?? "N/A",
                 fixedDate = t.DefectiveUnit?.ResolvedDate,
                 modelName = t.DefectiveUnit?.SerialNumber?.Model?.Name ?? "N/A",

@@ -108,8 +108,14 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
 
         private async Task PopulateDropdowns()
         {
-            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive)).OrderBy(c => c.Name).ToList();
-            ClientList = clients.Select(c => new SelectListItem { Text = $"{c.Name}{(c.Branch != null ? $" - {c.Branch}" : "")}", Value = c.Id.ToString() });
+            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive, includeProperties: "ParentClient")).OrderBy(c => c.Name).ToList();
+            ClientList = clients.Select(c => new SelectListItem 
+            {
+                Text = c.ParentClient != null
+                    ? $"{c.ParentClient.Name} - {c.Name}"
+                    : $"{c.Name}",
+                Value = c.Id.ToString() 
+            });
         }
     }
 }

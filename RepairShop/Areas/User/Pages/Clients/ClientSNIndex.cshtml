@@ -6,7 +6,7 @@
         <div class="row">
             <div class="col-12 text-center">
                 <h2 class="text-white py-2">
-                    Client Serial Number List
+                    @(Model.ParentId > 0 ? "Branch" : "Client") Serial Number List
                 </h2>
             </div>
         </div>
@@ -17,9 +17,18 @@
                 <input type="hidden" value="@Model.ClientId" id="clientId" />
             </div>
             <div class="col-6 text-end">
-                <a asp-page="./Index" class="btn btn-outline-primary">
-                    Back to Client List
-                </a>
+                @if (Model.ParentId > 0)
+                {
+                    <a asp-page="./ClientBranchIndex" asp-route-id="@Model.ParentId" class="btn btn-outline-primary">
+                        Back to Branch List
+                    </a>
+                }
+                else
+                {
+                    <a asp-page="./Index" class="btn btn-outline-primary">
+                        Back to Client List
+                    </a>
+                }
             </div>
         </div>
         <div class="table-responsive">

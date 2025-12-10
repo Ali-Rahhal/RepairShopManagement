@@ -13,9 +13,18 @@ namespace RepairShop.Areas.User.Pages.Clients
         }
 
         [BindProperty]
-        public int ClientId { get; set; }
-        public void OnGet(int? id = null)
+        public long ClientId { get; set; }
+
+        [BindProperty]
+        public long ParentId { get; set; }
+
+        public void OnGet(long? id = null, long parentId = 0)
         {
+            if (parentId > 0)
+            {
+                ParentId = parentId;
+            }
+
             ClientId = id.GetValueOrDefault();
         }
 

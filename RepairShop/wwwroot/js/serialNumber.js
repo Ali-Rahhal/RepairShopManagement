@@ -48,21 +48,21 @@ function loadDataTable() {
                 }
             },
             {
-                data: 'model.name',
+                data: 'modelName',
                 "width": "20%",
                 "render": function (data, type, row) {
                     return data || 'N/A';
                 }
             },
             {
-                data: 'client.name',
+                data: 'clientName',
                 "width": "10%",
                 "render": function (data, type, row) {
                     return data || 'N/A';
                 }
             },
             {
-                data: 'client.branch',
+                data: 'branchName',
                 "width": "10%",
                 "render": function (data, type, row) {
                     return data || 'N/A';

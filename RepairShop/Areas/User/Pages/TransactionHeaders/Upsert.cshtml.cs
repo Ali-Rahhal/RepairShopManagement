@@ -31,7 +31,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             {
                 thForUpsert = await _unitOfWork.TransactionHeader.GetAsy(
                     o => o.Id == id && o.IsActive == true,
-                    includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client"
+                    includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client,DefectiveUnit.SerialNumber.Client.ParentClient"
                 );
                 if (thForUpsert == null)
                 {
@@ -101,7 +101,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                      (du.SerialNumber.Value.Contains(term) ||
                       du.SerialNumber.Model.Name.Contains(term) ||
                       du.SerialNumber.Client.Name.Contains(term)),
-                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client"
+                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,SerialNumber.Client.ParentClient"
             ))
             .Take(20) // Limit results for performance
             .Select(du => new
@@ -111,7 +111,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 serialNumber = du.SerialNumber.Value,
                 model = du.SerialNumber.Model.Name,
                 clientId = du.SerialNumber.ClientId,
-                clientName = $"{du.SerialNumber.Client.Name}{(du.SerialNumber.Client.Branch != null ? $" - {du.SerialNumber.Client.Branch}" : "")}",
+                clientName = du.SerialNumber.Client.ParentClient != null ? $"{du.SerialNumber.Client.ParentClient.Name} - {du.SerialNumber.Client.Name}" : du.SerialNumber.Client.Name,
                 description = du.Description,
                 status = du.Status,
                 reportedDate = du.ReportedDate.ToString("yyyy-MM-dd")
@@ -142,7 +142,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 serialNumber = defectiveUnit.SerialNumber.Value,
                 model = defectiveUnit.SerialNumber.Model.Name,
                 clientId = defectiveUnit.SerialNumber.ClientId,
-                clientName = $"{defectiveUnit.SerialNumber.Client.Name}{(defectiveUnit.SerialNumber.Client.Branch != null ? $" - {defectiveUnit.SerialNumber.Client.Branch}" : "")}",
+                clientName = defectiveUnit.SerialNumber.Client.ParentClient != null ? $"{defectiveUnit.SerialNumber.Client.ParentClient.Name} - {defectiveUnit.SerialNumber.Client.Name}" : defectiveUnit.SerialNumber.Client.Name,
                 description = defectiveUnit.Description,
                 status = defectiveUnit.Status,
                 reportedDate = defectiveUnit.ReportedDate.ToString("yyyy-MM-dd")
