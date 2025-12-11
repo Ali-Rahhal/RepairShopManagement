@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using System.Text.RegularExpressions;
 
 namespace RepairShop.Areas.Admin.Pages.Models
 {
@@ -47,6 +48,23 @@ namespace RepairShop.Areas.Admin.Pages.Models
                     return NotFound();
                 }
 
+                var normalized = NormalizeCategory(ModelForUpsert.Category);
+                if (normalized == string.Empty)
+                {
+                    ModelState.AddModelError("ModelForUpsert.Category", "Category cannot be empty.");
+                    return Page();
+                }
+                ModelForUpsert.Category = normalized;
+
+                //// Uniqueness check
+                //bool exists = (await _unitOfWork.Model.GetAllAsy(m => m.Id != ModelForUpsert.Id && m.Category == normalized && m.IsActive == true)).Any();
+
+                //if (exists)
+                //{
+                //    ModelState.AddModelError("Category", "Category already exists or too similar to an existing category.");
+                //    return Page();
+                //}
+
                 if (ModelForUpsert.Id == 0)
                 {
                     await _unitOfWork.Model.AddAsy(ModelForUpsert);
@@ -66,6 +84,20 @@ namespace RepairShop.Areas.Admin.Pages.Models
                 return RedirectToPage("Index");
             }
             return Page();
+        }
+
+        private static string NormalizeCategory(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return string.Empty;
+
+            // Remove special characters and spaces using regex
+            input = Regex.Replace(input, @"[^a-zA-Z0-9]", "");
+
+            input = input.Trim().ToLower();
+
+            // Capitalize first letter
+            return char.ToUpper(input[0]) + input.Substring(1);
         }
     }
 }

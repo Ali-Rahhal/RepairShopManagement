@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using System.Text.RegularExpressions;
 
 namespace RepairShop.Areas.Admin.Pages.Parts
 {
@@ -47,6 +48,14 @@ namespace RepairShop.Areas.Admin.Pages.Parts
                     return NotFound();
                 }
 
+                var normalized = NormalizeCategory(PartForUpsert.Category);
+                if (normalized == string.Empty)
+                {
+                    ModelState.AddModelError("PartForUpsert.Category", "Category cannot be empty.");
+                    return Page();
+                }
+                PartForUpsert.Category = normalized;
+
                 if (PartForUpsert.Id == 0)
                 {
                     await _unitOfWork.Part.AddAsy(PartForUpsert);
@@ -68,6 +77,20 @@ namespace RepairShop.Areas.Admin.Pages.Parts
                 return RedirectToPage("Index");
             }
             return Page();
+        }
+
+        private static string NormalizeCategory(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return string.Empty;
+
+            // Remove special characters and spaces using regex
+            input = Regex.Replace(input, @"[^a-zA-Z0-9]", "");
+
+            input = input.Trim().ToLower();
+
+            // Capitalize first letter
+            return char.ToUpper(input[0]) + input.Substring(1);
         }
     }
 }
