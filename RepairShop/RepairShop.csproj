@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	
 	<!-- 🔽 Version Information -->
-	<Version>1.6.1</Version>
-	<FileVersion>1.6.1.0</FileVersion>
-	<InformationalVersion>1.6.1 - 15th Release (Changed the architecture of client/branch relationship and improved part and model categories)</InformationalVersion>
+	<Version>1.6.2</Version>
+	<FileVersion>1.6.2.0</FileVersion>
+	<InformationalVersion>1.6.2 - 16th Release (Added a new Audit Log Page)</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

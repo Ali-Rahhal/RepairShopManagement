@@ -26,60 +26,63 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarMain">
                     <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                        <!-- Home -->
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-page="/DefectiveUnits/Index">Defective Units</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="User" asp-page="/TransactionHeaders/Index">Transactions</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="User" asp-page="/PreventiveMaintenanceRecords/Index">Preventive Maintenance</a>
-                        </li>
-                        
 
-                        <!-- Assets Section -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                                aria-expanded="false">
-                                Assets & Inventory
-                            </a>
-                            <ul class="dropdown-menu" data-bs-theme="light">
-                                <li><a class="dropdown-item" asp-area="User" asp-page="/Clients/Index">Clients</a></li>
-                                <li><a class="dropdown-item" asp-area="Admin" asp-page="/Models/Index">Models</a></li>
-                                <li><a class="dropdown-item" asp-area="Admin" asp-page="/SerialNumbers/Index">Serial Numbers</a></li>
-                            </ul>
+                        <!-- Main pages -->
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-page="/Index"><i class="bi bi-house-door-fill"></i> Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-page="/Warranties/Index">Warranties</a>
+                            <a class="nav-link" asp-area="Admin" asp-page="/DefectiveUnits/Index"><i class="bi bi-tools"></i> Defects</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-page="/MaintenanceContracts/Index">Maintenance Contracts</a>
+                            <a class="nav-link" asp-area="User" asp-page="/TransactionHeaders/Index"><i class="bi bi-receipt"></i> Transactions</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="User" asp-page="/PreventiveMaintenanceRecords/Index"><i class="bi bi-gear-fill"></i> Maintenance</a>
                         </li>
 
-                        <!-- Admin Section -->
+                        <!-- Assets & Inventory -->
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="User" asp-page="/Clients/Index"><i class="bi bi-people-fill"></i> Clients</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="Admin" asp-page="/Models/Index"><i class="bi bi-box-fill"></i> Models</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="Admin" asp-page="/SerialNumbers/Index"><i class="bi bi-upc-scan"></i> Serial Numbers</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="Admin" asp-page="/Warranties/Index"><i class="bi bi-award-fill"></i> Warranties</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="Admin" asp-page="/MaintenanceContracts/Index"><i class="bi bi-file-earmark-text"></i> Contracts</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="Admin" asp-page="/Parts/Index"><i class="bi bi-box-seam"></i> Parts</a>
+                        </li>
+
+                        <!-- Admin Section (only for admins) -->
                         @if (User.IsInRole(SD.Role_Admin))
                         {
                             <li class="nav-item">
-                                <a class="nav-link" asp-area="Admin" asp-page="/History/SerialNumberHistory">History</a>
+                                <a class="nav-link text-warning" asp-area="Admin" asp-page="/History/SerialNumberHistory">
+                                    <i class="bi bi-clock-history"></i> History
+                                </a>
                             </li>
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle text-warning" href="#" role="button" data-bs-toggle="dropdown"
-                                    aria-expanded="false">
-                                    Admin
+                                <a class="nav-link dropdown-toggle text-warning" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-shield-lock-fill"></i> Admin
                                 </a>
                                 <ul class="dropdown-menu" data-bs-theme="light">
                                     <li><a class="dropdown-item" asp-area="Admin" asp-page="/Users/Index">Manage Users</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" asp-area="Admin" asp-page="/Parts/Index">Manage Parts</a></li>
                                     <li><a class="dropdown-item" asp-area="Admin" asp-page="/ProcessTransactions/Index">Process Transactions</a></li>
+                                    <li><a class="dropdown-item" asp-area="Admin" asp-page="/AuditLogHistory/Index">Audit Log</a></li>
                                 </ul>
                             </li>
                         }
+
                     </ul>
+
                     <partial name="_LoginPartial" />
                 </div>
             </div>
