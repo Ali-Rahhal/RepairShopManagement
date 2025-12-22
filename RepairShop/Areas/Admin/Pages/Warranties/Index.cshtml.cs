@@ -55,6 +55,7 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
             var formattedData = warrantyList.Select(w => new
             {
                 id = w.Id,
+                warrantyNumber = $"WARRANTY-{w.Id:D4}",
                 startDate = w.StartDate,
                 endDate = w.EndDate,
                 status = w.Status,

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 
 namespace RepairShop.Areas.User.Pages.TransactionHeaders
 {
@@ -11,10 +12,12 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AuditLogService _auditLogService;
 
-        public UpsertModel(IUnitOfWork unitOfWork)
+        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als)
         {
             _unitOfWork = unitOfWork;
+            _auditLogService = als;
         }
 
         [BindProperty]
@@ -78,9 +81,9 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                     await _unitOfWork.TransactionHeader.AddAsy(thForUpsert);
                     TempData["success"] = "Transaction created successfully";
                     await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_TransactionHeader, thForUpsert.Id);
                 }
                 
-
                 return RedirectToPage("Index");
             }
             return Page();

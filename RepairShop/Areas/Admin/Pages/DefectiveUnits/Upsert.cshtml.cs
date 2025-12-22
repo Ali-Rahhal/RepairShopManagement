@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 
 namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 {
@@ -12,10 +13,12 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AuditLogService _auditLogService;
 
-        public UpsertModel(IUnitOfWork unitOfWork)
+        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als)
         {
             _unitOfWork = unitOfWork;
+            _auditLogService = als;
         }
 
         [BindProperty]
@@ -143,6 +146,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                     // Create the new serial number
                     await _unitOfWork.SerialNumber.AddAsy(NewSerialNumber);
                     await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_SerialNumber, NewSerialNumber.Id);
 
                     // Set the new serial number ID to the defective unit
                     DefectiveUnitForUpsert.SerialNumberId = NewSerialNumber.Id;
@@ -164,6 +168,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 {
                     await _unitOfWork.DefectiveUnit.AddAsy(DefectiveUnitForUpsert);
                     await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_DefectiveUnit, DefectiveUnitForUpsert.Id);
 
                     TempData["success"] = "Defective unit reported successfully";
 
@@ -180,6 +185,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                     duFromDb.Accessories = DefectiveUnitForUpsert.Accessories;
                     await _unitOfWork.DefectiveUnit.UpdateAsy(duFromDb);
                     await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_DefectiveUnit, duFromDb.Id);
 
                     TempData["success"] = "Defective unit updated successfully";
                     return RedirectToPage("Index");

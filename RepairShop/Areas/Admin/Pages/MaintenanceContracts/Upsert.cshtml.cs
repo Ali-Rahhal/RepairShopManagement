@@ -15,11 +15,13 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMaintenanceContractService _mcService;
+        private readonly AuditLogService _auditLogService;
 
-        public UpsertModel(IUnitOfWork unitOfWork, IMaintenanceContractService mcService)
+        public UpsertModel(IUnitOfWork unitOfWork, IMaintenanceContractService mcService, AuditLogService als)
         {
             _unitOfWork = unitOfWork;
             _mcService = mcService;
+            _auditLogService = als;
         }
 
         [BindProperty]
@@ -83,6 +85,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
             {
                 await _unitOfWork.MaintenanceContract.AddAsy(MaintenanceContractForUpsert);
                 await _unitOfWork.SaveAsy();
+                await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_MaintenanceContract, MaintenanceContractForUpsert.Id);
                 TempData["success"] = "Maintenance contract created successfully";
 
                 // After creating, redirect to assign serial numbers page
@@ -98,6 +101,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                 mcFromDb.Status = MaintenanceContractForUpsert.Status;
                 await _unitOfWork.MaintenanceContract.UpdateAsy(mcFromDb);
                 await _unitOfWork.SaveAsy();
+                await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_MaintenanceContract, mcFromDb.Id);
                 TempData["success"] = "Maintenance contract updated successfully";
 
                 // Stay on upsert; user can click assign

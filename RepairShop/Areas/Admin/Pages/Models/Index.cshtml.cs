@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 
 namespace RepairShop.Areas.Admin.Pages.Models
 {
@@ -10,10 +11,12 @@ namespace RepairShop.Areas.Admin.Pages.Models
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AuditLogService _auditLogService;
 
-        public IndexModel(IUnitOfWork unitOfWork)
+        public IndexModel(IUnitOfWork unitOfWork, AuditLogService als)
         {
             _unitOfWork = unitOfWork;
+            _auditLogService = als;
         }
 
         public void OnGet()
@@ -47,6 +50,7 @@ namespace RepairShop.Areas.Admin.Pages.Models
 
             await _unitOfWork.Model.RemoveAsy(modelToBeDeleted);
             await _unitOfWork.SaveAsy();
+            await _auditLogService.AddLogAsy(SD.Action_Delete, SD.Entity_Model, modelToBeDeleted.Id);
             return new JsonResult(new { success = true, message = "Model deleted successfully" });
         }
     }

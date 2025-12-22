@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 
 namespace RepairShop.Areas.User.Pages.Clients
 {
@@ -9,10 +11,12 @@ namespace RepairShop.Areas.User.Pages.Clients
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AuditLogService _auditLogService;
 
-        public IndexModel(IUnitOfWork unitOfWork)
+        public IndexModel(IUnitOfWork unitOfWork, AuditLogService als)
         {
             _unitOfWork = unitOfWork;
+            _auditLogService = als;
         }
 
         public void OnGet()
@@ -63,10 +67,17 @@ namespace RepairShop.Areas.User.Pages.Clients
                         return new JsonResult(new { success = false, message = "Client cannot be deleted because its branches have related serial numbers" });
                     }
                 }
+                foreach (var branch in clientToBeDeleted.Branches)
+                {
+                    await _unitOfWork.Client.RemoveAsy(branch);
+                    await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Delete, SD.Entity_Branch, branch.Id);
+                }
             }
 
             await _unitOfWork.Client.RemoveAsy(clientToBeDeleted);
             await _unitOfWork.SaveAsy();
+            await _auditLogService.AddLogAsy(SD.Action_Delete, SD.Entity_Client, clientToBeDeleted.Id);
             return new JsonResult(new { success = true, message = "Deleted successfully" });
         }
 

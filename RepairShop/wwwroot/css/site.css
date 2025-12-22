@@ -12,6 +12,9 @@ html {
     .w-xl-60 {
         width: 60% !important;
     }
+    .w-xl-75 {
+        width: 75% !important;
+    }
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 
 namespace RepairShop.Areas.Admin.Pages.SerialNumbers
 {
@@ -12,10 +13,12 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AuditLogService _auditLogService;
 
-        public UpsertModel(IUnitOfWork unitOfWork)
+        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als)
         {
             _unitOfWork = unitOfWork;
+            _auditLogService = als;
         }
 
         [BindProperty]
@@ -109,6 +112,8 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
                     }
 
                     await _unitOfWork.SerialNumber.AddAsy(SerialNumberForUpsert);
+                    await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_SerialNumber, SerialNumberForUpsert.Id);
                     TempData["success"] = "Serial number created successfully";
                 }
                 else
@@ -137,10 +142,12 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
                     snFromDb.ClientId = SerialNumberForUpsert.ClientId;
                     snFromDb.MaintenanceContractId = SerialNumberForUpsert.MaintenanceContractId;
                     await _unitOfWork.SerialNumber.UpdateAsy(snFromDb);
+                    await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_SerialNumber, snFromDb.Id);
                     TempData["success"] = "Serial number updated successfully";
                 }
 
-                await _unitOfWork.SaveAsy();
+                
                 return RedirectToPage("Index");
             }
 

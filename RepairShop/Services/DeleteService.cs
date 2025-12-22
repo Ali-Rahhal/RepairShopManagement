@@ -7,10 +7,12 @@ namespace RepairShop.Services
     public class DeleteService//Caution: this service will delete a table and all related tables of data!!!!
     {
         private readonly IUnitOfWork _uow;
+        private readonly AuditLogService _auditLogService;
 
-        public DeleteService(IUnitOfWork uow)
+        public DeleteService(IUnitOfWork uow, AuditLogService als)
         {
             _uow = uow;
+            _auditLogService = als;
         }
 
         // =============================== PART ===============================
@@ -93,6 +95,7 @@ namespace RepairShop.Services
             }
 
             await _uow.SaveAsy();
+            await _auditLogService.AddLogAsy(SD.Action_Delete, SD.Entity_TransactionHeader, thId);
         }
 
         // =============================== DEFECTIVE UNIT ===============================
@@ -125,6 +128,7 @@ namespace RepairShop.Services
                 await _uow.DefectiveUnit.RemoveAsy(du);
 
             await _uow.SaveAsy();
+            await _auditLogService.AddLogAsy(SD.Action_Delete, SD.Entity_DefectiveUnit, duId);
         }
 
         // =============================== SERIAL NUMBER ===============================
@@ -172,6 +176,7 @@ namespace RepairShop.Services
                 await _uow.MaintenanceContract.RemoveAsy(mc);
 
             await _uow.SaveAsy();
+            await _auditLogService.AddLogAsy(SD.Action_Delete, SD.Entity_MaintenanceContract, mcId);
         }
 
         // =============================== WARRANTY ===============================
@@ -197,6 +202,7 @@ namespace RepairShop.Services
                 await _uow.Warranty.RemoveAsy(w);
 
             await _uow.SaveAsy();
+            await _auditLogService.AddLogAsy(SD.Action_Delete, SD.Entity_Warranty, warrantyId);
         }
 
         // =============================== MODEL ===============================

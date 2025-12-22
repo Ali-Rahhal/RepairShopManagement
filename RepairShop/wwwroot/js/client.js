@@ -50,7 +50,7 @@ function loadDataTable() {
 function Delete(url) {
     Swal.fire({
         title: "Are you sure you want to delete this client?",
-        html: "<p style='color: #dc3545; font-weight: 500;'>This will delete the maintenace contracts associated with this client if there are any!</p>",
+        html: "<p style='color: #dc3545; font-weight: 500;'>This will delete the maintenace contracts associated with this client and all its branches if there are any!</p>",
         icon: "warning",
         showCancelButton: true,
         confirmButtonColor: "#3085d6",

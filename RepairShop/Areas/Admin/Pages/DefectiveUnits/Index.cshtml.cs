@@ -13,10 +13,12 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AuditLogService _auditLogService;
 
-        public IndexModel(IUnitOfWork unitOfWork)
+        public IndexModel(IUnitOfWork unitOfWork, AuditLogService als)
         {
             _unitOfWork = unitOfWork;
+            _auditLogService = als;
         }
 
         public void OnGet()
@@ -93,6 +95,8 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             await _unitOfWork.TransactionHeader.AddAsy(thForDu);
 
             await _unitOfWork.SaveAsy();
+            await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_TransactionHeader, thForDu.Id);
+
             return new JsonResult(new { success = true, message = "Defective unit added to transaction successfully" });
         }
 

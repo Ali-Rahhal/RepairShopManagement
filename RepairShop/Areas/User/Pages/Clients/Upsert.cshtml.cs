@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace RepairShop.Areas.User.Pages.Clients
@@ -12,10 +13,12 @@ namespace RepairShop.Areas.User.Pages.Clients
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AuditLogService _auditLogService;
 
-        public UpsertModel(IUnitOfWork unitOfWork)
+        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als)
         {
             _unitOfWork = unitOfWork;
+            _auditLogService = als;
         }
 
         [BindProperty]
@@ -51,6 +54,8 @@ namespace RepairShop.Areas.User.Pages.Clients
                 if (clientForUpsert.Id == 0)
                 {
                     await _unitOfWork.Client.AddAsy(clientForUpsert);
+                    await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_Client, clientForUpsert.Id);
                     TempData["success"] = "Client created successfully";
                 }
                 else
@@ -62,9 +67,11 @@ namespace RepairShop.Areas.User.Pages.Clients
                     clientFromDb.Email = clientForUpsert.Email;
                     clientFromDb.Address = clientForUpsert.Address;
                     await _unitOfWork.Client.UpdateAsy(clientFromDb);
+                    await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_Client, clientFromDb.Id);
                     TempData["success"] = "Client updated successfully";
                 }
-                await _unitOfWork.SaveAsy();
+                
 
                 return RedirectToPage("Index");
             }

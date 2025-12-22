@@ -1,6 +1,6 @@
 ﻿namespace RepairShop.Models.Helpers
 {
-    public static class SD
+    public static class SD //SD: Static Details
     {
         public const string Role_Admin = "Admin";
         public const string Role_User = "User";
@@ -24,5 +24,19 @@
         public const string Status_DU_UnderRepair = "UnderRepair";
         public const string Status_DU_Fixed = "Fixed";
         public const string Status_DU_OutOfService = "OutOfService";
+
+        public const string Action_Create = "Create";
+        public const string Action_Update = "Update";
+        public const string Action_Delete = "Delete";
+
+        public const string Entity_Client = "Client";
+        public const string Entity_Branch = "Branch";
+        public const string Entity_SerialNumber = "SerialNumber";
+        public const string Entity_Model = "Model";
+        public const string Entity_Part = "Part";
+        public const string Entity_MaintenanceContract = "MaintenanceContract";
+        public const string Entity_Warranty = "Warranty";
+        public const string Entity_DefectiveUnit = "DefectiveUnit";
+        public const string Entity_TransactionHeader = "Transaction";
     }
 }

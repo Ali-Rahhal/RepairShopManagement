@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RepairShop.Data;
+using RepairShop.Models;
 using RepairShop.Repository.IRepository;
 using System;
 using System.Collections.Generic;
@@ -86,6 +87,22 @@ namespace RepairShop.Repository
                 }
             }
             return await query.ToListAsync();
+        }
+
+        public Task<IQueryable<T>> GetQueryableAsy(Expression<Func<T, bool>>? filter = null, string? includeProperties = null)
+        {
+            IQueryable<T> query = dbSet;
+
+            if (filter != null)
+                query = query.Where(filter);
+
+            if (!string.IsNullOrEmpty(includeProperties))
+            {
+                foreach (var includeProp in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                    query = query.Include(includeProp);
+            }
+
+            return Task.FromResult(query);
         }
 
         //virtual means we can override this method in a derived class

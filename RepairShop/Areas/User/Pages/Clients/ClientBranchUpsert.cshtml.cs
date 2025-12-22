@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace RepairShop.Areas.User.Pages.Clients
@@ -12,10 +13,12 @@ namespace RepairShop.Areas.User.Pages.Clients
     public class ClientBranchUpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AuditLogService _auditLogService;
 
-        public ClientBranchUpsertModel(IUnitOfWork unitOfWork)
+        public ClientBranchUpsertModel(IUnitOfWork unitOfWork, AuditLogService als)
         {
             _unitOfWork = unitOfWork;
+            _auditLogService = als;
         }
 
         [BindProperty]
@@ -56,6 +59,8 @@ namespace RepairShop.Areas.User.Pages.Clients
                 if (BranchForUpsert.Id == 0)
                 {
                     await _unitOfWork.Client.AddAsy(BranchForUpsert);
+                    await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_Branch, BranchForUpsert.Id);
                     TempData["success"] = "Branch created successfully";
                 }
                 else
@@ -67,9 +72,11 @@ namespace RepairShop.Areas.User.Pages.Clients
                     branchFromDb.Email = BranchForUpsert.Email;
                     branchFromDb.Address = BranchForUpsert.Address;
                     await _unitOfWork.Client.UpdateAsy(branchFromDb);
+                    await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_Branch, branchFromDb.Id);
                     TempData["success"] = "Branch updated successfully";
                 }
-                await _unitOfWork.SaveAsy();
+                
 
                 return RedirectToPage("ClientBranchIndex", new { id = BranchForUpsert.ParentClientId });
             }

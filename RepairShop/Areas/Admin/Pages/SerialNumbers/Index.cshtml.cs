@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 
 namespace RepairShop.Areas.Admin.Pages.SerialNumbers
 {
@@ -10,10 +11,12 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AuditLogService _auditLogService;
 
-        public IndexModel(IUnitOfWork unitOfWork)
+        public IndexModel(IUnitOfWork unitOfWork, AuditLogService als)
         {
             _unitOfWork = unitOfWork;
+            _auditLogService = als;
         }
 
         public void OnGet()
@@ -35,8 +38,8 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
                 modelName = sn.Model.Name,
                 clientName = sn.Client.ParentClient != null ? sn.Client.ParentClient.Name : sn.Client.Name,
                 branchName = sn.Client.ParentClient != null ? sn.Client.Name : "N/A",
-                maintenanceContractId = sn.MaintenanceContractId ?? null,
-                warrantyId = sn.WarrantyId ?? null,
+                maintenanceContractId = $"{sn.MaintenanceContractId:D4}" ?? null,
+                warrantyId = $"{sn.WarrantyId:D4}" ?? null,
                 receivedDate = sn.ReceivedDate
             });
 
@@ -72,6 +75,7 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
 
             await _unitOfWork.SerialNumber.RemoveAsy(serialNumberToBeDeleted);
             await _unitOfWork.SaveAsy();
+            await _auditLogService.AddLogAsy(SD.Action_Delete, SD.Entity_SerialNumber, serialNumberToBeDeleted.Id);
             return new JsonResult(new { success = true, message = "Serial number deleted successfully" });
         }
 

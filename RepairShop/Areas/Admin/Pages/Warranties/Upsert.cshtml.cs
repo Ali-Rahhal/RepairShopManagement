@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 
 namespace RepairShop.Areas.Admin.Pages.Warranties
 {
@@ -12,10 +13,12 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AuditLogService _auditLogService;
 
-        public UpsertModel(IUnitOfWork unitOfWork)
+        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als)
         {
             _unitOfWork = unitOfWork;
+            _auditLogService = als;
         }
 
         [BindProperty]
@@ -209,10 +212,16 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                     // Add new serial numbers to database
                     await _unitOfWork.SerialNumber.AddRangeAsy(newSerialNumbers);
                     await _unitOfWork.SaveAsy();
+                    foreach (var sn in newSerialNumbers)
+                    {
+                        await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_SerialNumber, sn.Id);
+                    }
 
                     // Create warranty with serial numbers
                     WarrantyForUpsert.SerialNumbers = newSerialNumbers;
                     await _unitOfWork.Warranty.AddAsy(WarrantyForUpsert);
+                    await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_Warranty, WarrantyForUpsert.Id);
                     TempData["success"] = $"Warranty created successfully with {newSerialNumbers.Count} serial number(s)";
                 }
                 else
@@ -223,10 +232,11 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                     warrantyFromDb.StartDate = WarrantyForUpsert.StartDate;
                     warrantyFromDb.EndDate = WarrantyForUpsert.EndDate;
                     await _unitOfWork.Warranty.UpdateAsy(warrantyFromDb);
+                    await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_Warranty, warrantyFromDb.Id);
                     TempData["success"] = "Warranty updated successfully";
                 }
 
-                await _unitOfWork.SaveAsy();
                 return RedirectToPage("Index");
             }
 

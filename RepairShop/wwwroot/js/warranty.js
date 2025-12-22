@@ -20,10 +20,10 @@ function loadDataTable() {
         "order": [[0, "desc"]],
         columns: [
             {
-                data: 'id',
-                width: "5%",
+                data: 'warrantyNumber',
+                width: "10%",
                 render: function (data) {
-                    return `<span class="fw-bold">${data}</span>`;
+                    return `<strong>${data}</strong>`;
                 }
             },
             {
@@ -35,7 +35,7 @@ function loadDataTable() {
             },
             {
                 data: 'serialNumbers',
-                width: "15%",
+                width: "10%",
                 render: function (data, type, row) {
 
                     if (!data || data.length === 0)

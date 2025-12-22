@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using RepairShop.Services;
 using System.Text.RegularExpressions;
 
 namespace RepairShop.Areas.Admin.Pages.Parts
@@ -12,10 +13,12 @@ namespace RepairShop.Areas.Admin.Pages.Parts
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly AuditLogService _auditLogService;
 
-        public UpsertModel(IUnitOfWork unitOfWork)
+        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als)
         {
             _unitOfWork = unitOfWork;
+            _auditLogService = als;
         }
 
         [BindProperty]
@@ -59,6 +62,8 @@ namespace RepairShop.Areas.Admin.Pages.Parts
                 if (PartForUpsert.Id == 0)
                 {
                     await _unitOfWork.Part.AddAsy(PartForUpsert);
+                    await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_Part, PartForUpsert.Id);
                     TempData["success"] = "Part created successfully";
                 }
                 else
@@ -70,10 +75,11 @@ namespace RepairShop.Areas.Admin.Pages.Parts
                     partFromDb.Quantity = PartForUpsert.Quantity;
                     partFromDb.Price = PartForUpsert.Price;
                     await _unitOfWork.Part.UpdateAsy(partFromDb);
+                    await _unitOfWork.SaveAsy();
+                    await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_Part, PartForUpsert.Id);
                     TempData["success"] = "Part updated successfully";
                 }
 
-                await _unitOfWork.SaveAsy();
                 return RedirectToPage("Index");
             }
             return Page();

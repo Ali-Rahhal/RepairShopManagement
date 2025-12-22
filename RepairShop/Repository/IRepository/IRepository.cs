@@ -10,9 +10,11 @@ namespace RepairShop.Repository.IRepository
     public interface IRepository<T> where T : class
     {
         //T - Category
+        Task<T> GetAsy(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked = false);
+
         Task<IEnumerable<T>> GetAllAsy(Expression<Func<T, bool>>? filter = null, string? includeProperties = null, bool tracked = false);
 
-        Task<T> GetAsy(Expression<Func<T, bool>> filter, string? includeProperties = null, bool tracked = false);
+        Task<IQueryable<T>> GetQueryableAsy(Expression<Func<T, bool>>? filter = null, string? includeProperties = null);
 
         //Task AddAsy(T entity);
 
