@@ -23,6 +23,7 @@ function loadDataTable() {
                     // Add History button
                     return `<div class="w-100 d-flex justify-content-center" role="group">
                         <a href="/User/Clients/ClientSNIndex?id=${data}&parentId=${clientId}" title="View Serial Numbers" class="btn btn-info mx-2"><i class="bi bi-list"></i></a>
+                        <a href="/Admin/SerialNumbers/Upsert?clientId=${data}&returnUrl=${encodeURIComponent(window.location.href)}" title="Add Serial Number" class="btn btn-outline-info mx-2"><i class="bi bi-plus-square"></i></a>
                         <a href="/User/Clients/ClientBranchUpsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
                         <a onClick="Delete('/User/Clients/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                     </div>`;

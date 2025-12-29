@@ -28,7 +28,14 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
         public IEnumerable<SelectListItem> ClientList { get; set; }
         public IEnumerable<SelectListItem> MaintenanceContractList { get; set; }
 
-        public async Task<IActionResult> OnGet(int? id)
+        [BindProperty(SupportsGet = true)]
+        public long? id { get; set; }
+        [BindProperty(SupportsGet = true)]
+        public long? clientId { get; set; }
+        [BindProperty(SupportsGet = true)]
+        public string? returnUrl { get; set; }
+
+        public async Task<IActionResult> OnGet()
         {
             SerialNumberForUpsert = new SerialNumber();
 
@@ -37,6 +44,12 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
 
             if (id == null || id == 0)
             {
+                // If a clientId is provided, pre-select it and load related contracts
+                if (clientId.HasValue)
+                {
+                    SerialNumberForUpsert.ClientId = clientId.Value;
+                    await PopulateMaintenanceContracts(clientId.Value);
+                }
                 return Page();
             }
             else
@@ -69,7 +82,7 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
                 {
                     return NotFound();
                 }
-
+                
                 // Check maximum length and minimum length
                 if (SerialNumberForUpsert.Value.Length < 3 || SerialNumberForUpsert.Value.Length > 40)
                 {
@@ -147,7 +160,10 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
                     TempData["success"] = "Serial number updated successfully";
                 }
 
-                
+                if (clientId != null)
+                {
+                    return RedirectToPage("Upsert", new { clientId, returnUrl });
+                }
                 return RedirectToPage("Index");
             }
 

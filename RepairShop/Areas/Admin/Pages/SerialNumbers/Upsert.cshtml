@@ -43,9 +43,14 @@
                         <div class="py-2 col-12">
                             <label asp-for="SerialNumberForUpsert.ClientId" class="ms-2 text-muted">Client</label>
                             <select asp-for="SerialNumberForUpsert.ClientId" asp-items="@Model.ClientList" 
+                                    disabled="@(Model.clientId != null)"
                                     class="form-select border-0 shadow" id="clientDropdown">
                                 <option disabled selected>--Select Client--</option>
                             </select>
+                            @if (Model.clientId != null)
+                            {
+                                <input type="hidden" asp-for="SerialNumberForUpsert.ClientId" />
+                            }
                             <span asp-validation-for="SerialNumberForUpsert.ClientId" class="text-danger"></span>
                         </div>
 
@@ -69,9 +74,18 @@
                                 }
                             </div>
                             <div class="col-6 col-md-3">
-                                <a asp-page="Index" class="btn btn-outline-primary form-control">
-                                    Back to List
-                                </a>
+                                @if (!string.IsNullOrEmpty(Model.returnUrl))
+                                {
+                                    <a href="@Model.returnUrl" class="btn btn-outline-primary form-control">
+                                        <i class="bi bi-arrow-left me-1"></i>Back to Clients List
+                                    </a>
+                                }
+                                else
+                                {   
+                                    <a asp-page="Index" class="btn btn-outline-primary form-control">
+                                        Back to List
+                                    </a>
+                                }
                             </div>
                         </div>
                     </div>
