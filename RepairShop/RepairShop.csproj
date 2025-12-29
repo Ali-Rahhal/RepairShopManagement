@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	
 	<!-- 🔽 Version Information -->
-	<Version>1.6.2</Version>
-	<FileVersion>1.6.2.0</FileVersion>
-	<InformationalVersion>1.6.2 - 16th Release (Added a new Audit Log Page)</InformationalVersion>
+	<Version>1.6.3</Version>
+	<FileVersion>1.6.3.0</FileVersion>
+	<InformationalVersion>1.6.3 - 15th Release (Added an add sn btn to the clients and branches tables)</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
