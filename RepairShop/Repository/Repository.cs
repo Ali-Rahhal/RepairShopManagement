@@ -98,10 +98,12 @@ namespace RepairShop.Repository
 
             if (!string.IsNullOrEmpty(includeProperties))
             {
-                foreach (var includeProp in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                foreach (var includeProp in includeProperties
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries))
+                {
                     query = query.Include(includeProp);
+                }
             }
-
             return Task.FromResult(query);
         }
 

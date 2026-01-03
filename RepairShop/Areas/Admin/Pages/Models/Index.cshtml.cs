@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using RepairShop.Services;
@@ -23,35 +24,107 @@ namespace RepairShop.Areas.Admin.Pages.Models
         {
         }
 
-        // API for DataTable
-        public async Task<JsonResult> OnGetAll()
+        // ✅ SERVER-SIDE PAGINATION + FILTERING
+        public async Task<JsonResult> OnGetAll(
+            int draw,
+            int start = 0,
+            int length = 10,
+            string? category = null)
         {
-            var modelList = (await _unitOfWork.Model.GetAllAsy(m => m.IsActive == true)).ToList();
-            return new JsonResult(new { data = modelList });
+            var searchValue = Request.Query["search[value]"].ToString();
+
+            var query = await _unitOfWork.Model
+                .GetQueryableAsy(m => m.IsActive);
+
+            var recordsTotal = await query.CountAsync();
+
+            // 🔍 Global search
+            if (!string.IsNullOrWhiteSpace(searchValue))
+            {
+                searchValue = searchValue.ToLower();
+                query = query.Where(m =>
+                    m.Name.Contains(searchValue) ||
+                    m.Category.Contains(searchValue));
+            }
+
+            // 🏷️ Category filter
+            if (!string.IsNullOrWhiteSpace(category) && category != "All")
+            {
+                if (category == "Uncategorized")
+                {
+                    query = query.Where(m => m.Category == null || m.Category == "");
+                }
+                else
+                {
+                    query = query.Where(m => m.Category == category);
+                }
+            }
+
+            var recordsFiltered = query.Count();
+            
+
+            var data = await query
+                .OrderBy(m => m.Category)
+                .Skip(start)
+                .Take(length)
+                .ToListAsync();
+
+            return new JsonResult(new
+            {
+                draw,
+                recordsTotal,
+                recordsFiltered,
+                data
+            });
         }
 
-        // API for Delete
+        // ❌ DELETE — UNCHANGED
         public async Task<IActionResult> OnGetDelete(int? id)
         {
-            var modelToBeDeleted = await _unitOfWork.Model.GetAsy(m => m.Id == id && m.IsActive == true);
+            var modelToBeDeleted = await _unitOfWork.Model
+                .GetAsy(m => m.Id == id && m.IsActive);
+
             if (modelToBeDeleted == null)
             {
                 return new JsonResult(new { success = false, message = "Error while deleting" });
             }
 
-            // Check if model has associated serial numbers
-            var hasSerialNumbers = (await _unitOfWork.SerialNumber
-                .GetAllAsy(sn => sn.IsActive == true && sn.ModelId == modelToBeDeleted.Id));
+            var hasSerialNumbers = await _unitOfWork.SerialNumber
+                .GetAllAsy(sn => sn.IsActive && sn.ModelId == modelToBeDeleted.Id);
 
             if (hasSerialNumbers.Any())
             {
-                return new JsonResult(new { success = false, message = "Model cannot be deleted because it has associated serial numbers" });
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = "Model cannot be deleted because it has associated serial numbers"
+                });
             }
 
             await _unitOfWork.Model.RemoveAsy(modelToBeDeleted);
             await _unitOfWork.SaveAsy();
-            await _auditLogService.AddLogAsy(SD.Action_Delete, SD.Entity_Model, modelToBeDeleted.Id);
-            return new JsonResult(new { success = true, message = "Model deleted successfully" });
+            await _auditLogService.AddLogAsy(
+                SD.Action_Delete,
+                SD.Entity_Model,
+                modelToBeDeleted.Id);
+
+            return new JsonResult(new
+            {
+                success = true,
+                message = "Model deleted successfully"
+            });
+        }
+
+        public async Task<JsonResult> OnGetCategories()
+        {
+            var categories = (await _unitOfWork.Model
+                .GetAllAsy(m => m.IsActive))
+                .Select(m => m.Category ?? "Uncategorized")
+                .Distinct()
+                .OrderBy(c => c)
+                .ToList();
+
+            return new JsonResult(categories);
         }
     }
 }

@@ -1,9 +1,11 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using RepairShop.Services;
+using System.Linq.Expressions;
 
 namespace RepairShop.Areas.Admin.Pages.SerialNumbers
 {
@@ -23,30 +25,101 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
         {
         }
 
-        // API for DataTable
-        public async Task<JsonResult> OnGetAll()
+        // ✅ SERVER-SIDE PAGINATION + FILTERING
+        public async Task<JsonResult> OnGetAll(
+            int draw,
+            int start = 0,
+            int length = 10,
+            int? modelId = null,
+            int? clientId = null)
         {
-            var serialNumberList = (await _unitOfWork.SerialNumber.GetAllAsy(
-                sn => sn.IsActive == true,
-                includeProperties: "Model,Client,Client.ParentClient,MaintenanceContract"
-            )).ToList();
-
-            var formattedData = serialNumberList.Select(sn => new
+            try
             {
-                id = sn.Id,
-                value = sn.Value,
-                modelName = sn.Model.Name,
-                clientName = sn.Client.ParentClient != null ? sn.Client.ParentClient.Name : sn.Client.Name,
-                branchName = sn.Client.ParentClient != null ? sn.Client.Name : "N/A",
-                maintenanceContractId = $"{sn.MaintenanceContractId:D4}" ?? null,
-                warrantyId = $"{sn.WarrantyId:D4}" ?? null,
-                receivedDate = sn.ReceivedDate
-            });
+                var search = Request.Query["search[value]"].FirstOrDefault();
 
-            return new JsonResult(new { data = formattedData });
+                // Start with base query
+                var query = await _unitOfWork.SerialNumber
+                    .GetQueryableAsy(sn => sn.IsActive,
+                        includeProperties: "Model,Client,Client.ParentClient,MaintenanceContract,Warranty");
+
+                var recordsTotal = await query.CountAsync();
+
+                // 🔍 Global search
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    search = search.ToLower();
+                    query = query.Where(sn =>
+                        sn.Value.ToLower().Contains(search) ||
+                        sn.Model.Name.ToLower().Contains(search) ||
+                        sn.Client.Name.ToLower().Contains(search) ||
+                        (sn.Client.ParentClient != null &&
+                         sn.Client.ParentClient.Name.ToLower().Contains(search)));
+                }
+
+                // 🏷️ Model filter
+                if (modelId.HasValue && modelId > 0)
+                {
+                    query = query.Where(sn => sn.ModelId == modelId);
+                }
+
+                // 👥 Client filter (parent clients only)
+                if (clientId.HasValue && clientId > 0)
+                {
+                    query = query.Where(sn =>
+                        sn.Client.ParentClientId == clientId || // Branch of parent client
+                        (sn.Client.ParentClient == null && sn.ClientId == clientId)); // Parent client itself
+                }
+
+                var recordsFiltered = query.Count();
+
+                // Apply ordering and pagination
+                var data = await query
+                    .OrderByDescending(sn => sn.ReceivedDate) // Most recent first
+                    .Skip(start)
+                    .Take(length)
+                    .Select(sn => new
+                    {
+                        id = sn.Id,
+                        value = sn.Value,
+                        modelName = sn.Model.Name,
+                        clientName = sn.Client.ParentClient != null
+                            ? sn.Client.ParentClient.Name
+                            : sn.Client.Name,
+                        branchName = sn.Client.ParentClient != null
+                            ? sn.Client.Name
+                            : "N/A",
+                        maintenanceContractId = sn.MaintenanceContractId.HasValue
+                            ? $"{sn.MaintenanceContractId:D4}"
+                            : null,
+                        warrantyId = sn.WarrantyId.HasValue
+                            ? $"{sn.WarrantyId:D4}"
+                            : null,
+                        receivedDate = sn.ReceivedDate.ToString("dd-MM-yyyy hh:mm tt")
+                    })
+                    .ToListAsync(); // Use async version if available
+
+                return new JsonResult(new
+                {
+                    draw,
+                    recordsTotal,
+                    recordsFiltered,
+                    data
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new
+                {
+                    draw,
+                    recordsTotal = 0,
+                    recordsFiltered = 0,
+                    data = new List<object>(),
+                    error = ex.Message
+                });
+            }
         }
 
-        // API for Delete
+        // ❌ DELETE — UNCHANGED
         public async Task<IActionResult> OnPostDelete(int? id, string reason)
         {
             var serialNumberToBeDeleted = await _unitOfWork.SerialNumber.GetAsy(sn => sn.Id == id && sn.IsActive == true);
@@ -79,11 +152,11 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
             return new JsonResult(new { success = true, message = "Serial number deleted successfully" });
         }
 
-        // API for Models (for filter dropdown)
+        // ✅ API for Models (for filter dropdown) - UNCHANGED
         public async Task<JsonResult> OnGetModels()
         {
-            var models = (await _unitOfWork.Model.GetAllAsy(m => m.IsActive == true 
-                            && m.SerialNumbers.Any(sn => sn.IsActive == true), 
+            var models = (await _unitOfWork.Model.GetAllAsy(m => m.IsActive == true
+                            && m.SerialNumbers.Any(sn => sn.IsActive == true),
                             includeProperties: "SerialNumbers"))
                                 .Select(m => new { id = m.Id, name = m.Name })
                                 .OrderBy(m => m.name)
@@ -92,7 +165,7 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
             return new JsonResult(new { models });
         }
 
-        // API for Clients (for filter dropdown)
+        // ✅ API for Clients (for filter dropdown) - UNCHANGED
         public async Task<JsonResult> OnGetClients()
         {
             var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true

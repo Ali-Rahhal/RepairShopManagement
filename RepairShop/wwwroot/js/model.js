@@ -1,122 +1,114 @@
 ﻿var dataTable;
 
+function loadCategories() {
+    $.get('/Admin/Models/Index?handler=Categories', function (categories) {
+        populateCategoryFilter(categories);
+    });
+}
+
 $(function () {
+    loadCategories();   // ✅ load once
     loadDataTable();
 });
 
-function isAdmin() {//function to check if the user is admin
+function isAdmin() {
     return document.getElementById("isAdmin").value === "True";
 }
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "stateSave": true,
-        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
-        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
+        serverSide: true,
+        processing: true,
+        paging: true,
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50],
+        searchDelay: 500, // Add delay for better UX with server-side
+        stateSave: true, // Keep user's state
+        stateDuration: 86400, // 24 hours in seconds
+
         ajax: {
             url: '/Admin/Models/Index?handler=All',
-            dataSrc: function (json) {
-                // Extract unique categories for the filter
-                var categories = [...new Set(json.data.map(item => item.category || 'Uncategorized'))];
-                populateCategoryFilter(categories);
-                return json.data;
+            type: 'GET',
+            data: function (d) {
+                d.category = $('#categoryFilter').val(); // ✅ send category
             }
         },
-        dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        "order": [
-            [1, "asc"]   // Then by creation date: newest first
-        ],
+        "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
+        order: [[1, "asc"]],
+
         columns: [
             {
                 data: 'name',
                 width: "35%",
-                render: function (data, type, row) {
+                render: function (data) {
                     return data || '-';
                 }
             },
             {
                 data: 'category',
                 width: "30%",
-                render: function (data, type, row) {
+                render: function (data) {
                     return data || 'Uncategorized';
                 }
             },
             {
                 data: 'id',
-                render: function (data) {
-                    return `<div class="w-100 d-flex justify-content-center" role="group">
-                        <a href="/Admin/Models/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                        <a onClick="Delete('/Admin/Models/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                    </div>`;
-                },
+                orderable: false,
                 width: "25%",
-                orderable: false
+                render: function (data) {
+                    return `
+                        <div class="w-100 d-flex justify-content-center">
+                            <a href="/Admin/Models/Upsert?id=${data}"
+                               class="btn btn-primary mx-2">
+                               <i class="bi bi-pencil-square"></i>
+                            </a>
+                            <a onclick="Delete('/Admin/Models/Index?handler=Delete&id=${data}')"
+                               class="btn btn-danger mx-2">
+                               <i class="bi bi-trash-fill"></i>
+                            </a>
+                        </div>`;
+                }
             }
         ],
+
         language: {
             emptyTable: "No models found",
             zeroRecords: "No matching models found"
         }
     });
 
-    if (isAdmin()) {
-        dataTable.column(2).visible(true);   // show admin column
-    } else {
-        dataTable.column(2).visible(false);
-    }
+    dataTable.column(2).visible(isAdmin());
 
-    // Add event listener for category filter
-    $('#categoryFilter').on('change', function () {
-        applyCategoryFilter();
-    });
-
-    // Add event listener for DataTable search to sync with category filter
-    dataTable.on('search.dt', function () {
-        // If there's a text search, clear the category filter to avoid conflicts
-        if (dataTable.search().length > 0) {
-            $('#categoryFilter').val('All');
-        }
-    });
+    $('#categoryFilter').on('change', applyCategoryFilter);
 }
+
+// ================= CATEGORY FILTER =================
 
 function populateCategoryFilter(categories) {
     var select = $('#categoryFilter');
-
-    // CLEAR existing options first
-    select.empty(); // ← THIS LINE FIXES THE DUPLICATION
-    // Sort categories alphabetically, case insensitive
+    select.empty();
     select.append('<option value="All">All Categories</option>');
+
     categories.sort(function (a, b) {
         return a.localeCompare(b, undefined, { sensitivity: 'base' });
     });
 
     categories.forEach(function (category) {
-        var displayName = category || 'Uncategorized';
-        select.append('<option value="' + category + '">' + displayName + '</option>');
+        select.append(`<option value="${category}">${category}</option>`);
     });
 }
 
 function applyCategoryFilter() {
-    var category = $('#categoryFilter').val();
-
-    if (category === 'All') {
-        // Clear category filter but preserve any text search
-        dataTable.column(1).search('').draw();
-    } else {
-        // Apply exact match for category
-        var searchValue = category === 'Uncategorized' ? '^$' : '^' + category + '$';
-        dataTable.column(1).search(searchValue, true, false).draw();
-    }
+    dataTable.ajax.reload(); // ✅ server handles filtering
 }
 
 function clearCategoryFilter() {
     $('#categoryFilter').val('All');
-    dataTable.order([[1, 'asc']]).draw();
-    dataTable.column(1).search('').draw();
-
-    // Show success message
+    dataTable.ajax.reload();
     toastr.info('Category filter cleared');
 }
+
+// ================= DELETE =================
 
 function Delete(url) {
     Swal.fire({
@@ -124,8 +116,6 @@ function Delete(url) {
         text: "This action cannot be undone!",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
         confirmButtonText: "Yes, delete it!"
     }).then((result) => {
         if (result.isConfirmed) {
@@ -134,10 +124,9 @@ function Delete(url) {
                 type: 'GET',
                 success: function (data) {
                     if (data.success) {
-                        dataTable.ajax.reload();
+                        dataTable.ajax.reload(null, false);
                         toastr.success(data.message);
-                    }
-                    else {
+                    } else {
                         toastr.error(data.message);
                     }
                 },

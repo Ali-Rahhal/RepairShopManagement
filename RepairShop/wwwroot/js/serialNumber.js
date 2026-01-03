@@ -1,234 +1,231 @@
 ﻿var dataTable;
 
-$(function() {
+function loadFilters() {
+    // Load models
+    $.get('/Admin/SerialNumbers/Index?handler=Models', function (data) {
+        populateModelFilter(data.models);
+    });
+
+    // Load clients
+    $.get('/Admin/SerialNumbers/Index?handler=Clients', function (data) {
+        populateClientFilter(data.clients);
+    });
+}
+
+$(function () {
     loadFilters();
     loadDataTable();
 });
 
-function isAdmin() {//function to check if the user is admin
-    return document.getElementById("isAdmin").value === "True";
-}
-
-function loadFilters() {
-    // Load models for filter
-    $.ajax({
-        url: '/Admin/SerialNumbers/Index?handler=Models',
-        type: 'GET',
-        success: function (data) {
-            populateModelFilter(data.models);
-        }
-    });
-
-    // Load clients for filter
-    $.ajax({
-        url: '/Admin/SerialNumbers/Index?handler=Clients',
-        type: 'GET',
-        success: function (data) {
-            populateClientFilter(data.clients);
-        }
-    });
+function isAdmin() {
+    try {
+        return document.getElementById("isAdmin").value === "True";
+    } catch {
+        return false;
+    }
 }
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "stateSave": true,
-        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
-        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
-        "ajax": {
-            url: '/Admin/SerialNumbers/Index?handler=All'
+        serverSide: true,
+        processing: true,
+        paging: true,
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        searchDelay: 500,
+        stateSave: true,
+        stateDuration: 86400,
+
+        ajax: {
+            url: '/Admin/SerialNumbers/Index?handler=All',
+            type: 'GET',
+            data: function (d) {
+                // Add custom filters to request
+                d.modelId = $('#modelFilter').val() || '';
+                d.clientId = $('#clientFilter').val() || '';
+                return d;
+            },
+            error: function (xhr, error, thrown) {
+                console.error('DataTable Ajax Error:', error, thrown);
+                toastr.error('Failed to load serial numbers. Please try again.');
+            }
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        "order": [[6, "desc"]],
-        "columns": [
+        order: [[0, "desc"]], // Order by received date descending
+
+        columns: [
             {
                 data: 'value',
-                "width": "15%",
-                "render": function (data, type, row) {
+                width: "15%",
+                className: "text-start",
+                render: function (data) {
                     return data || '-';
                 }
             },
             {
                 data: 'modelName',
-                "width": "20%",
-                "render": function (data, type, row) {
-                    return data || 'N/A';
+                width: "15%",
+                className: "text-start",
+                render: function (data) {
+                    return data || '-';
                 }
             },
             {
                 data: 'clientName',
-                "width": "10%",
-                "render": function (data, type, row) {
-                    return data || 'N/A';
+                width: "15%",
+                className: "text-start",
+                render: function (data) {
+                    return data || '-';
                 }
             },
             {
                 data: 'branchName',
-                "width": "10%",
-                "render": function (data, type, row) {
-                    return data || 'N/A';
-                }
-            },
-            {
-                data: 'warrantyId',
-                "width": "15%",
-                "render": function (data, type, row) {
-                    return  (data !== null) ? `Warranty: #${data}`: 'No Warranty' ;
+                width: "10%",
+                className: "text-start",
+                render: function (data) {
+                    return data === 'N/A' ? '-' : data;
                 }
             },
             {
                 data: 'maintenanceContractId',
-                "width": "15%",
-                "render": function (data, type, row) {
-                    return  (data !== null) ? `Contract: #${data}`: 'No Contract' ;
+                width: "10%",
+                className: "text-center",
+                render: function (data) {
+                    return data ? `<span class="badge bg-info">${data}</span>` : '-';
+                }
+            },
+            {
+                data: 'warrantyId',
+                width: "10%",
+                className: "text-center",
+                render: function (data) {
+                    return data ? `<span class="badge bg-warning">${data}</span>` : '-';
                 }
             },
             {
                 data: 'receivedDate',
-                "width": "15%",
-                "render": function (data, type, row) {
-                    if (data) {
-                        // Convert to Date object and format as dd-MM-yyyy HH:mm tt
-                        const date = new Date(data);
-
-                        // When DataTables needs to sort or order, return a numeric timestamp
-                        if (type === 'sort' || type === 'order') {
-                            return date.getTime();
-                        }
-
-                        return date.toLocaleDateString('en-GB')
-                            .split('/').join('-') + ' ' +
-                            date.toLocaleTimeString('en-US', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                hour12: true
-                            });
-                    }
-                    return '';
+                width: "10%",
+                className: "text-center",
+                render: function (data) {
+                    return data || '-';
                 }
             },
             {
                 data: 'id',
+                orderable: false,
+                searchable: false,
+                width: "15%",
+                className: "text-center",
                 "render": function (data) {
                     return `<div class="w-100 d-flex justify-content-center" role="group">
                         <a href="/Admin/SerialNumbers/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
                         <a onClick="Delete(${data})" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                     </div>`;
                 },
-                "width": "15%",
-                "orderable": false
             }
         ],
-        "language": {
-            "emptyTable": "No serial numbers found",
-            "zeroRecords": "No matching serial numbers found"
+
+        language: {
+            emptyTable: "No serial numbers found",
+            zeroRecords: "No matching serial numbers found"
         }
     });
 
-    // Add event listeners for filters
-    $('#modelFilter').on('change', function () {
-        applyFilters();
-    });
-
-    $('#clientFilter').on('change', function () {
-        applyFilters();
+    // Clear search when filters change
+    $('#modelFilter, #clientFilter').on('change', function () {
+        $('#tblData_filter input').val('');
+        dataTable.search('').draw();
     });
 }
+
+// ================= FILTER FUNCTIONS =================
 
 function populateModelFilter(models) {
     var select = $('#modelFilter');
     select.empty();
-    select.append('<option value="All">All Models</option>');
+    select.append('<option value="">All Models</option>');
 
     models.forEach(function (model) {
-        select.append('<option value="' + model.name + '">' + model.name + '</option>');
+        select.append(`<option value="${model.id}">${model.name}</option>`);
     });
 }
 
 function populateClientFilter(clients) {
     var select = $('#clientFilter');
     select.empty();
-    select.append('<option value="All">All Clients</option>');
+    select.append('<option value="">All Clients</option>');
 
     clients.forEach(function (client) {
-        select.append('<option value="' + client.name + '">' + client.name + '</option>');
+        select.append(`<option value="${client.id}">${client.name}</option>`);
     });
 }
 
 function applyFilters() {
-    var modelFilter = $('#modelFilter').val();
-    var clientFilter = $('#clientFilter').val();
-
-    // Clear all column searches first
-    dataTable.columns().search('');
-
-    // Apply model filter to column 1 (Model)
-    if (modelFilter !== 'All') {
-        dataTable.column(1).search('^' + modelFilter + '$', true, false);
-    }
-
-    // Apply client filter to column 2 (Client)
-    if (clientFilter !== 'All') {
-        dataTable.column(2).search('^' + clientFilter + '$', true, false);
-    }
-
-    dataTable.draw();
+    dataTable.ajax.reload(null, false);
 }
 
 function clearFilters() {
-    $('#modelFilter').val('All');
-    $('#clientFilter').val('All');
-    dataTable.order([
-        [6, "desc"]
-    ]).draw();
-    dataTable.columns().search('').draw();
+    $('#modelFilter').val('');
+    $('#clientFilter').val('');
+    dataTable.ajax.reload(null, false);
     toastr.info('All filters cleared');
 }
 
-function Delete(serialNumberId) {
+// ================= DELETE FUNCTION =================
+
+function deleteSerialNumber(id) {
     Swal.fire({
-        title: "Are you sure you want to deactivate this serial number?",
-        text: "Please provide a reason (required).",
-        icon: "warning",
-        input: "text",
-        inputPlaceholder: "Enter deactivation reason...",
+        title: 'Delete Serial Number?',
+        html: `
+            <div class="mb-3">
+                <p class="text-danger">This action cannot be undone!</p>
+                <label for="deleteReason" class="form-label">Reason for deletion:</label>
+                <input type="text" id="deleteReason" class="form-control" 
+                       placeholder="Enter reason (required)" required>
+            </div>
+        `,
+        icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        confirmButtonText: "Confirm",
-        inputValidator: (value) => {
-            if (!value || value.trim() === '') {
-                return "A reason is required!";
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        reverseButtons: true,
+        preConfirm: () => {
+            const reason = $('#deleteReason').val();
+            if (!reason || reason.trim() === '') {
+                Swal.showValidationMessage('Please enter a reason for deletion');
+                return false;
             }
+            return reason.trim();
         }
     }).then((result) => {
         if (result.isConfirmed) {
-
-            const postData = {
-                id: serialNumberId,
-                reason: result.value.trim()
-            };
-
-            // Get anti-forgery token
-            const token = $('input[name="__RequestVerificationToken"]').val();
+            const reason = result.value;
 
             $.ajax({
-                url: '/Admin/SerialNumbers/Index?handler=Delete',
-                type: "POST",
+                url: `/Admin/SerialNumbers/Index?handler=Delete&id=${id}`,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(reason),
                 headers: {
-                    "RequestVerificationToken": token
+                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
                 },
-                data: postData,
+                beforeSend: function () {
+                    Swal.showLoading();
+                },
                 success: function (data) {
+                    Swal.close();
                     if (data.success) {
                         dataTable.ajax.reload(null, false);
-                        loadFilters();
                         toastr.success(data.message);
                     } else {
                         toastr.error(data.message);
                     }
                 },
                 error: function () {
-                    toastr.error("An error occurred while deleting the serial number");
+                    Swal.close();
+                    toastr.error('An error occurred while deleting the serial number');
                 }
             });
         }
