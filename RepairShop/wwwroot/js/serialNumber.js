@@ -35,7 +35,7 @@ function loadDataTable() {
         searchDelay: 500,
         stateSave: true,
         stateDuration: 86400,
-
+        order: [[6, 'desc']], // default: ReceivedDate column (index 6) descending
         ajax: {
             url: '/Admin/SerialNumbers/Index?handler=All',
             type: 'GET',
@@ -89,6 +89,7 @@ function loadDataTable() {
             {
                 data: 'maintenanceContractId',
                 width: "10%",
+                orderable: false,
                 className: "text-center",
                 render: function (data) {
                     return data ? `<span class="badge bg-info">${data}</span>` : '-';
@@ -97,6 +98,7 @@ function loadDataTable() {
             {
                 data: 'warrantyId',
                 width: "10%",
+                orderable: false,
                 className: "text-center",
                 render: function (data) {
                     return data ? `<span class="badge bg-warning">${data}</span>` : '-';
@@ -160,15 +162,11 @@ function populateClientFilter(clients) {
     });
 }
 
-function applyFilters() {
-    dataTable.ajax.reload(null, false);
-}
-
 function clearFilters() {
     $('#modelFilter').val('');
     $('#clientFilter').val('');
-    dataTable.ajax.reload(null, false);
-    toastr.info('All filters cleared');
+    dataTable.order([[6, 'desc']]).ajax.reload(null, false); // Reset ordering to ReceivedDate desc
+    toastr.info('All filters and sorting reset');
 }
 
 // ================= DELETE FUNCTION =================

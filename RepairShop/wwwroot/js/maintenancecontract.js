@@ -10,12 +10,23 @@ function isAdmin() {//function to check if the user is admin
 
 function loadDataTable() {
     dataTable = new DataTable('#tblData', {
-        "stateSave": true,
-        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
-        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
+        serverSide: true,
+        processing: true,
+        paging: true,
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        searchDelay: 500,
+
+        stateSave: true,
+        stateDuration: 86400,
+        ordering: false,
         ajax: {
             url: '/Admin/MaintenanceContracts/Index?handler=All',
-            dataSrc: 'data'
+            type: 'GET',
+            data: function (d) {
+                d.status = $('#statusFilter').val();
+                return d;
+            }
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         order: [[0, "desc"]],
@@ -122,8 +133,7 @@ function loadDataTable() {
         language: {
             emptyTable: "No maintenance contracts found",
             zeroRecords: "No matching contracts found"
-        },
-        order: [[0, 'desc']] // Sort by contract number descending
+        }
     });
 
     if (isAdmin()) {
@@ -133,34 +143,17 @@ function loadDataTable() {
     }
 
     // Add event listener for status filter
-    const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter) {
-        statusFilter.addEventListener('change', applyStatusFilter);
-    }
-}
-
-function applyStatusFilter() {
-    const status = document.getElementById('statusFilter').value;
-
-    if (status === 'All') {
-        dataTable.column(6).search('').draw(); // Status column (index 5)
-    } else {
-        dataTable.column(6).search('^' + status + '$', true, false).draw();
-    }
+    $('#statusFilter').on('change', function () {
+        dataTable.ajax.reload(null, false);
+    });
 }
 
 function clearFilters() {
-    const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter) {
-        statusFilter.value = 'All';
-    }
-    dataTable.order([
-        [0, "desc"]
-    ]).draw();
-    dataTable.columns().search('').draw();
-
+    $('#statusFilter').val('All');
+    dataTable.ajax.reload(null, false);
     toastr.info('Filters cleared');
 }
+
 function Delete(url) {
     Swal.fire({
         title: "Are you sure you want to delete this maintenance contract?",

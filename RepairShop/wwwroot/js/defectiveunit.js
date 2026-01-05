@@ -19,7 +19,7 @@ function loadDataTable() {
 
         stateSave: true,
         stateDuration: 86400,
-
+        order: [[7, 'asc'], [4, 'desc']], // default: Status column index 7, then ReportedDate index 4
         ajax: {
             url: '/Admin/DefectiveUnits/Index?handler=All',
             type: 'GET',
@@ -29,16 +29,6 @@ function loadDataTable() {
             }
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        "order": [
-            [7, "asc"],   // Status: New -> InProgress -> Completed -> OutOfService
-            [4, "desc"]   // Then by creation date: newest first
-        ],
-        "columnDefs": [
-            {
-                "targets": 7, // Status column
-                "type": "status-priority"
-            }
-        ],
         columns: [
             {
                 data: 'serialNumber',
@@ -64,6 +54,7 @@ function loadDataTable() {
             {
                 data: 'clientBranch',
                 width: "8%",
+                orderable: false,
                 render: function (data) {
                     return data || 'N/A';
                 }
@@ -95,6 +86,7 @@ function loadDataTable() {
             {
                 data: 'hasAccessories',
                 width: "5%",
+                orderable: false,
                 render: function (data) {
                     return data ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-warning">No</span>';
                 }
@@ -102,6 +94,7 @@ function loadDataTable() {
             {
                 data: 'description',
                 width: "14%",
+                orderable: false,
                 render: function (data, type, row) {
                     let text = '';
                     if (data) {
@@ -153,6 +146,7 @@ function loadDataTable() {
             {
                 data: 'daysSinceReported',
                 width: "8%",
+                orderable: false,
                 render: function (data) {
                     if (data === 0) return '<span class="badge bg-info">Today</span>';
                     if (data === 1) return '<span class="badge bg-info">1 day</span>';
@@ -164,6 +158,7 @@ function loadDataTable() {
             {
                 data: 'coverage',
                 width: "4%",
+                orderable: false,
                 render: function (data, type, row) {
                     let coverageHtml = '';
                     if (row.warrantyCovered === 'Yes') {
@@ -244,31 +239,6 @@ function loadDataTable() {
         }
     });
 
-    // robust status-priority sorter (register before DataTable init) -----
-    $.fn.dataTable.ext.type.order['status-priority-pre'] = function (data) {
-        // handle null/undefined
-        if (data == null) return 99;
-
-        // if cell contains HTML (badge), strip tags -> get inner text
-        if (typeof data === 'string') {
-            // remove tags, unescape &nbsp; etc, trim whitespace
-            data = data.replace(/<[^>]*>/g, '').replace(/\u00A0/g, ' ').trim();
-        } else {
-            data = String(data);
-        }
-
-        // normalize: remove spaces and lowercase for robust comparison
-        var key = data.replace(/\s+/g, '').toLowerCase();
-
-        switch (key) {
-            case 'reported': return 1;
-            case 'underrepair': return 2;
-            case 'fixed': return 3;
-            case 'outofservice': return 4;
-            default: return 5;
-        }
-    };
-
     // Add event listeners for filters
     $('#statusFilter').on('change', function () {
         applyFilters();
@@ -291,9 +261,12 @@ function applyFilters() {
 
 function clearFilters() {
     $('#statusFilter').val('All');
-    dataTable.order([[7, 'asc'], [4, 'desc']]).draw();
 
+    // Clear column search
     dataTable.columns().search('').draw();
+
+    // Reset ordering to default (Status asc → ReportedDate desc)
+    dataTable.order([[7, 'asc'], [4, 'desc']]).draw();
 
     toastr.info('All filters and sorting reset');
 }

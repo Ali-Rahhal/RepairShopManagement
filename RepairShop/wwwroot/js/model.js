@@ -25,7 +25,7 @@ function loadDataTable() {
         searchDelay: 500, // Add delay for better UX with server-side
         stateSave: true, // Keep user's state
         stateDuration: 86400, // 24 hours in seconds
-
+        order: [[1, "asc"]], // default: Category ascending
         ajax: {
             url: '/Admin/Models/Index?handler=All',
             type: 'GET',
@@ -34,7 +34,6 @@ function loadDataTable() {
             }
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        order: [[1, "asc"]],
 
         columns: [
             {
@@ -104,8 +103,8 @@ function applyCategoryFilter() {
 
 function clearCategoryFilter() {
     $('#categoryFilter').val('All');
-    dataTable.ajax.reload();
-    toastr.info('Category filter cleared');
+    dataTable.order([[1, 'asc']]).ajax.reload(); // reset ordering to default
+    toastr.info('Category filter and ordering reset');
 }
 
 // ================= DELETE =================

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using RepairShop.Services;
@@ -36,6 +37,9 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
             try
             {
                 var search = Request.Query["search[value]"].FirstOrDefault();
+                // Get ordering info from DataTables
+                var orderColumnIndex = Request.Query["order[0][column]"].FirstOrDefault();
+                var orderDir = Request.Query["order[0][dir]"].FirstOrDefault() ?? "desc"; // default desc
 
                 // Start with base query
                 var query = await _unitOfWork.SerialNumber
@@ -72,9 +76,24 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
 
                 var recordsFiltered = query.Count();
 
+                // Map column index to expression
+                Expression<Func<SerialNumber, object>> orderExpr = orderColumnIndex switch
+                {
+                    "0" => sn => sn.Value,
+                    "1" => sn => sn.Model.Name,
+                    "2" => sn => sn.Client.ParentClient != null ? sn.Client.ParentClient.Name : sn.Client.Name,
+                    "3" => sn => sn.Client.ParentClient != null ? sn.Client.Name : "N/A",
+                    "6" => sn => sn.ReceivedDate,
+                    _ => sn => sn.ReceivedDate // default ordering
+                };
+
+                // Apply ordering
+                query = orderDir == "asc"
+                    ? query.OrderBy(orderExpr)
+                    : query.OrderByDescending(orderExpr);
+
                 // Apply ordering and pagination
                 var data = await query
-                    .OrderByDescending(sn => sn.ReceivedDate) // Most recent first
                     .Skip(start)
                     .Take(length)
                     .Select(sn => new

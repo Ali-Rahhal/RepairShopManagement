@@ -36,6 +36,8 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             try
             {
                 var search = Request.Query["search[value]"].FirstOrDefault();
+                var orderColumnIndex = Request.Query["order[0][column]"].FirstOrDefault();
+                var orderDir = Request.Query["order[0][dir]"].FirstOrDefault();
 
                 var query = await _unitOfWork.DefectiveUnit.GetQueryableAsy(
                     du => du.IsActive == true,
@@ -72,13 +74,38 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
                 var recordsFiltered = await query.CountAsync();
 
+                // Server-side ordering
+                query = orderColumnIndex switch
+                {
+                    "0" => orderDir == "asc"
+                        ? query.OrderBy(du => du.SerialNumber.Value)
+                        : query.OrderByDescending(du => du.SerialNumber.Value),
+                    "1" => orderDir == "asc"
+                        ? query.OrderBy(du => du.SerialNumber.Model.Name)
+                        : query.OrderByDescending(du => du.SerialNumber.Model.Name),
+                    "2" => orderDir == "asc"
+                        ? query.OrderBy(du => du.SerialNumber.Client.Name)
+                        : query.OrderByDescending(du => du.SerialNumber.Client.Name),
+                    "4" => orderDir == "asc"
+                        ? query.OrderBy(du => du.ReportedDate)
+                        : query.OrderByDescending(du => du.ReportedDate),
+                    "7" => orderDir == "asc"
+                        ? query.OrderBy(du => du.Status == SD.Status_DU_Reported ? 1 :
+                                                du.Status == SD.Status_DU_UnderRepair ? 2 :
+                                                du.Status == SD.Status_DU_Fixed ? 3 : 4)
+                        : query.OrderByDescending(du => du.Status == SD.Status_DU_Reported ? 1 :
+                                                        du.Status == SD.Status_DU_UnderRepair ? 2 :
+                                                        du.Status == SD.Status_DU_Fixed ? 3 : 4),
+                    "10" => orderDir == "asc"
+                        ? query.OrderBy(du => du.ResolvedDate)
+                        : query.OrderByDescending(du => du.ResolvedDate),
+                    _ => query.OrderBy(du => du.Status == SD.Status_DU_Reported ? 1 :
+                                            du.Status == SD.Status_DU_UnderRepair ? 2 :
+                                            du.Status == SD.Status_DU_Fixed ? 3 : 4)
+                                .ThenByDescending(du => du.ReportedDate) // DEFAULT ordering
+                };
+
                 var data = await query
-                    .OrderBy(du =>
-                        du.Status == SD.Status_DU_Reported ? 1 :
-                        du.Status == SD.Status_DU_UnderRepair ? 2 :
-                        du.Status == SD.Status_DU_Fixed ? 3 : 4
-                    )
-                    .ThenByDescending(du => du.ReportedDate)
                     .Skip(start)
                     .Take(length)
                     .Select(du => new

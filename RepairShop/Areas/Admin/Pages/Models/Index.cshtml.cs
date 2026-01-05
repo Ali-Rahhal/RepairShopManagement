@@ -32,6 +32,8 @@ namespace RepairShop.Areas.Admin.Pages.Models
             string? category = null)
         {
             var searchValue = Request.Query["search[value]"].ToString();
+            var orderColumnIndex = Request.Query["order[0][column]"].FirstOrDefault();
+            var orderDir = Request.Query["order[0][dir]"].FirstOrDefault() ?? "asc"; // default asc
 
             var query = await _unitOfWork.Model
                 .GetQueryableAsy(m => m.IsActive);
@@ -61,10 +63,20 @@ namespace RepairShop.Areas.Admin.Pages.Models
             }
 
             var recordsFiltered = query.Count();
-            
+
+            // 🔧 Server-side ordering
+            query = orderColumnIndex switch
+            {
+                "0" => orderDir == "asc"
+                    ? query.OrderBy(m => m.Name)
+                    : query.OrderByDescending(m => m.Name),
+                "1" => orderDir == "asc"
+                    ? query.OrderBy(m => m.Category)
+                    : query.OrderByDescending(m => m.Category),
+                _ => query.OrderBy(m => m.Category) // default ordering
+            };
 
             var data = await query
-                .OrderBy(m => m.Category)
                 .Skip(start)
                 .Take(length)
                 .ToListAsync();

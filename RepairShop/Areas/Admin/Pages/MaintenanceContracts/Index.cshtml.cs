@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
@@ -22,51 +23,94 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
         {
         }
 
-        // API for DataTable
-        public async Task<JsonResult> OnGetAll()
+        // ✅ SERVER-SIDE DATATABLE
+        public async Task<JsonResult> OnGetAll(
+            int draw,
+            int start = 0,
+            int length = 10,
+            string? status = null)
         {
-            var contractList = (await _unitOfWork.MaintenanceContract.GetAllAsy(
-                mc => mc.IsActive == true,
-                includeProperties: "Client,Client.ParentClient"
-            )).ToList();
-
-            // Update status for contracts that have expired
-            var updatedContracts = new List<MaintenanceContract>();
-            foreach (var contract in contractList)
+            try
             {
-                var newStatus = contract.EndDate < DateTime.Now ? "Expired" : "Active";
-                if (contract.Status != newStatus)
-                {
-                    contract.Status = newStatus;
-                    updatedContracts.Add(contract);
-                }
-            }
+                var search = Request.Query["search[value]"].FirstOrDefault();
 
-            // Save status changes to database
-            if (updatedContracts.Count > 0)
-            {
-                foreach (var contract in updatedContracts)
+                var query = await _unitOfWork.MaintenanceContract.GetQueryableAsy(
+                    mc => mc.IsActive == true,
+                    includeProperties: "Client,Client.ParentClient"
+                );
+
+                // 🔄 Update status dynamically (Active / Expired)
+                foreach (var mc in query)
                 {
-                    await _unitOfWork.MaintenanceContract.UpdateAsy(contract);
+                    var newStatus = mc.EndDate < DateTime.Now ? "Expired" : "Active";
+                    if (mc.Status != newStatus)
+                        mc.Status = newStatus;
                 }
                 await _unitOfWork.SaveAsy();
+
+                var recordsTotal = await query.CountAsync();
+
+                // 🔍 Global search
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    search = search.ToLower();
+                    query = query.Where(mc =>
+                        mc.Id.ToString().Contains(search) ||
+                        mc.Client.Name.ToLower().Contains(search) ||
+                        (mc.Client.ParentClient != null &&
+                         mc.Client.ParentClient.Name.ToLower().Contains(search))
+                    );
+                }
+
+                // 🏷 Status filter
+                if (!string.IsNullOrWhiteSpace(status) && status != "All")
+                {
+                    query = query.Where(mc => mc.Status == status);
+                }
+
+                var recordsFiltered = await query.CountAsync();
+
+                var data = await query
+                    .OrderByDescending(mc => mc.Id)
+                    .Skip(start)
+                    .Take(length)
+                    .Select(mc => new
+                    {
+                        id = mc.Id,
+                        contractNumber = $"CONTRACT-{mc.Id:D4}",
+                        clientName = mc.Client.ParentClient != null
+                            ? mc.Client.ParentClient.Name
+                            : mc.Client.Name,
+                        clientBranch = mc.Client.ParentClient != null
+                            ? mc.Client.Name
+                            : "N/A",
+                        startDate = mc.StartDate,
+                        endDate = mc.EndDate,
+                        status = mc.Status,
+                        daysRemaining = (mc.EndDate - DateTime.Now).Days,
+                        isExpired = mc.EndDate < DateTime.Now
+                    })
+                    .ToListAsync();
+
+                return new JsonResult(new
+                {
+                    draw,
+                    recordsTotal,
+                    recordsFiltered,
+                    data
+                });
             }
-
-            // Format the data for better display
-            var formattedData = contractList.Select(mc => new
+            catch (Exception ex)
             {
-                id = mc.Id,
-                contractNumber = $"CONTRACT-{mc.Id:D4}",
-                clientName = mc.Client?.ParentClient != null ? mc.Client?.ParentClient.Name : mc.Client?.Name,
-                clientBranch = mc.Client?.ParentClient != null ? mc.Client?.Name : "N/A",
-                startDate = mc.StartDate,
-                endDate = mc.EndDate,
-                status = mc.Status,
-                daysRemaining = (mc.EndDate - DateTime.Now).Days,
-                isExpired = mc.EndDate < DateTime.Now
-            });
-
-            return new JsonResult(new { data = formattedData });
+                return new JsonResult(new
+                {
+                    draw,
+                    recordsTotal = 0,
+                    recordsFiltered = 0,
+                    data = new List<object>(),
+                    error = ex.Message
+                });
+            }
         }
 
         // API for Delete
