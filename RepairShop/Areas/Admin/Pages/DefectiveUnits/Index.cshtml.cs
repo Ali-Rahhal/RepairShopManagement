@@ -27,7 +27,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         }
 
         // ✅ SERVER-SIDE DATATABLE
-        public async Task<JsonResult> OnGetAll(
+        public async Task<JsonResult> OnPostAll(
             int draw,
             int start = 0,
             int length = 10,

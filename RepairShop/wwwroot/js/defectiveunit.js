@@ -22,7 +22,11 @@ function loadDataTable() {
         order: [[7, 'asc'], [4, 'desc']], // default: Status column index 7, then ReportedDate index 4
         ajax: {
             url: '/Admin/DefectiveUnits/Index?handler=All',
-            type: 'GET',
+            type: 'POST',
+            headers: {
+                'RequestVerificationToken':
+                    $('input[name="__RequestVerificationToken"]').val()
+            },
             data: function (d) {
                 d.status = $('#statusFilter').val();
                 return d;
