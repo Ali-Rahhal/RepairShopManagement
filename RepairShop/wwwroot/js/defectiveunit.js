@@ -10,12 +10,23 @@ function isAdmin() {//function to check if the user is admin
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "stateSave": true,
-        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
-        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
+        serverSide: true,
+        processing: true,
+        paging: true,
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        searchDelay: 500,
+
+        stateSave: true,
+        stateDuration: 86400,
+
         ajax: {
             url: '/Admin/DefectiveUnits/Index?handler=All',
-            dataSrc: 'data'
+            type: 'GET',
+            data: function (d) {
+                d.status = $('#statusFilter').val();
+                return d;
+            }
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "order": [

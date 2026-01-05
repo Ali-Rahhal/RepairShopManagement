@@ -1,6 +1,7 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
@@ -25,33 +26,104 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         {
         }
 
-        // API for DataTable
-        public async Task<JsonResult> OnGetAll()
+        // ✅ SERVER-SIDE DATATABLE
+        public async Task<JsonResult> OnGetAll(
+            int draw,
+            int start = 0,
+            int length = 10,
+            string? status = null)
         {
-            var defectiveUnitList = (await _unitOfWork.DefectiveUnit.GetAllAsy(
-                filter: du => du.IsActive == true,
-                includeProperties: "SerialNumber,SerialNumber.Model,SerialNumber.Client,SerialNumber.Client.ParentClient,SerialNumber.Warranty,SerialNumber.MaintenanceContract"
-            )).ToList();
-
-            // Format the data for better display
-            var formattedData = defectiveUnitList.Select(du => new
+            try
             {
-                id = du.Id,
-                model = du.SerialNumber.Model.Name,
-                reportedDate = du.ReportedDate,
-                description = du.Description,
-                hasAccessories = du.HasAccessories,
-                status = du.Status,
-                resolvedDate = du.ResolvedDate?.ToString("dd/MM/yyyy") ?? "Not resolved",
-                serialNumber = du.SerialNumber?.Value ?? "N/A",
-                clientName = du.SerialNumber?.Client.ParentClient != null ? du.SerialNumber?.Client.ParentClient.Name : du.SerialNumber?.Client.Name,
-                clientBranch = du.SerialNumber?.Client.ParentClient != null ? du.SerialNumber?.Client.Name : "N/A",
-                warrantyCovered = du.SerialNumber?.WarrantyId != null ? "Yes" : "No",
-                contractCovered = du.SerialNumber?.MaintenanceContractId != null ? "Yes" : "No",
-                daysSinceReported = (DateTime.Now - du.ReportedDate).Days
-            });
+                var search = Request.Query["search[value]"].FirstOrDefault();
 
-            return new JsonResult(new { data = formattedData });
+                var query = await _unitOfWork.DefectiveUnit.GetQueryableAsy(
+                    du => du.IsActive == true,
+                    includeProperties:
+                        "SerialNumber," +
+                        "SerialNumber.Model," +
+                        "SerialNumber.Client," +
+                        "SerialNumber.Client.ParentClient," +
+                        "SerialNumber.Warranty," +
+                        "SerialNumber.MaintenanceContract"
+                );
+
+                var recordsTotal = await query.CountAsync();
+
+                // 🔍 Global search
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    search = search.ToLower();
+                    query = query.Where(du =>
+                        du.Description.ToLower().Contains(search) ||
+                        du.SerialNumber.Value.ToLower().Contains(search) ||
+                        du.SerialNumber.Model.Name.ToLower().Contains(search) ||
+                        du.SerialNumber.Client.Name.ToLower().Contains(search) ||
+                        (du.SerialNumber.Client.ParentClient != null &&
+                         du.SerialNumber.Client.ParentClient.Name.ToLower().Contains(search))
+                    );
+                }
+
+                // 🏷 Status filter
+                if (!string.IsNullOrWhiteSpace(status) && status != "All")
+                {
+                    query = query.Where(du => du.Status == status);
+                }
+
+                var recordsFiltered = await query.CountAsync();
+
+                var data = await query
+                    .OrderBy(du =>
+                        du.Status == SD.Status_DU_Reported ? 1 :
+                        du.Status == SD.Status_DU_UnderRepair ? 2 :
+                        du.Status == SD.Status_DU_Fixed ? 3 : 4
+                    )
+                    .ThenByDescending(du => du.ReportedDate)
+                    .Skip(start)
+                    .Take(length)
+                    .Select(du => new
+                    {
+                        id = du.Id,
+                        serialNumber = du.SerialNumber.Value,
+                        model = du.SerialNumber.Model.Name,
+                        clientName = du.SerialNumber.Client.ParentClient != null
+                            ? du.SerialNumber.Client.ParentClient.Name
+                            : du.SerialNumber.Client.Name,
+                        clientBranch = du.SerialNumber.Client.ParentClient != null
+                            ? du.SerialNumber.Client.Name
+                            : "N/A",
+                        reportedDate = du.ReportedDate,
+                        description = du.Description,
+                        hasAccessories = du.HasAccessories,
+                        status = du.Status,
+                        daysSinceReported = (DateTime.Now - du.ReportedDate).Days,
+                        resolvedDate = du.ResolvedDate != null
+                            ? du.ResolvedDate.Value.ToString("dd/MM/yyyy")
+                            : "Not resolved",
+                        warrantyCovered = du.SerialNumber.WarrantyId != null ? "Yes" : "No",
+                        contractCovered = du.SerialNumber.MaintenanceContractId != null ? "Yes" : "No"
+                    })
+                    .ToListAsync();
+
+                return new JsonResult(new
+                {
+                    draw,
+                    recordsTotal,
+                    recordsFiltered,
+                    data
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new
+                {
+                    draw,
+                    recordsTotal = 0,
+                    recordsFiltered = 0,
+                    data = new List<object>(),
+                    error = ex.Message
+                });
+            }
         }
 
         // API for Delete

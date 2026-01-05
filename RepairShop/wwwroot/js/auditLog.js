@@ -40,12 +40,12 @@ function loadDataTable() {
         columns: [
             {
                 data: 'logNumber',
-                width: "5%",
+                width: "10%",
                 render: data => `<strong>${data}</strong>`
             },
             {
                 data: 'user',
-                width: "15%",
+                width: "10%",
                 render: data => data ?? 'System'
             },
             {
@@ -114,12 +114,11 @@ function clearFilters() {
     dataTable.search('').draw();
 }
 
-function refreshTable() {
-    const btn = event?.currentTarget;
-    btn?.setAttribute('disabled', true);
+function refreshTable(btn) {
+    btn.setAttribute("disabled", "true");
 
     dataTable.ajax.reload(() => {
-        toastr.success('Audit log refreshed');
-        btn?.removeAttribute('disabled');
+        toastr.success("Audit log refreshed");
+        btn.removeAttribute("disabled");
     }, false);
 }
