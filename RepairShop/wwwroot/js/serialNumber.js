@@ -173,7 +173,7 @@ function clearFilters() {
 
 // ================= DELETE FUNCTION =================
 
-function deleteSerialNumber(id) {
+function Delete(id) {
     Swal.fire({
         title: 'Delete Serial Number?',
         html: `

@@ -37,6 +37,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             var formattedData = defectiveUnitList.Select(du => new
             {
                 id = du.Id,
+                model = du.SerialNumber.Model.Name,
                 reportedDate = du.ReportedDate,
                 description = du.Description,
                 hasAccessories = du.HasAccessories,

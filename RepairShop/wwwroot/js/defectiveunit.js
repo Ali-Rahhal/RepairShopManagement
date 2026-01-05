@@ -19,12 +19,12 @@ function loadDataTable() {
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "order": [
-            [6, "asc"],   // Status: New -> InProgress -> Completed -> OutOfService
-            [3, "desc"]   // Then by creation date: newest first
+            [7, "asc"],   // Status: New -> InProgress -> Completed -> OutOfService
+            [4, "desc"]   // Then by creation date: newest first
         ],
         "columnDefs": [
             {
-                "targets": 6, // Status column
+                "targets": 7, // Status column
                 "type": "status-priority"
             }
         ],
@@ -37,15 +37,22 @@ function loadDataTable() {
                 }
             },
             {
+                data: 'model',
+                width: "9%",
+                render: function (data) {
+                    return data || 'N/A';
+                }
+            },
+            {
                 data: 'clientName',
-                width: "10%",
+                width: "8%",
                 render: function (data) {
                     return data || 'N/A';
                 }
             },
             {
                 data: 'clientBranch',
-                width: "10%",
+                width: "8%",
                 render: function (data) {
                     return data || 'N/A';
                 }
@@ -76,14 +83,14 @@ function loadDataTable() {
             },
             {
                 data: 'hasAccessories',
-                width: "4%",
+                width: "5%",
                 render: function (data) {
                     return data ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-warning">No</span>';
                 }
             },
             {
                 data: 'description',
-                width: "15%",
+                width: "14%",
                 render: function (data, type, row) {
                     let text = '';
                     if (data) {
@@ -116,7 +123,7 @@ function loadDataTable() {
             },
             {
                 data: 'status',
-                width: "8%",
+                width: "6%",
                 render: function (data, type) {
                     if (type === `display`) {
                         let badgeClass = 'bg-secondary';
@@ -145,7 +152,7 @@ function loadDataTable() {
             },
             {
                 data: 'coverage',
-                width: "7%",
+                width: "4%",
                 render: function (data, type, row) {
                     let coverageHtml = '';
                     if (row.warrantyCovered === 'Yes') {
@@ -265,7 +272,7 @@ function applyFilters() {
 
     // Apply status filter
     if (statusFilter !== 'All') {
-        dataTable.column(6).search('^' + statusFilter + '$', true, false); // Status column
+        dataTable.column(7).search('^' + statusFilter + '$', true, false); // Status column
     }
 
     dataTable.draw();
@@ -273,7 +280,7 @@ function applyFilters() {
 
 function clearFilters() {
     $('#statusFilter').val('All');
-    dataTable.order([[6, 'asc'], [3, 'desc']]).draw();
+    dataTable.order([[7, 'asc'], [4, 'desc']]).draw();
 
     dataTable.columns().search('').draw();
 
