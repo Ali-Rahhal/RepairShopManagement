@@ -1,21 +1,31 @@
 ﻿var dataTable;
 
-$(document).ready(function () {
+function loadCategories() {
+    $.get('/Admin/Parts/Index?handler=Categories', function (categories) {
+        populateCategoryFilter(categories);
+    });
+}
+
+$(function () {
+    loadCategories();   // ✅ load once
     loadDataTable();
 });
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "stateSave": true,
-        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
-        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
-        "ajax": {
+        serverSide: true,            // ✅ server-side
+        processing: true,
+        stateSave: true,
+        stateDuration: 86400,
+        order: [[1, 'asc']], // default: Category ascending
+        ajax: {
             url: '/Admin/Parts/Index?handler=All',
-            dataSrc: function (json) {
-                // Extract unique categories for the filter
-                var categories = [...new Set(json.data.map(item => item.category || 'Uncategorized'))];
-                populateCategoryFilter(categories);
-                return json.data;
+            type: 'GET',
+            data: function (d) {
+                d.category = $('#categoryFilter').val() || 'All';
+            },
+            error: function () {
+                toastr.error('Failed to load parts');
             }
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
@@ -32,10 +42,10 @@ function loadDataTable() {
                         <a onClick="Delete('/Admin/Parts/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                     </div>`;
                 },
-                "width": "20%"
+                "width": "20%",
+                "orderable": false
             },
         ],
-        order: [[1, 'asc']],
         "language": {
             "emptyTable": "No parts found",
             "zeroRecords": "No matching parts found"
@@ -45,14 +55,6 @@ function loadDataTable() {
     // Add event listener for category filter
     $('#categoryFilter').on('change', function () {
         applyCategoryFilter();
-    });
-
-    // Add event listener for DataTable search to sync with category filter
-    dataTable.on('search.dt', function () {
-        // If there's a text search, clear the category filter to avoid conflicts
-        if (dataTable.search().length > 0) {
-            $('#categoryFilter').val('All');
-        }
     });
 }
 
@@ -68,30 +70,17 @@ function populateCategoryFilter(categories) {
     });
 
     categories.forEach(function (category) {
-        var displayName = category || 'Uncategorized';
-        select.append('<option value="' + category + '">' + displayName + '</option>');
+        select.append(`<option value="${category}">${category}</option>`);
     });
 }
 
 function applyCategoryFilter() {
-    var category = $('#categoryFilter').val();
-
-    if (category === 'All') {
-        // Clear category filter but preserve any text search
-        dataTable.column(1).search('').draw();
-    } else {
-        // Apply exact match for category
-        var searchValue = category === 'Uncategorized' ? '^$' : '^' + category + '$';
-        dataTable.column(1).search(searchValue, true, false).draw();
-    }
+    dataTable.ajax.reload(); // server handles filtering
 }
 
 function clearCategoryFilter() {
     $('#categoryFilter').val('All');
-    dataTable.order([[1, 'asc']]).draw();
-    dataTable.column(1).search('').draw();
-
-    // Show success message
+    dataTable.order([[1, 'asc']]).ajax.reload();
     toastr.info('Category filter cleared');
 }
 

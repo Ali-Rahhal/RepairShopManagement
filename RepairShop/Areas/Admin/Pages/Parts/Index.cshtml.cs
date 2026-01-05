@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using RepairShop.Services;
@@ -23,11 +24,71 @@ namespace RepairShop.Areas.Admin.Pages.Parts
         {
         }
 
-        // API for DataTable
-        public async Task<JsonResult> OnGetAll()
+        public async Task<JsonResult> OnGetAll(
+            int draw,
+            int start = 0,
+            int length = 10,
+            string? category = null)
         {
-            var partList = (await _unitOfWork.Part.GetAllAsy(p => p.IsActive == true)).ToList();
-            return new JsonResult(new { data = partList });
+            var search = Request.Query["search[value]"].ToString();
+            var orderColumnIndex = Request.Query["order[0][column]"].FirstOrDefault();
+            var orderDir = Request.Query["order[0][dir]"].FirstOrDefault() ?? "asc";
+
+            // Base query
+            var query = await _unitOfWork.Part.GetQueryableAsy(p => p.IsActive);
+
+            var recordsTotal = await query.CountAsync();
+
+            // Global search
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.ToLower();
+                query = query.Where(p =>
+                    p.Name.ToLower().Contains(search) ||
+                    (p.Category ?? "").ToLower().Contains(search));
+            }
+
+            // Category filter
+            if (!string.IsNullOrWhiteSpace(category) && category != "All")
+            {
+                if (category == "Uncategorized")
+                    query = query.Where(p => string.IsNullOrEmpty(p.Category));
+                else
+                    query = query.Where(p => p.Category == category);
+            }
+
+            var recordsFiltered = await query.CountAsync();
+
+            // Server-side ordering
+            query = orderColumnIndex switch
+            {
+                "0" => orderDir == "asc" ? query.OrderBy(p => p.Name) : query.OrderByDescending(p => p.Name),
+                "1" => orderDir == "asc" ? query.OrderBy(p => p.Category) : query.OrderByDescending(p => p.Category),
+                "2" => orderDir == "asc" ? query.OrderBy(p => p.Quantity) : query.OrderByDescending(p => p.Quantity),
+                "3" => orderDir == "asc" ? query.OrderBy(p => p.Price) : query.OrderByDescending(p => p.Price),
+                _ => query.OrderBy(p => p.Category) // default
+            };
+
+            var data = await query
+                .Skip(start)
+                .Take(length)
+                .Select(p => new
+                {
+                    id = p.Id,
+                    name = p.Name,
+                    category = string.IsNullOrEmpty(p.Category) ? "Uncategorized" : p.Category,
+                    quantity = p.Quantity,
+                    price = p.Price
+                })
+                .ToListAsync();
+
+            return new JsonResult(new
+            {
+                draw,
+                recordsTotal,
+                recordsFiltered,
+                data
+            });
         }
 
         // API for Delete
@@ -53,6 +114,18 @@ namespace RepairShop.Areas.Admin.Pages.Parts
             await _unitOfWork.SaveAsy();
             await _auditLogService.AddLogAsy(SD.Action_Delete, SD.Entity_Part, partToBeDeleted.Id);
             return new JsonResult(new { success = true, message = "Part deleted successfully" });
+        }
+
+        public async Task<JsonResult> OnGetCategories()
+        {
+            var categories = (await _unitOfWork.Part
+                .GetAllAsy(p => p.IsActive))
+                .Select(p => p.Category ?? "Uncategorized")
+                .Distinct()
+                .OrderBy(c => c)
+                .ToList();
+
+            return new JsonResult(categories);
         }
     }
 }
