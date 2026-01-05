@@ -35,9 +35,9 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
         {
             try
             {
-                var search = Request.Query["search[value]"].FirstOrDefault();
-                var orderColumnIndex = Request.Query["order[0][column]"].FirstOrDefault();
-                var orderDir = Request.Query["order[0][dir]"].FirstOrDefault();
+                var search = Request.Form["search[value]"].FirstOrDefault();
+                var orderColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
+                var orderDir = Request.Form["order[0][dir]"].FirstOrDefault();
 
                 var query = await _unitOfWork.DefectiveUnit.GetQueryableAsy(
                     du => du.IsActive == true,
