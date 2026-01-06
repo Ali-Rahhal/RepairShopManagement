@@ -1,6 +1,7 @@
 ﻿let dataTable;
 
-document.addEventListener('DOMContentLoaded', function () {
+$(function () {
+    loadFilters();
     loadDataTable();
 });
 
@@ -8,16 +9,59 @@ function isAdmin() {
     return document.getElementById("isAdmin").value === "True";
 }
 
+function loadFilters() {
+    // Load statuses
+    $.get('/Admin/Warranties/Index?handler=Statuses', function (data) {
+        populateStatusFilter(data.statuses);
+    });
+}
+
 function loadDataTable() {
-    dataTable = new DataTable('#tblData', {
-        "stateSave": true,
-        "stateDuration": 86400,
+    dataTable = $('#tblData').DataTable({
+        serverSide: true,
+        processing: true,
+        paging: true,
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        searchDelay: 500,
+        stateSave: true,
+        stateDuration: 86400,
+        order: [], // Let server handle default ordering
+
         ajax: {
             url: '/Admin/Warranties/Index?handler=All',
-            dataSrc: 'data'
+            type: 'POST',
+            headers: {
+                'RequestVerificationToken':
+                    $('input[name="__RequestVerificationToken"]').val()
+            },
+            data: function (d) {
+                // Add custom filters to request
+                d.status = $('#statusFilter').val() || '';
+                return d;
+            },
+            error: function (xhr, error, thrown) {
+                console.error('DataTable Ajax Error:', error, thrown);
+                toastr.error('Failed to load warranties. Please try again.');
+            }
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        "order": [[0, "desc"]],
+
+        columnDefs: [
+            {
+                targets: 7, // Days Remaining column
+                type: 'num' // Treat as number for proper ordering
+            },
+            {
+                targets: 8, // Status column
+                type: 'num' // Treat as number for status priority
+            },
+            {
+                targets: 9, // Actions column
+                orderable: false,
+                searchable: false
+            }
+        ],
         columns: [
             {
                 data: 'warrantyNumber',
@@ -29,6 +73,7 @@ function loadDataTable() {
             {
                 data: 'coveredCount',
                 width: "8%",
+                orderable: false,
                 render: function (data, type, row) {
                     return `<span class="badge bg-info p-2 fs-6">${data} items</span>`;
                 }
@@ -124,6 +169,7 @@ function loadDataTable() {
             {
                 data: 'daysRemaining',
                 width: "12%",
+                orderable: false,
                 render: function (data, type, row) {
                     if (row.isExpired) {
                         return '<span class="badge bg-danger p-2 fs-6">Expired</span>';
@@ -167,40 +213,38 @@ function loadDataTable() {
         }
     });
 
+    // Apply column visibility based on admin status
     if (isAdmin()) {
-        dataTable.column(9).visible(true);   // show admin column
+        dataTable.column(9).visible(true);
     } else {
         dataTable.column(9).visible(false);
     }
 
-    // Add event listener for status filter
-    const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter) {
-        statusFilter.addEventListener('change', applyStatusFilter);
-    }
+    // Add event listener for filter
+    $('#statusFilter').on('change', function () {
+        $('#tblData_filter input').val('');
+        dataTable.search('').draw();
+    });
 }
 
-function applyStatusFilter() {
-    const status = document.getElementById('statusFilter').value;
+// ================= FILTER FUNCTIONS =================
 
-    if (status === 'All') {
-        dataTable.column(8).search('').draw(); // Status column is now at index 7
-    } else {
-        dataTable.column(8).search('^' + status + '$', true, false).draw();
-    }
+
+function populateStatusFilter(statuses) {
+    var select = $('#statusFilter');
+    select.empty();
+
+    statuses.forEach(function (status) {
+        select.append(`<option value="${status.id}">${status.name}</option>`);
+    });
 }
 
 function clearFilters() {
-    const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter) {
-        statusFilter.value = 'All';
-    }
-    dataTable.order([
-        [0, "desc"]
-    ]).draw();
-    dataTable.columns().search('').draw();
+    $('#statusFilter').val('All');
+    $('#tblData_filter input').val('');
+    dataTable.order([]).ajax.reload(null, false); // Reset to server default ordering
 
-    toastr.info('Filters cleared');
+    toastr.info('All filters and sorting reset');
 }
 
 function showFullSerials(description) {
