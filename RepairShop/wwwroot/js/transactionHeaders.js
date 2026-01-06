@@ -1,40 +1,90 @@
-﻿//code needed for datatable to work in TH index page
-var dataTable;
+﻿var dataTable;
 
-$(document).ready(function () {
-    sessionStorage.clear();
+$(function () {
+    loadFilters();
     loadDataTable();
 });
 
-function isAdmin() {//function to check if the user is admin
-    return document.getElementById("isAdmin").value === "True";
+function isAdmin() {
+    try {
+        return document.getElementById("isAdmin").value === "True";
+    } catch {
+        return false;
+    }
+}
+
+function loadFilters() {
+    // Load clients
+    $.get('/User/TransactionHeaders/Index?handler=Clients', function (data) {
+        populateClientFilter(data.clients);
+    });
+
+    // Load statuses
+    $.get('/User/TransactionHeaders/Index?handler=Statuses', function (data) {
+        populateStatusFilter(data.statuses);
+    });
 }
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "stateSave": true,
-        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
-        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
-        "ajax": {
-            url: '/User/TransactionHeaders/Index?handler=All',
-            dataSrc: function (json) {
-                // Extract unique clients for the filter
-                var clients = [...new Set(json.data.map(item => item.clientName))];
-                populateClientFilter(clients);
+        serverSide: true,
+        processing: true,
+        paging: true,
+        pageLength: 10,
+        lengthMenu: [5, 10, 25, 50, 100],
+        searchDelay: 500,
+        stateSave: true,
+        stateDuration: 86400,
+        // Remove default ordering from client-side - let server handle it
+        order: [], // Empty array means no default client-side ordering
 
-                return json.data;
+        ajax: {
+            url: '/User/TransactionHeaders/Index?handler=All',
+            type: 'POST',
+            headers: {
+                'RequestVerificationToken':
+                    $('input[name="__RequestVerificationToken"]').val()
+            },
+            data: function (d) {
+                // Add custom filters to request
+                d.statusFilter = $('#statusFilter').val() || '';
+                d.clientFilter = $('#clientFilter').val() || '';
+
+                // Date filters
+                var minDate = $('#minDate').val();
+                var maxDate = $('#maxDate').val();
+
+                if (minDate) {
+                    d.minDate = new Date(minDate).toISOString();
+                }
+                if (maxDate) {
+                    d.maxDate = new Date(maxDate).toISOString();
+                }
+
+                return d;
+            },
+            error: function (xhr, error, thrown) {
+                console.error('DataTable Ajax Error:', error, thrown);
+                toastr.error('Failed to load transactions. Please try again.');
             }
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        "order": [
-            [9, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
-            [4, "asc"],   // Within equal modification times, sort by status
-            [7, "desc"]   // Within equal statuses, sort by newest creation date
-        ],
-        "columnDefs": [
+
+        columnDefs: [
             {
-                "targets": 4, // Status column
-                "type": "status-priority"
+                targets: 4, // Status column
+                orderSequence: ["asc", "desc"],
+                type: 'num'
+            },
+            {
+                targets: 9, // LastModifiedDate column (hidden)
+                visible: false,
+                searchable: false,
+                orderable: true
+            },
+            {
+                targets: 7, // CreatedDate column
+                type: 'date' // Treat as date for proper ordering
             }
         ],
         "columns": [
@@ -60,6 +110,7 @@ function loadDataTable() {
             {
                 data: 'duDescription',
                 "width": "15%",
+                "orderable": false,
                 render: function (data, type, row) {
                     let text = '';
                     if (data) {
@@ -153,6 +204,7 @@ function loadDataTable() {
             {
                 data: 'id',
                 "width": "20%",
+                "orderable": false,
                 "render": function (data, type, row) {
                     let firstButton = row.status === "New"
                         ? `<a onClick="ChangeStatusToInProgress('/User/TransactionHeaders/Index?handler=ChangeStatus&id=${data}')" title="Start Work" class="btn btn-success mx-2"><i class="bi bi-play-circle"></i></a>`
@@ -204,100 +256,34 @@ function loadDataTable() {
             "emptyTable": "No transactions found",
             "zeroRecords": "No matching transactions found"
         }
+
     });
-
-    // Add event listeners for filters
-    $('#clientFilter').on('change', function () {
-        dataTable.draw();
+    // Clear search when filters change
+    $('#clientFilter, #statusFilter, #minDate, #maxDate').on('change', function () {
+        $('#tblData_filter input').val('');
+        dataTable.search('').draw();
     });
-
-    $('#statusFilter').on('change', function () {
-        dataTable.draw();
-    });
-
-    $('#minDate').on('change', function () {
-        dataTable.draw();
-    });
-
-    $('#maxDate').on('change', function () {
-        dataTable.draw();
-    });
-
-    // robust status-priority sorter (register before DataTable init) -----
-    $.fn.dataTable.ext.type.order['status-priority-pre'] = function (data) {
-        // handle null/undefined
-        if (data == null) return 99;
-
-        // if cell contains HTML (badge), strip tags -> get inner text
-        if (typeof data === 'string') {
-            // remove tags, unescape &nbsp; etc, trim whitespace
-            data = data.replace(/<[^>]*>/g, '').replace(/\u00A0/g, ' ').trim();
-        } else {
-            data = String(data);
-        }
-
-        // normalize: remove spaces and lowercase for robust comparison
-        var key = data.replace(/\s+/g, '').toLowerCase();
-
-        switch (key) {
-            case 'new': return 1;
-            case 'inprogress': return 2;
-            case 'completed': return 3;
-            case 'delivered': return 4;
-            case 'processed': return 5;
-            case 'outofservice': return 6;
-            default: return 7;
-        }
-    };
-
-    // Custom filtering function for date + client + status
-    $.fn.dataTable.ext.search.push(
-        function (settings, data, dataIndex) {
-            var min = $('#minDate').val();
-            var max = $('#maxDate').val();
-            var clientFilter = $('#clientFilter').val();
-            var statusFilter = $('#statusFilter').val();
-
-            var rowData = dataTable.row(dataIndex).data();
-            var createdDate = new Date(rowData.createdDate);
-            var clientName = rowData.clientName;
-            var status = rowData.status;
-
-            // Date filter
-            if (min) {
-                var minDate = new Date(min);
-                minDate.setHours(0, 0, 0, 0); // Start of day
-                if (createdDate < minDate) return false;
-            }
-            if (max) {
-                var maxDate = new Date(max);
-                maxDate.setHours(23, 59, 59, 999); // End of day
-                if (createdDate > maxDate) return false;
-            }
-
-            // Client filter
-            if (clientFilter !== 'All') {
-                if (clientName !== clientFilter) return false;
-            }
-
-            // Status filter
-            if (statusFilter !== 'All') {
-                if (status !== statusFilter) return false;
-            }
-
-            return true;
-        }
-    );
 }
+
+// ================= FILTER FUNCTIONS =================
 
 function populateClientFilter(clients) {
     var select = $('#clientFilter');
     select.empty();
     select.append('<option value="All">All Clients</option>');
 
-    // Sort clients alphabetically
-    clients.sort().forEach(function (client) {
-        select.append('<option value="' + client + '">' + client + '</option>');
+    clients.forEach(function (client) {
+        select.append(`<option value="${client.name}">${client.name}</option>`);
+    });
+}
+
+function populateStatusFilter(statuses) {
+    var select = $('#statusFilter');
+    select.empty();
+    select.append('<option value="All">All Statuses</option>');
+
+    statuses.forEach(function (status) {
+        select.append(`<option value="${status.name}">${status.name}</option>`);
     });
 }
 
@@ -306,18 +292,12 @@ function clearFilters() {
     $('#statusFilter').val('All');
     $('#minDate').val('');
     $('#maxDate').val('');
-    dataTable.order([
-        [9, "desc"],  // Most recently edited transactions (based on LastModifiedDate) come first
-        [4, "asc"],   // Within equal modification times, sort by status
-        [7, "desc"]   // Within equal statuses, sort by newest creation date
-    ]).draw();
 
-    // Clear any search filters
-    dataTable.search('').columns().search('').draw();
+    // Trigger reload without any ordering parameters
+    // This will make server apply default multi-level ordering
+    dataTable.order([]).ajax.reload(null, false);
 
-    if (typeof toastr !== 'undefined') {
-        toastr.info('All filters and sorting reset');
-    }
+    toastr.info('All filters and sorting reset to default (ModifiedDate → Status → CreationDate)');
 }
 
 function showFullDescription(description) {

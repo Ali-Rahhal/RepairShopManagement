@@ -1,10 +1,12 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using RepairShop.Services;
+using System.Linq.Expressions;
 using System.Security.Claims;
 
 namespace RepairShop.Areas.User.Pages.TransactionHeaders
@@ -23,54 +25,262 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
         {
         }
 
-        //AJAX CALLS for getting all THs in Json format for DataTables
-        public async Task<JsonResult> OnGetAll()//The route is /User/TransactionHeaders/Index?handler=All
+        // ✅ SERVER-SIDE PAGINATION + FILTERING + ORDERING
+        public async Task<JsonResult> OnPostAll(
+            int draw,
+            int start = 0,
+            int length = 10,
+            string? statusFilter = null,
+            string? clientFilter = null,
+            DateTime? minDate = null,
+            DateTime? maxDate = null)
         {
-            var THList = new List<TransactionHeader>();
-            // Get the user's identity. Explanation: User.Identity contains
-            // information about the currently logged-in user.
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            try
+            {
+                var search = Request.Form["search[value]"].FirstOrDefault();
+                var orderColumnIndex = Request.Form["order[0][column]"].FirstOrDefault();
+                var orderDir = Request.Form["order[0][dir]"].FirstOrDefault();
 
-            // Get the user's role. Explanation: ClaimTypes.Role
-            // is a standard claim type that represents the role of the user.
-            var userRole = claimsIdentity.FindFirst(ClaimTypes.Role).Value;
-            if (userRole == SD.Role_Admin)//If the user is an admin get all transactions
-            {
-                THList = (await _unitOfWork.TransactionHeader
-                    .GetAllAsy(t => t.IsActive == true,
-                    includeProperties: "User,DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client,DefectiveUnit.SerialNumber.Client.ParentClient")).ToList();
-            }
-            else//If the user is not an admin get only their transactions
-            {
-                // Get the user's ID. Explanation: ClaimTypes.NameIdentifier is a
-                // standard claim type that represents the unique identifier of the user.
+                // Get user info
+                var claimsIdentity = (ClaimsIdentity)User.Identity;
+                var userRole = claimsIdentity.FindFirst(ClaimTypes.Role).Value;
                 var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
 
-                THList = (await _unitOfWork.TransactionHeader
-                    .GetAllAsy(t => t.IsActive == true && t.UserId == userId,
-                    includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client,DefectiveUnit.SerialNumber.Client.ParentClient")).ToList();
+                // Start with base query
+                IQueryable<TransactionHeader> query = null;
+
+                if (userRole == SD.Role_Admin)
+                {
+                    query = await _unitOfWork.TransactionHeader
+                        .GetQueryableAsy(t => t.IsActive == true,
+                        includeProperties: "User,DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client,DefectiveUnit.SerialNumber.Client.ParentClient");
+                }
+                else
+                {
+                    query = await _unitOfWork.TransactionHeader
+                        .GetQueryableAsy(t => t.IsActive == true && t.UserId == userId,
+                        includeProperties: "DefectiveUnit,DefectiveUnit.SerialNumber,DefectiveUnit.SerialNumber.Model,DefectiveUnit.SerialNumber.Client,DefectiveUnit.SerialNumber.Client.ParentClient");
+                }
+
+                var recordsTotal = await query.CountAsync();
+
+                // 🔍 Global search
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    search = search.ToLower();
+                    query = query.Where(t =>
+                        t.DefectiveUnit.SerialNumber.Value.ToLower().Contains(search) ||
+                        t.DefectiveUnit.SerialNumber.Model.Name.ToLower().Contains(search) ||
+                        t.Status.ToLower().Contains(search));
+                }
+
+                // 🏷️ Status filter
+                if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "All")
+                {
+                    query = query.Where(t => t.Status == statusFilter);
+                }
+
+                // 👥 Client filter
+                if (!string.IsNullOrEmpty(clientFilter) && clientFilter != "All")
+                {
+                    query = query.Where(t =>
+                        (t.DefectiveUnit.SerialNumber.Client.ParentClient != null &&
+                         t.DefectiveUnit.SerialNumber.Client.ParentClient.Name == clientFilter) ||
+                        (t.DefectiveUnit.SerialNumber.Client.ParentClient == null &&
+                         t.DefectiveUnit.SerialNumber.Client.Name == clientFilter));
+                }
+
+                // 📅 Date range filter
+                if (minDate.HasValue)
+                {
+                    query = query.Where(t => t.CreatedDate >= minDate.Value);
+                }
+
+                if (maxDate.HasValue)
+                {
+                    var maxDateWithTime = maxDate.Value.Date.AddDays(1).AddTicks(-1);
+                    query = query.Where(t => t.CreatedDate <= maxDateWithTime);
+                }
+
+                var recordsFiltered = await query.CountAsync();
+
+                // 🗂️ Apply ordering (multi-level when no specific column is ordered)
+                query = ApplyOrdering(query, orderColumnIndex, orderDir);
+
+                // 📄 Pagination
+                var data = await query
+                    .Skip(start)
+                    .Take(length)
+                    .Select(t => new
+                    {
+                        id = t.Id,
+                        user = t.User != null ? new { userName = t.User.UserName } : null,
+                        model = t.DefectiveUnit.SerialNumber.Model.Name,
+                        serialNumber = t.DefectiveUnit.SerialNumber.Value,
+                        duDescription = t.DefectiveUnit.Description,
+                        status = t.Status,
+                        clientName = t.DefectiveUnit.SerialNumber.Client.ParentClient != null
+                            ? t.DefectiveUnit.SerialNumber.Client.ParentClient.Name
+                            : t.DefectiveUnit.SerialNumber.Client.Name,
+                        branchName = t.DefectiveUnit.SerialNumber.Client.ParentClient != null
+                            ? t.DefectiveUnit.SerialNumber.Client.Name
+                            : "N/A",
+                        lastModifiedDate = t.LastModifiedDate ?? t.CreatedDate,
+                        createdDate = t.CreatedDate,
+                        inProgressDate = t.InProgressDate,
+                        completedOrOutOfServiceDate = t.CompletedOrOutOfServiceDate,
+                        deliveredDate = t.DeliveredDate,
+                        processedDate = t.ProcessedDate,
+                        defectiveUnitId = t.DefectiveUnitId,
+                        // For sorting
+                        statusPriority = GetStatusPriority(t.Status),
+                        lastModifiedTimestamp = t.LastModifiedDate ?? t.CreatedDate,
+                        createdTimestamp = t.CreatedDate
+                    })
+                    .ToListAsync();
+
+                return new JsonResult(new
+                {
+                    draw,
+                    recordsTotal,
+                    recordsFiltered,
+                    data
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new
+                {
+                    draw,
+                    recordsTotal = 0,
+                    recordsFiltered = 0,
+                    data = new List<object>(),
+                    error = ex.Message
+                });
+            }
+        }
+
+        private static int GetStatusPriority(string status)
+        {
+            return status switch
+            {
+                "New" => 1,
+                "InProgress" => 2,
+                "Completed" => 3,
+                "Delivered" => 4,
+                "Processed" => 5,
+                "OutOfService" => 6,
+                _ => 7
+            };
+        }
+
+        private IQueryable<TransactionHeader> ApplyOrdering(IQueryable<TransactionHeader> query, string? orderColumnIndex, string? orderDir)
+        {
+            // If no specific column is ordered by user, apply default multi-level ordering
+            if (string.IsNullOrEmpty(orderColumnIndex) || string.IsNullOrEmpty(orderDir))
+            {
+                // DEFAULT ORDERING: LastModifiedDate desc → Status asc → CreatedDate desc
+                return query
+                    .OrderByDescending(t => t.LastModifiedDate ?? t.CreatedDate) // 1st level: ModifiedDate desc
+                    .ThenBy(t => t.Status == "New" ? 1 :              // 2nd level: Status priority asc
+                               t.Status == "InProgress" ? 2 :
+                               t.Status == "Completed" ? 3 :
+                               t.Status == "Delivered" ? 4 :
+                               t.Status == "Processed" ? 5 :
+                               t.Status == "OutOfService" ? 6 : 7)
+                    .ThenByDescending(t => t.CreatedDate);            // 3rd level: CreatedDate desc
             }
 
-            // Format the data for better display
-            var formattedData = THList.Select(t => new
+            // User has clicked on a column to sort - apply single column ordering
+            Expression<Func<TransactionHeader, object>> orderExpr = orderColumnIndex switch
             {
-                id = t.Id,
-                user = t.User != null ? new { userName = t.User.UserName } : null,
-                model = t.DefectiveUnit?.SerialNumber?.Model?.Name ?? "N/A",
-                serialNumber = t.DefectiveUnit?.SerialNumber?.Value ?? "N/A",
-                duDescription = t.DefectiveUnit?.Description ?? "N/A",
-                status = t.Status,
-                clientName = t.DefectiveUnit?.SerialNumber.Client.ParentClient != null ? t.DefectiveUnit?.SerialNumber.Client.ParentClient.Name : t.DefectiveUnit?.SerialNumber.Client.Name,
-                branchName = t.DefectiveUnit?.SerialNumber.Client.ParentClient != null ? t.DefectiveUnit?.SerialNumber.Client.Name : "N/A",
-                lastModifiedDate = t.LastModifiedDate ?? t.CreatedDate,
-                createdDate = t.CreatedDate,
-                inProgressDate = t.InProgressDate,
-                completedOrOutOfServiceDate = t.CompletedOrOutOfServiceDate,
-                deliveredDate = t.DeliveredDate,
-                defectiveUnitId = t.DefectiveUnitId
-            });
+                "0" => t => t.User != null ? t.User.UserName : "", // User column
+                "1" => t => t.DefectiveUnit.SerialNumber.Model.Name,
+                "2" => t => t.DefectiveUnit.SerialNumber.Value,
+                "4" => t => t.Status == "New" ? 1 :
+                           t.Status == "InProgress" ? 2 :
+                           t.Status == "Completed" ? 3 :
+                           t.Status == "Delivered" ? 4 :
+                           t.Status == "Processed" ? 5 :
+                           t.Status == "OutOfService" ? 6 : 7,
+                "5" => t => t.DefectiveUnit.SerialNumber.Client.ParentClient != null
+                            ? t.DefectiveUnit.SerialNumber.Client.ParentClient.Name
+                            : t.DefectiveUnit.SerialNumber.Client.Name,
+                "6" => t => t.DefectiveUnit.SerialNumber.Client.ParentClient != null
+                            ? t.DefectiveUnit.SerialNumber.Client.Name
+                            : "N/A",
+                "7" => t => t.CreatedDate,
+                "9" => t => t.LastModifiedDate ?? t.CreatedDate, // Hidden LastModifiedDate column
+                _ => t => t.LastModifiedDate ?? t.CreatedDate // Default
+            };
 
-            return new JsonResult(new { data = formattedData });
+            return orderDir == "asc"
+                ? query.OrderBy(orderExpr)
+                : query.OrderByDescending(orderExpr);
+        }
+
+        // ✅ API for Clients (for filter dropdown)
+        public async Task<JsonResult> OnGetClients()
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userRole = claimsIdentity.FindFirst(ClaimTypes.Role).Value;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            IQueryable<TransactionHeader> query;
+
+            if (userRole == SD.Role_Admin)
+            {
+                query = await _unitOfWork.TransactionHeader
+                    .GetQueryableAsy(t => t.IsActive == true,
+                    includeProperties: "DefectiveUnit.SerialNumber.Client,DefectiveUnit.SerialNumber.Client.ParentClient");
+            }
+            else
+            {
+                query = await _unitOfWork.TransactionHeader
+                    .GetQueryableAsy(t => t.IsActive == true && t.UserId == userId,
+                    includeProperties: "DefectiveUnit.SerialNumber.Client,DefectiveUnit.SerialNumber.Client.ParentClient");
+            }
+
+            var clients = await query
+                .Select(t => t.DefectiveUnit.SerialNumber.Client.ParentClient != null
+                    ? t.DefectiveUnit.SerialNumber.Client.ParentClient.Name
+                    : t.DefectiveUnit.SerialNumber.Client.Name)
+                .Distinct()
+                .OrderBy(name => name)
+                .Select(name => new { id = name, name = name })
+                .ToListAsync();
+
+            return new JsonResult(new { clients });
+        }
+
+        // ✅ API for Statuses (for filter dropdown)
+        public async Task<JsonResult> OnGetStatuses()
+        {
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var userRole = claimsIdentity.FindFirst(ClaimTypes.Role).Value;
+            var userId = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier).Value;
+
+            IQueryable<TransactionHeader> query;
+
+            if (userRole == SD.Role_Admin)
+            {
+                query = await _unitOfWork.TransactionHeader
+                    .GetQueryableAsy(t => t.IsActive == true);
+            }
+            else
+            {
+                query = await _unitOfWork.TransactionHeader
+                    .GetQueryableAsy(t => t.IsActive == true && t.UserId == userId);
+            }
+
+            var statuses = await query
+                .Select(t => t.Status)
+                .Distinct()
+                .OrderBy(status => status)
+                .Select(status => new { id = status, name = status })
+                .ToListAsync();
+
+            return new JsonResult(new { statuses });
         }
 
         //AJAX CALL for changing status from New to InProgress
