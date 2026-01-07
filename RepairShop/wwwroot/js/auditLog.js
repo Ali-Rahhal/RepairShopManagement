@@ -25,14 +25,11 @@ function loadDataTable() {
             url: '/Admin/AuditLogHistory/Index?handler=All',
             type: 'GET',
             data: function (d) {
-                // 🔥 IMPORTANT: extend d, DO NOT replace it
                 d.actionFilter = $('#actionFilter').val();
                 d.entityTypeFilter = $('#entityTypeFilter').val();
                 d.userNameFilter = $('#userNameFilter').val();
                 d.startDate = $('#startDateFilter').val();
                 d.endDate = $('#endDateFilter').val();
-
-                // map global search correctly
                 d.searchValue = d.search.value;
             }
         },
@@ -40,13 +37,13 @@ function loadDataTable() {
         columns: [
             {
                 data: 'logNumber',
-                width: "10%",
-                render: data => `<strong>${data}</strong>`
+                width: "8%",
+                render: data => `<strong class="text-dark">${data}</strong>`
             },
             {
                 data: 'user',
                 width: "10%",
-                render: data => data ?? 'System'
+                render: data => data ?? '<em>System</em>'
             },
             {
                 data: 'action',
@@ -56,30 +53,42 @@ function loadDataTable() {
                     if (data === 'Create') cls = 'success';
                     else if (data === 'Update') cls = 'primary';
                     else if (data === 'Delete') cls = 'danger';
-                    return `<span class="badge bg-${cls}">${data}</span>`;
+                    return `<span class="badge bg-${cls} px-2 py-1">${data}</span>`;
                 }
             },
-            { data: 'entityType', width: "15%" },
-            { data: 'description', width: "35%" },
+            {
+                data: 'entityType',
+                width: "12%",
+                render: data => `<strong>${data}</strong>`
+            },
+            {
+                data: 'description',
+                width: "40%",
+                render: function (data) {
+                    if (!data) return '';
+                    // Replace pipe '|' with <br> for new lines in display
+                    return data.replace(/\s*\|\s*/g, '<br>');
+                }
+            },
             {
                 data: 'createdDate',
                 width: "20%",
                 render: function (data, type) {
                     const date = new Date(data);
                     if (type === 'sort') return date.getTime();
-                    return date.toLocaleDateString('en-GB').replace(/\//g, '-') +
-                        ' ' + date.toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true
-                        });
+                    return `<span title="${date.toLocaleString()}">${date.toLocaleDateString('en-GB').replace(/\//g, '-')} ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })}</span>`;
                 }
             }
         ],
 
         pageLength: 25,
         lengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
-        responsive: true
+        responsive: true,
+        stripeClasses: ['table-light', 'table-white'], // alternating stripes
+        language: {
+            search: "_INPUT_",
+            searchPlaceholder: "Search audit log..."
+        }
     });
 
     // filter events

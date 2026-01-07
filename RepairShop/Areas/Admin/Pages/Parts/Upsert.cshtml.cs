@@ -70,13 +70,24 @@ namespace RepairShop.Areas.Admin.Pages.Parts
                 {
                     var partFromDb = await _unitOfWork.Part.GetAsy(p => p.Id == PartForUpsert.Id && p.IsActive == true);
                     if (partFromDb == null) return NotFound();
+                    // Make a copy of the old part
+                    var oldPart = new Part
+                    {
+                        Id = partFromDb.Id,
+                        Code = partFromDb.Code,
+                        Name = partFromDb.Name,
+                        Category = partFromDb.Category,
+                        Quantity = partFromDb.Quantity,
+                        Price = partFromDb.Price,
+                        IsActive = partFromDb.IsActive
+                    };
                     partFromDb.Name = PartForUpsert.Name;
                     partFromDb.Category = PartForUpsert.Category;
                     partFromDb.Quantity = PartForUpsert.Quantity;
                     partFromDb.Price = PartForUpsert.Price;
                     await _unitOfWork.Part.UpdateAsy(partFromDb);
                     await _unitOfWork.SaveAsy();
-                    await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_Part, PartForUpsert.Id);
+                    await _auditLogService.AddLogAsy<Part>(SD.Action_Update, SD.Entity_Part, PartForUpsert.Id, oldPart);
                     TempData["success"] = "Part updated successfully";
                 }
 

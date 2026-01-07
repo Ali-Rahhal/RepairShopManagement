@@ -19,7 +19,7 @@ function loadDataTable() {
 
         stateSave: true,
         stateDuration: 86400,
-        order: [[7, 'asc'], [4, 'desc']], // default: Status column index 7, then ReportedDate index 4
+        order: [], // default: Status column index 7, then ReportedDate index 4
         ajax: {
             url: '/Admin/DefectiveUnits/Index?handler=All',
             type: 'POST',
@@ -269,8 +269,7 @@ function clearFilters() {
     // Clear column search
     dataTable.columns().search('').draw();
 
-    // Reset ordering to default (Status asc → ReportedDate desc)
-    dataTable.order([[7, 'asc'], [4, 'desc']]).draw();
+    dataTable.order([]).ajax.reload(null, false);
 
     toastr.info('All filters and sorting reset');
 }

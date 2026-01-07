@@ -18,7 +18,7 @@ namespace RepairShop.Models
         [Required]
         public long EntityId { get; set; }
 
-        [MaxLength(100)]
+        [MaxLength(500)]
         [Required]
         public string Description { get; set; }
 
