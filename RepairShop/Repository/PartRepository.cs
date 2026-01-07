@@ -62,6 +62,7 @@ namespace RepairShop.Repository
         public override async Task RemoveAsy(Part part)
         {
             part.IsActive = false;
+            part.Quantity = 0;
             await UpdateAsy(part);
             await Task.CompletedTask;   
         }
@@ -72,6 +73,7 @@ namespace RepairShop.Repository
             foreach (var item in parts)
             {
                 item.IsActive = false;
+                item.Quantity = 0;
                 await UpdateAsy(item);
                 await Task.CompletedTask;
             }

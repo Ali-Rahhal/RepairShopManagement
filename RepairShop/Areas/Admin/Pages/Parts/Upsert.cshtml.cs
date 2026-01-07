@@ -63,6 +63,18 @@ namespace RepairShop.Areas.Admin.Pages.Parts
                 {
                     await _unitOfWork.Part.AddAsy(PartForUpsert);
                     await _unitOfWork.SaveAsy();
+
+                    // After part is created and saved
+                    await _unitOfWork.PartStockHistory.AddAsy(new PartStockHistory
+                    {
+                        PartId = PartForUpsert.Id,
+                        QuantityChange = PartForUpsert.Quantity,   // initial stock
+                        QuantityAfter = PartForUpsert.Quantity,
+                        Reason = "Initial stock on part creation",
+                        CreatedDate = DateTime.Now
+                    });
+
+                    await _unitOfWork.SaveAsy();
                     await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_Part, PartForUpsert.Id);
                     TempData["success"] = "Part created successfully";
                 }
@@ -70,6 +82,9 @@ namespace RepairShop.Areas.Admin.Pages.Parts
                 {
                     var partFromDb = await _unitOfWork.Part.GetAsy(p => p.Id == PartForUpsert.Id && p.IsActive == true);
                     if (partFromDb == null) return NotFound();
+
+                    var quantityDiff = PartForUpsert.Quantity - partFromDb.Quantity;
+
                     // Make a copy of the old part
                     var oldPart = new Part
                     {
@@ -87,6 +102,24 @@ namespace RepairShop.Areas.Admin.Pages.Parts
                     partFromDb.Price = PartForUpsert.Price;
                     await _unitOfWork.Part.UpdateAsy(partFromDb);
                     await _unitOfWork.SaveAsy();
+
+                    if (quantityDiff != 0)
+                    {
+                        var history = new PartStockHistory
+                        {
+                            PartId = partFromDb.Id,
+                            QuantityChange = quantityDiff, // +ve or -ve
+                            QuantityAfter = partFromDb.Quantity,
+                            Reason = quantityDiff > 0
+                                ? $"Manual stock increase by admin"
+                                : $"Manual stock decrease by admin",
+                            CreatedDate = DateTime.Now
+                        };
+
+                        await _unitOfWork.PartStockHistory.AddAsy(history);
+                        await _unitOfWork.SaveAsy();
+                    }
+
                     await _auditLogService.AddLogAsy<Part>(SD.Action_Update, SD.Entity_Part, PartForUpsert.Id, oldPart);
                     TempData["success"] = "Part updated successfully";
                 }

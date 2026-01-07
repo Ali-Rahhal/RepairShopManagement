@@ -67,6 +67,17 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                 TB.Status = SD.Status_Part_Pending_Replace;
                 await _unitOfWork.TransactionBody.UpdateAsy(TB);
                 await _unitOfWork.SaveAsy();
+                await _unitOfWork.PartStockHistory.AddAsy(new PartStockHistory
+                {
+                    PartId = part.Id,
+                    QuantityChange = -1,   // initial stock
+                    QuantityAfter = part.Quantity,
+                    TransactionBodyId = TB.Id,
+                    Reason = $"Used in repair (Transaction #{TB.TransactionHeaderId})",
+                    CreatedDate = DateTime.Now
+                });
+
+                await _unitOfWork.SaveAsy();
                 return new JsonResult(new { success = true, message = "Part is available and it has been selected for replacement" });
             }
             
@@ -105,6 +116,15 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                         {
                             replacementPart.Quantity++;
                             await _unitOfWork.Part.UpdateAsy(replacementPart);
+                            await _unitOfWork.PartStockHistory.AddAsy(new PartStockHistory
+                            {
+                                PartId = replacementPart.Id,
+                                QuantityChange = 1,   // initial stock
+                                QuantityAfter = replacementPart.Quantity,
+                                TransactionBodyId = TB.Id,
+                                Reason = "Returned to stock (Device irreparable)",
+                                CreatedDate = DateTime.Now
+                            });
                         }
                     }
                     break;
@@ -118,7 +138,6 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
 
             await _unitOfWork.TransactionBody.UpdateAsy(TB);
             await _unitOfWork.SaveAsy();
-
             // Update TransactionHeader last modified date
             var HeaderForBody = await _unitOfWork.TransactionHeader.GetAsy(o => o.Id == TB.TransactionHeaderId && o.IsActive == true, tracked: true);
             if (HeaderForBody != null)

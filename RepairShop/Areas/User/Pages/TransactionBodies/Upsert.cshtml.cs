@@ -76,6 +76,9 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
 
                 if (tbForUpsert.Id == 0)
                 {
+                    bool partDecremented = false;
+                    long partId = 0;
+                    int partQuantity = 0;
                     // CREATE MODE - Set appropriate dates based on final status
                     SetStatusDates(tbForUpsert);
 
@@ -89,6 +92,9 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                             // Decrement part quantity
                             selectedPart.Quantity--;
                             await _unitOfWork.Part.UpdateAsy(selectedPart);
+                            partDecremented = true;
+                            partId = selectedPart.Id;
+                            partQuantity = selectedPart.Quantity;
                             if (tbForUpsert.Status == SD.Status_Part_Pending_Replace)
                             {
                                 TempData["success"] = "Broken part added and waiting for replacement";
@@ -122,6 +128,19 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
 
                     await _unitOfWork.TransactionBody.AddAsy(tbForUpsert);
                     await _unitOfWork.SaveAsy();
+                    if (partDecremented)
+                    {
+                        await _unitOfWork.PartStockHistory.AddAsy(new PartStockHistory
+                        {
+                            PartId = partId,
+                            QuantityChange = -1,
+                            QuantityAfter = partQuantity,
+                            TransactionBodyId = tbForUpsert.Id, 
+                            Reason = $"Used in repair (Transaction #{tbForUpsert.TransactionHeaderId})", 
+                            CreatedDate = DateTime.Now 
+                        });
+                        await _unitOfWork.SaveAsy();
+                    }
                 }
                 else
                 {

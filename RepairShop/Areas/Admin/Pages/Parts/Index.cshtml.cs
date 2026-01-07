@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
+using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using RepairShop.Services;
@@ -110,6 +111,16 @@ namespace RepairShop.Areas.Admin.Pages.Parts
                 return new JsonResult(new { success = false, message = "Part cannot be deleted because it is used in a transaction" });
             }
 
+            await _unitOfWork.PartStockHistory.AddAsy(new PartStockHistory
+            {
+                PartId = partToBeDeleted.Id,
+                QuantityChange = -partToBeDeleted.Quantity,
+                QuantityAfter = 0,
+                Reason = "Part deleted (stock removed)",
+                CreatedDate = DateTime.Now
+            });
+            await _unitOfWork.SaveAsy();
+            
             await _unitOfWork.Part.RemoveAsy(partToBeDeleted);
             await _unitOfWork.SaveAsy();
             await _auditLogService.AddLogAsy(SD.Action_Delete, SD.Entity_Part, partToBeDeleted.Id);

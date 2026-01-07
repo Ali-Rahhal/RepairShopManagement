@@ -22,6 +22,7 @@ namespace RepairShop.Data
         public DbSet<DefectiveUnit> DefectiveUnits { get; set; }
         public DbSet<PreventiveMaintenanceRecord> PreventiveMaintenanceRecords { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<PartStockHistory> PartStockHistory { get; set; }
         
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

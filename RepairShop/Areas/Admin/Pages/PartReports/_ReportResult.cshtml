@@ -1,0 +1,68 @@
+﻿@model RepairShop.Models.Helpers.PartStockHistoryVMs.PartUsageReportVM
+@if (Model == null) { return; }
+
+<div class="row g-3 mb-4">
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <small class="text-muted">Quantity at Start</small>
+                <h3>@Model.QuantityAtStart</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <small class="text-muted">Quantity at End</small>
+                <h3>@Model.QuantityAtEnd</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <small class="text-muted">Net Change</small>
+                <h3 class="@(Model.NetChange >= 0 ? "text-success" : "text-danger")">
+                    @Model.NetChange
+                </h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card text-center shadow-sm">
+            <div class="card-body">
+                <small class="text-muted">Devices Used</small>
+                <h3>@Model.DevicesCount</h3>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-primary">
+        <tr>
+            <th>Date</th>
+            <th>Change</th>
+            <th>Quantity After</th>
+            <th>Reason</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var h in Model.History)
+        {
+            <tr>
+                <td>@h.Date.ToString("dd-MMM-yyyy hh:mm tt")</td>
+                <td class="@(h.QuantityChange > 0 ? "text-success" : "text-danger")">
+                    @h.QuantityChange
+                </td>
+                <td>@h.QuantityAfter</td>
+                <td>@h.Reason</td>
+            </tr>
+        }
+    </tbody>
+</table>

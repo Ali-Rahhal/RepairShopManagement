@@ -1,4 +1,5 @@
-﻿using RepairShop.Models.Helpers;
+﻿using RepairShop.Models;
+using RepairShop.Models.Helpers;
 using RepairShop.Repository;
 using RepairShop.Repository.IRepository;
 
@@ -55,6 +56,15 @@ namespace RepairShop.Services
                     {
                         replacementPart.Quantity++;
                         await _uow.Part.UpdateAsy(replacementPart);
+                        await _uow.PartStockHistory.AddAsy(new PartStockHistory
+                        {
+                            PartId = replacementPart.Id,
+                            QuantityChange = 1,
+                            QuantityAfter = replacementPart.Quantity,
+                            Reason = "Returned to stock (Transaction Body deleted)",
+                            CreatedDate = DateTime.Now
+                        });
+                        await _uow.SaveAsy();
                     }
                 }
             }
