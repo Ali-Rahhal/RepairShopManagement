@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.EntityFrameworkCore;
 using RepairShop.Repository.IRepository;
 
 namespace RepairShop.Areas.User.Pages.Clients
@@ -28,21 +29,76 @@ namespace RepairShop.Areas.User.Pages.Clients
             ClientId = id.GetValueOrDefault();
         }
 
-        //AJAX CALLS for getting all serial numbers of a client in Json format for DataTables
-        public async Task<JsonResult> OnGetAll(int? CLientId)//The route is /User/Clients/Index?handler=All&ClientId=1
+        // Updated with server-side pagination, filtering and ordering
+        public async Task<JsonResult> OnGetAll(
+            int draw,
+            int start = 0,
+            int length = 10)
         {
-            var clientSNList = (await _unitOfWork.SerialNumber
-                .GetAllAsy(sn => sn.IsActive == true && sn.ClientId == CLientId,
-                            includeProperties: "Model,MaintenanceContract")).ToList();
+            var search = Request.Query["search[value]"].ToString();
+            var orderColumnIndex = Request.Query["order[0][column]"].FirstOrDefault();
+            var orderDir = Request.Query["order[0][dir]"].FirstOrDefault() ?? "asc";
 
-            var formattedList = clientSNList.Select(sn => new
+            var clientIdParam = Request.Query["ClientId"].FirstOrDefault();
+            if (!long.TryParse(clientIdParam, out long clientId))
             {
-                value = sn.Value,
-                modelName = sn.Model.Name,
-                contractNumber = sn.MaintenanceContract != null ? $"Contract {sn.MaintenanceContract.Id:D4}" : "No Contract"
-            });
+                return new JsonResult(new
+                {
+                    draw,
+                    recordsTotal = 0,
+                    recordsFiltered = 0,
+                    data = new List<object>()
+                });
+            }
 
-            return new JsonResult(new { data = formattedList });//We return JsonResult because we will call this method using AJAX
+            // Base query
+            var query = await _unitOfWork.SerialNumber
+                .GetQueryableAsy(sn => sn.IsActive == true && sn.ClientId == clientId,
+                            includeProperties: "Model,MaintenanceContract");
+
+            var recordsTotal = await query.CountAsync();
+
+            // Global search
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.ToLower();
+                query = query.Where(sn =>
+                    sn.Value.ToLower().Contains(search) ||
+                    sn.Model.Name.ToLower().Contains(search) ||
+                    (sn.MaintenanceContract != null && ("Contract " + sn.MaintenanceContract.Id).ToLower().Contains(search)));
+            }
+
+            var recordsFiltered = await query.CountAsync();
+
+            // Server-side ordering
+            query = orderColumnIndex switch
+            {
+                "0" => orderDir == "asc" ? query.OrderBy(sn => sn.Value) : query.OrderByDescending(sn => sn.Value),
+                "1" => orderDir == "asc" ? query.OrderBy(sn => sn.Model.Name) : query.OrderByDescending(sn => sn.Model.Name),
+                "2" => orderDir == "asc" ? query.OrderBy(sn => sn.MaintenanceContract != null ? sn.MaintenanceContract.Id : 0)
+                                         : query.OrderByDescending(sn => sn.MaintenanceContract != null ? sn.MaintenanceContract.Id : 0),
+                _ => query.OrderBy(sn => sn.Value) // default ordering by serial number value
+            };
+
+            // Pagination
+            var data = await query
+                .Skip(start)
+                .Take(length)
+                .Select(sn => new
+                {
+                    value = sn.Value,
+                    modelName = sn.Model.Name,
+                    contractNumber = sn.MaintenanceContract != null ? $"Contract {sn.MaintenanceContract.Id:D4}" : "No Contract"
+                })
+                .ToListAsync();
+
+            return new JsonResult(new
+            {
+                draw,
+                recordsTotal,
+                recordsFiltered,
+                data
+            });
         }
     }
 }

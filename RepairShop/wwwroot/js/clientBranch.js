@@ -8,8 +8,20 @@ $(document).ready(function () {
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "stateSave": true,
-        "ajax": { url: `/User/Clients/ClientBranchIndex?handler=All&ParentId=${clientId}` },
+        serverSide: true,
+        processing: true,
+        stateSave: true,
+        order: [[0, 'asc']], // Default ordering by branch name
+        ajax: {
+            url: `/User/Clients/ClientBranchIndex?handler=All`,
+            type: 'GET',
+            data: function (d) {
+                d.ParentId = clientId; // Pass parent ID as parameter
+            },
+            error: function () {
+                toastr.error('Failed to load branches');
+            }
+        },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "columns": [
             { data: 'branchName', "width": "20%" },
@@ -31,7 +43,11 @@ function loadDataTable() {
                 "orderable": false,
                 "searchable": false
             }
-        ]
+        ],
+        "language": {
+            "emptyTable": "No branches found",
+            "zeroRecords": "No matching branches found"
+        }
     });
 }
 

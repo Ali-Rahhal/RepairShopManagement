@@ -11,16 +11,31 @@ function isAdmin() {//function to check if the user is admin
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "stateSave": true,
-        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
-        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
-        "ajax": { url: '/User/Clients/Index?handler=All' },
+        serverSide: true,            // Enable server-side processing
+        processing: true,            // Show processing indicator
+        stateSave: true,
+        stateDuration: 86400,
+        order: [[0, 'asc']], // Default ordering by Name
+        ajax: {
+            url: '/User/Clients/Index?handler=All',
+            type: 'GET',
+            data: function (d) {
+                // Add any additional parameters here if needed
+                // d.customParam = $('#filterInput').val();
+            },
+            error: function () {
+                toastr.error('Failed to load clients');
+            }
+        },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "columns": [
             { data: 'name', "width": "14%" },
             {
                 data: 'branchCount',
-                "width": "14%"
+                "width": "14%",
+                "render": function (data) {
+                    return `<span class="badge bg-info">${data}</span>`;
+                }
             },
             { data: 'phone', "width": "20%" },
             { data: 'email', "width": "20%" },
@@ -37,7 +52,9 @@ function loadDataTable() {
                     <a onClick="Delete('/User/Clients/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
                     </div>`
                 },
-                "width": "12%"
+                "width": "12%",
+                "orderable": false,
+                "searchable": false
             }
         ],
         "language": {

@@ -8,13 +8,47 @@ $(document).ready(function () {
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "stateSave": true,
-        "ajax": { url: `/User/Clients/ClientSNIndex?handler=All&ClientId=${clientId}` },
+        serverSide: true,
+        processing: true,
+        stateSave: true,
+        order: [[0, 'asc']], // Default ordering by serial number value
+        ajax: {
+            url: `/User/Clients/ClientSNIndex?handler=All`,
+            type: 'GET',
+            data: function (d) {
+                d.ClientId = clientId; // Pass client ID as parameter
+            },
+            error: function () {
+                toastr.error('Failed to load serial numbers');
+            }
+        },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         "columns": [
-            { data: 'value', "width": "35%" },
-            { data: 'modelName', "width": "35%" },
-            { data: 'contractNumber', "width": "20%" },
+            {
+                data: 'value',
+                "width": "35%",
+                "render": function (data, type, row) {
+                    return `<span class="font-monospace">${data}</span>`;
+                }
+            },
+            {
+                data: 'modelName',
+                "width": "35%",
+                "render": function (data) {
+                    return `<span class="badge bg-primary">${data}</span>`;
+                }
+            },
+            {
+                data: 'contractNumber',
+                "width": "20%",
+                "render": function (data) {
+                    if (data === "No Contract") {
+                        return `<span class="badge bg-warning">${data}</span>`;
+                    } else {
+                        return `<span class="badge bg-success">${data}</span>`;
+                    }
+                }
+            },
             {
                 "data": null,
                 "width": "10%",
@@ -31,6 +65,10 @@ function loadDataTable() {
                 "orderable": false,
                 "searchable": false
             }
-        ]
+        ],
+        "language": {
+            "emptyTable": "No serial numbers found",
+            "zeroRecords": "No matching serial numbers found"
+        }
     });
 }
