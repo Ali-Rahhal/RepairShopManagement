@@ -11,7 +11,7 @@ function loadDataTable() {
         serverSide: true,
         processing: true,
         stateSave: true,
-        order: [[0, 'asc']], // Default ordering by serial number value
+        order: [], // Default ordering
         ajax: {
             url: `/User/Clients/ClientSNIndex?handler=All`,
             type: 'GET',
@@ -71,4 +71,13 @@ function loadDataTable() {
             "zeroRecords": "No matching serial numbers found"
         }
     });
+}
+
+function resetSorting() {
+    // Reset to default ordering
+    dataTable.order([]).draw();
+
+    if (typeof toastr !== 'undefined') {
+        toastr.info('Sorting reset to default order');
+    }
 }

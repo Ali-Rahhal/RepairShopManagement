@@ -15,6 +15,9 @@
         <div class="row pb-3">
             <div class="col-6">
                 <input type="hidden" value="@Model.ClientId" id="clientId" />
+                <button type="button" title="Reset Sorting" class="btn btn-warning btn-sm" onclick="resetSorting()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
             </div>
             <div class="col-6 text-end">
                 @if (Model.ParentId > 0)

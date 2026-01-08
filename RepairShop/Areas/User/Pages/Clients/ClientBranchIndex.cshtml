@@ -15,6 +15,9 @@
         <div class="row pb-3">
             <div class="col-6">
                 <input type="hidden" value="@Model.ParentId" id="parentId" />
+                <button type="button" title="Reset Sorting" class="btn btn-warning btn-sm" onclick="resetSorting()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
             </div>
             <div class="col-6 text-end">
                 <a asp-page="./ClientBranchUpsert" asp-route-id="0" asp-route-parentId="@Model.ParentId" class="btn btn-primary">

@@ -16,6 +16,9 @@
         <div class="row pb-3">
             <div class="col-6">
                 <input hidden id="isAdmin" value="@User.IsInRole(SD.Role_Admin).ToString()" />
+                <button type="button" title="Reset Sorting" class="btn btn-warning btn-sm" onclick="resetSorting()">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
             </div>
             @if (User.IsInRole(SD.Role_Admin))
             {

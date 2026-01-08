@@ -13,16 +13,30 @@ function isAdmin() {//function to check if the user is admin
 
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
-        "stateSave": true,
-        "stateDuration": 86400, // Any positive number = sessionStorage (in seconds)
-        // 86400 seconds = 24 hours, but sessionStorage lasts only for the browser session
-        "ajax": { url: `/User/TransactionBodies/Index?handler=All&headerId=${hId}` },
+        serverSide: true,
+        processing: true,
+        stateSave: true,
+        stateDuration: 86400,
+        order: [],
+        ajax: {
+            url: `/User/TransactionBodies/Index?handler=All`,
+            type: 'GET',
+            data: function (d) {
+                d.headerId = hId; // Pass header ID as parameter
+            },
+            error: function () {
+                toastr.error('Failed to load transaction parts');
+            }
+        },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        "order": [
-            [3, "desc"]   // Then by creation date: newest first
-        ],
         "columns": [
-            { data: 'brokenPartName', "width": "20%" },//dont forget the names should match the property names.
+            {
+                data: 'brokenPartName',
+                "width": "20%",
+                "render": function (data) {
+                    return `<strong>${data}</strong>`;
+                }
+            },
             {
                 data: 'status',
                 "render": function (data) {
@@ -47,7 +61,16 @@ function loadDataTable() {
                 },
                 "width": "20%"
             },
-            { data: 'partName', "width": "20%" },//dont forget the names should match the property names.
+            {
+                data: 'partName',
+                "width": "20%",
+                "render": function (data) {
+                    if (data === "N/A") {
+                        return `<span class="text-muted">${data}</span>`;
+                    }
+                    return `<span class="badge bg-light text-dark">${data}</span>`;
+                }
+            },
             {
                 data: 'createdDate',
                 "width": "15%",
@@ -115,15 +138,21 @@ function loadDataTable() {
                                 </div>`;
                     }
                 },
-                "width": "25%"
+                "width": "25%",
+                "orderable": false,
+                "searchable": false
             }
-        ]
+        ],
+        "language": {
+            "emptyTable": "No broken parts found",
+            "zeroRecords": "No matching parts found"
+        }
     });
 }
 
 function resetSorting() {
-    // Reset to default ordering: [3, "desc"] (createdDate column, newest first)
-    dataTable.order([[3, 'desc']]).draw();
+    // Reset to default ordering
+    dataTable.order([]).draw();
 
     if (typeof toastr !== 'undefined') {
         toastr.info('Sorting reset to default order');

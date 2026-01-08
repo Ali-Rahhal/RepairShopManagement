@@ -15,7 +15,7 @@ function loadDataTable() {
         processing: true,            // Show processing indicator
         stateSave: true,
         stateDuration: 86400,
-        order: [[0, 'asc']], // Default ordering by Name
+        order: [], // Default ordering
         ajax: {
             url: '/User/Clients/Index?handler=All',
             type: 'GET',
@@ -64,7 +64,14 @@ function loadDataTable() {
     });
 }
 
+function resetSorting() {
+    // Reset to default ordering
+    dataTable.order([]).draw();
 
+    if (typeof toastr !== 'undefined') {
+        toastr.info('Sorting reset to default order');
+    }
+}
 function Delete(url) {
     Swal.fire({
         title: "Are you sure you want to delete this client?",

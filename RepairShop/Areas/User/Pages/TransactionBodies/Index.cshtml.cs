@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using RepairShop.Data;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
@@ -33,26 +32,83 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
             HeaderStatus = _unitOfWork.TransactionHeader.GetAsy(o => o.Id == HeaderId && o.IsActive == true).Result.Status;
         }
 
-        //AJAX CALLS for getting all TBs in Json format for DataTables
-        public async Task<JsonResult> OnGetAll(int headerId)//The route is /User/TransactionBodies/Index?handler=All&headerId=1
+        // Updated with server-side pagination, filtering and ordering
+        public async Task<JsonResult> OnGetAll(
+            int draw,
+            int start = 0,
+            int length = 10)
         {
-            var TBList = (await _unitOfWork.TransactionBody.GetAllAsy(t => t.IsActive == true && t.TransactionHeaderId == headerId, includeProperties: "Part")).ToList();
+            var search = Request.Query["search[value]"].ToString();
+            var orderColumnIndex = Request.Query["order[0][column]"].FirstOrDefault();
+            var orderDir = Request.Query["order[0][dir]"].FirstOrDefault() ?? "asc";
 
-            var formattedData = TBList.Select(tb => new 
+            var headerIdParam = Request.Query["headerId"].FirstOrDefault();
+            if (!int.TryParse(headerIdParam, out int headerId))
             {
-                id = tb.Id,
-                brokenPartName = tb.BrokenPartName,
-                status = tb.Status,
-                partName = tb.Part?.Name ?? "N/A",
-                createdDate = tb.CreatedDate,
-                waitingPartDate = tb.WaitingPartDate,
-                fixedDate = tb.FixedDate,
-                replacedDate = tb.ReplacedDate,
-                notRepairableDate = tb.NotRepairableDate,
-                notReplaceableDate = tb.NotReplaceableDate
-            });
+                return new JsonResult(new
+                {
+                    draw,
+                    recordsTotal = 0,
+                    recordsFiltered = 0,
+                    data = new List<object>()
+                });
+            }
 
-            return new JsonResult(new { data = formattedData });//We return JsonResult because we will call this method using AJAX
+            // Base query
+            var query = await _unitOfWork.TransactionBody
+                .GetQueryableAsy(t => t.IsActive == true && t.TransactionHeaderId == headerId,
+                            includeProperties: "Part");
+
+            var recordsTotal = await query.CountAsync();
+
+            // Global search
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                search = search.ToLower();
+                query = query.Where(tb =>
+                    tb.BrokenPartName.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
+                    tb.Status.Contains(search, StringComparison.CurrentCultureIgnoreCase) ||
+                    (tb.Part != null && tb.Part.Name.ToLower().Contains(search)));
+            }
+
+            var recordsFiltered = await query.CountAsync();
+
+            // Server-side ordering
+            query = orderColumnIndex switch
+            {
+                "0" => orderDir == "asc" ? query.OrderBy(tb => tb.BrokenPartName) : query.OrderByDescending(tb => tb.BrokenPartName),
+                "1" => orderDir == "asc" ? query.OrderBy(tb => tb.Status) : query.OrderByDescending(tb => tb.Status),
+                "2" => orderDir == "asc" ? query.OrderBy(tb => tb.Part != null ? tb.Part.Name : "") : query.OrderByDescending(tb => tb.Part != null ? tb.Part.Name : ""),
+                "3" => orderDir == "asc" ? query.OrderBy(tb => tb.CreatedDate) : query.OrderByDescending(tb => tb.CreatedDate),
+                _ => query.OrderByDescending(tb => tb.CreatedDate) // default: newest first
+            };
+
+            // Pagination
+            var data = await query
+                .Skip(start)
+                .Take(length)
+                .Select(tb => new
+                {
+                    id = tb.Id,
+                    brokenPartName = tb.BrokenPartName,
+                    status = tb.Status,
+                    partName = tb.Part != null ? tb.Part.Name : "N/A",
+                    createdDate = tb.CreatedDate,
+                    waitingPartDate = tb.WaitingPartDate,
+                    fixedDate = tb.FixedDate,
+                    replacedDate = tb.ReplacedDate,
+                    notRepairableDate = tb.NotRepairableDate,
+                    notReplaceableDate = tb.NotReplaceableDate
+                })
+                .ToListAsync();
+
+            return new JsonResult(new
+            {
+                draw,
+                recordsTotal,
+                recordsFiltered,
+                data
+            });
         }
 
         //AJAX CALL for checking if part is availabe and change status
