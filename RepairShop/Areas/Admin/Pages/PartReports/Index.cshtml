@@ -1,6 +1,8 @@
 ﻿@page
 @model RepairShop.Areas.Admin.Pages.PartReports.IndexModel
 
+@Html.AntiForgeryToken()
+
 <div class="card shadow border-0 my-4">
     <div class="card-header bg-primary text-white">
         <h4 class="text-center mb-0">Part Usage & Stock Report</h4>
@@ -12,23 +14,29 @@
 
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Part</label>
-                    <select id="partSelect" name="partId" class="form-select"></select>
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">Start Date</label>
-                    <input type="date" name="startDate" class="form-control" required />
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">End Date</label>
-                    <input type="date" name="endDate" class="form-control" required />
+                    <select id="partSelect" name="partId" class="form-select" required></select>
                 </div>
 
                 <div class="col-md-2">
-                    <button class="btn btn-success w-100">
-                        <i class="bi bi-search"></i> Generate
-                    </button>
+                    <label class="form-label fw-semibold">Start Date</label>
+                    <input type="date" name="startDate" id="startDate" class="form-control" required />
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label fw-semibold">End Date</label>
+                    <input type="date" name="endDate" id="endDate" class="form-control" required />
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success flex-fill">
+                            <i class="bi bi-search"></i> Generate Report
+                        </button>
+                        <button type="button" id="showAllBtn" class="btn btn-info flex-fill">
+                            <i class="bi bi-table"></i> Show All Movements
+                        </button>
+                    </div>
                 </div>
 
             </div>
@@ -37,6 +45,62 @@
         <hr />
 
         <div id="reportResult"></div>
+
+        <!-- All Movements Table (initially hidden) -->
+        <div id="allMovementsSection" style="display: none;">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">All Part Movements</h5>
+                    <div class="row g-3 mb-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted">Part</label>
+                            <select id="partFilter" class="form-select form-select-sm"></select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted">Client</label>
+                            <select id="clientFilter" class="form-select form-select-sm"></select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small text-muted">Movement Type</label>
+                            <select id="movementTypeFilter" class="form-select form-select-sm">
+                                <option value="">All Movements</option>
+                                <option value="positive">Added Only (+)</option>
+                                <option value="negative">Removed Only (-)</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3 d-flex justify-content-start">
+                            <button type="button"
+                                    class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1 px-2"
+                                    title="Clear filters"
+                                    onclick="clearAllFilters()">
+                                <i class="bi bi-arrow-clockwise"></i>
+                                <span class="d-none d-md-inline">Clear</span>
+                            </button>
+                        </div>
+                    </div>
+
+
+                    <table id="allMovementsTable" class="table table-bordered table-striped" style="width:100%">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Date</th>
+                                <th>Part Name</th>
+                                <th>Category</th>
+                                <th>Quantity Change</th>
+                                <th>Quantity After</th>
+                                <th>Client</th>
+                                <th>Serial Number</th>
+                                <th>Model</th>
+                                <th>Reason</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

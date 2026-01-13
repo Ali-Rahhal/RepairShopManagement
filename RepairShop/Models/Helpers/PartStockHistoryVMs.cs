@@ -22,9 +22,25 @@
         public class PartStockHistoryRowVM
         {
             public DateTime Date { get; set; }
+            public string ClientName { get; set; }
+            public string SerialNumber { get; set; }
+            public string ModelName { get; set; }
             public int QuantityChange { get; set; }
             public int QuantityAfter { get; set; }
             public string Reason { get; set; }
+        }
+
+        // NEW: ViewModel for detailed movements
+        public class PartMovementDetailVM
+        {
+            public string PartName { get; set; }
+            public DateTime Date { get; set; }
+            public int QuantityChange { get; set; }
+            public int QuantityAfter { get; set; }
+            public string Reason { get; set; }
+            public string ClientName { get; set; }
+            public string SerialNumber { get; set; }
+            public string ModelName { get; set; }
         }
     }
 }

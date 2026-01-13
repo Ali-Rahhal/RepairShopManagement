@@ -47,6 +47,9 @@
     <thead class="table-primary">
         <tr>
             <th>Date</th>
+            <th>Client</th>
+            <th>Serial Number</th>
+            <th>Model</th>
             <th>Change</th>
             <th>Quantity After</th>
             <th>Reason</th>
@@ -57,11 +60,51 @@
         {
             <tr>
                 <td>@h.Date.ToString("dd-MMM-yyyy hh:mm tt")</td>
-                <td class="@(h.QuantityChange > 0 ? "text-success" : "text-danger")">
+
+                <td>
+                    @if (!string.IsNullOrEmpty(h.ClientName))
+                    {
+                        <span class="badge bg-primary">@h.ClientName</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">-</span>
+                    }
+                </td>
+
+                <td>
+                    @if (!string.IsNullOrEmpty(h.SerialNumber))
+                    {
+                        <code class="font-monospace">@h.SerialNumber</code>
+                    }
+                    else
+                    {
+                        <span class="text-muted">-</span>
+                    }
+                </td>
+
+                <td>
+                    @if (!string.IsNullOrEmpty(h.ModelName))
+                    {
+                        <span class="badge bg-secondary">@h.ModelName</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">-</span>
+                    }
+                </td>
+
+                <td class="@(h.QuantityChange > 0 ? "text-success fw-bold" : "text-danger fw-bold")">
                     @h.QuantityChange
                 </td>
-                <td>@h.QuantityAfter</td>
-                <td>@h.Reason</td>
+
+                <td>
+                    <span class="badge bg-info">@h.QuantityAfter</span>
+                </td>
+
+                <td>
+                    <small>@h.Reason</small>
+                </td>
             </tr>
         }
     </tbody>
