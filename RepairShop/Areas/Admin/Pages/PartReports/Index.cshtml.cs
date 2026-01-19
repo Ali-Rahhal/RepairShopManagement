@@ -235,13 +235,13 @@ namespace RepairShop.Areas.Admin.Pages.PartReports
         // NEW: Get filter dropdown data
         public async Task<JsonResult> OnGetMovementFilters()
         {
-            var parts = (await _unitOfWork.Part.GetAllAsy())
+            var parts = (await _unitOfWork.Part.GetAllAsy(p => p.IsActive))
                 .Select(p => new { value = p.Name, text = $"{p.Name} ({p.Category ?? "Uncategorized"})" })
                 .DistinctBy(p => p.value)
                 .OrderBy(p => p.text)
                 .ToList();
 
-            var clients = (await _unitOfWork.Client.GetAllAsy())
+            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive))
                 .Select(c => new { value = c.Name, text = c.Name })
                 .DistinctBy(c => c.value)
                 .OrderBy(c => c.text)
