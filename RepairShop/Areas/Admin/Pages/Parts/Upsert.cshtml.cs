@@ -5,6 +5,7 @@ using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using RepairShop.Services;
+using System.Security.Claims;
 using System.Text.RegularExpressions;
 
 namespace RepairShop.Areas.Admin.Pages.Parts
@@ -14,11 +15,13 @@ namespace RepairShop.Areas.Admin.Pages.Parts
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly AuditLogService _auditLogService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als)
+        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als, IHttpContextAccessor hca)
         {
             _unitOfWork = unitOfWork;
             _auditLogService = als;
+            _httpContextAccessor = hca;
         }
 
         [BindProperty]
@@ -66,7 +69,9 @@ namespace RepairShop.Areas.Admin.Pages.Parts
 
                     // After part is created and saved
                     await _unitOfWork.PartStockHistory.AddAsy(new PartStockHistory
-                    {
+                    {   
+                        UserId = _httpContextAccessor.HttpContext?.User?
+                                    .FindFirst(ClaimTypes.NameIdentifier)?.Value ?? null,
                         PartId = PartForUpsert.Id,
                         QuantityChange = PartForUpsert.Quantity,   // initial stock
                         QuantityAfter = PartForUpsert.Quantity,
@@ -107,6 +112,8 @@ namespace RepairShop.Areas.Admin.Pages.Parts
                     {
                         var history = new PartStockHistory
                         {
+                            UserId = _httpContextAccessor.HttpContext?.User?
+                                        .FindFirst(ClaimTypes.NameIdentifier)?.Value ?? null,
                             PartId = partFromDb.Id,
                             QuantityChange = quantityDiff, // +ve or -ve
                             QuantityAfter = partFromDb.Quantity,

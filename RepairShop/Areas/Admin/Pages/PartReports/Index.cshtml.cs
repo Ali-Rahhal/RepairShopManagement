@@ -31,7 +31,7 @@ namespace RepairShop.Areas.Admin.Pages.PartReports
             if (part == null) return Partial("_ReportResult", null);
 
             var historyQuery = await _unitOfWork.PartStockHistory
-                .GetQueryableAsy(h => h.PartId == partId && h.CreatedDate <= endDate);
+                .GetQueryableAsy(h => h.PartId == partId && h.CreatedDate <= endDate, includeProperties: "Part,User,TransactionBody,TransactionBody.TransactionHeader,TransactionBody.TransactionHeader.DefectiveUnit,TransactionBody.TransactionHeader.DefectiveUnit.SerialNumber,TransactionBody.TransactionHeader.DefectiveUnit.SerialNumber.Client,TransactionBody.TransactionHeader.DefectiveUnit.SerialNumber.Model");
             historyQuery = historyQuery.OrderBy(h => h.CreatedDate);
 
             var qtyAtStart = await historyQuery
@@ -66,6 +66,7 @@ namespace RepairShop.Areas.Admin.Pages.PartReports
                     .Where(h => h.CreatedDate >= startDate)
                     .Select(h => new PartStockHistoryRowVM
                     {
+                        UserName = h.User != null ? h.User.UserName : null,
                         Date = h.CreatedDate,
                         ClientName = h.TransactionBody != null &&
                                  h.TransactionBody.TransactionHeader != null &&
@@ -111,7 +112,7 @@ namespace RepairShop.Areas.Admin.Pages.PartReports
 
             // Base query
             var query = await _unitOfWork.PartStockHistory
-                .GetQueryableAsy(includeProperties: "Part,TransactionBody,TransactionBody.TransactionHeader,TransactionBody.TransactionHeader.DefectiveUnit,TransactionBody.TransactionHeader.DefectiveUnit.SerialNumber,TransactionBody.TransactionHeader.DefectiveUnit.SerialNumber.Client,TransactionBody.TransactionHeader.DefectiveUnit.SerialNumber.Model");
+                .GetQueryableAsy(includeProperties: "Part,User,TransactionBody,TransactionBody.TransactionHeader,TransactionBody.TransactionHeader.DefectiveUnit,TransactionBody.TransactionHeader.DefectiveUnit.SerialNumber,TransactionBody.TransactionHeader.DefectiveUnit.SerialNumber.Client,TransactionBody.TransactionHeader.DefectiveUnit.SerialNumber.Model");
 
             var recordsTotal = await query.CountAsync();
 
@@ -166,11 +167,12 @@ namespace RepairShop.Areas.Admin.Pages.PartReports
             // Server-side ordering
             query = orderColumnIndex switch
             {
-                "0" => orderDir == "asc" ? query.OrderBy(h => h.CreatedDate) : query.OrderByDescending(h => h.CreatedDate),
-                "1" => orderDir == "asc" ? query.OrderBy(h => h.Part.Name) : query.OrderByDescending(h => h.Part.Name),
-                "2" => orderDir == "asc" ? query.OrderBy(h => h.Part.Category) : query.OrderByDescending(h => h.Part.Category),
-                "3" => orderDir == "asc" ? query.OrderBy(h => h.QuantityChange) : query.OrderByDescending(h => h.QuantityChange),
-                "4" => orderDir == "asc" ? query.OrderBy(h => h.QuantityAfter) : query.OrderByDescending(h => h.QuantityAfter),
+                "0" => orderDir == "asc" ? query.OrderBy(h => (h.User != null ? h.User.UserName : null)) : query.OrderByDescending(h => (h.User != null ? h.User.UserName : null)),
+                "1" => orderDir == "asc" ? query.OrderBy(h => h.CreatedDate) : query.OrderByDescending(h => h.CreatedDate),
+                "2" => orderDir == "asc" ? query.OrderBy(h => h.Part.Name) : query.OrderByDescending(h => h.Part.Name),
+                "3" => orderDir == "asc" ? query.OrderBy(h => h.Part.Category) : query.OrderByDescending(h => h.Part.Category),
+                "4" => orderDir == "asc" ? query.OrderBy(h => h.QuantityChange) : query.OrderByDescending(h => h.QuantityChange),
+                "5" => orderDir == "asc" ? query.OrderBy(h => h.QuantityAfter) : query.OrderByDescending(h => h.QuantityAfter),
                 _ => query.OrderByDescending(h => h.CreatedDate) // default: newest first
             };
 
@@ -180,6 +182,7 @@ namespace RepairShop.Areas.Admin.Pages.PartReports
                 .Take(length)
                 .Select(h => new
                 {
+                    user = h.User != null ? h.User.UserName : null,
                     date = h.CreatedDate,
                     partId = h.PartId,
                     partName = h.Part.Name,

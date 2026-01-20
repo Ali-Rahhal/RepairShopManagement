@@ -14,6 +14,7 @@
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
+    endDate.setDate(endDate.getDate() + 1);
 
     $('#startDate').val(startDate.toISOString().split('T')[0]);
     $('#endDate').val(endDate.toISOString().split('T')[0]);
@@ -157,6 +158,16 @@ function loadAllMovementsTable() {
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
         columns: [
+            {
+                data: 'user',
+                width: "10%",
+                render: function (data) {
+                    if (data) {
+                        return `<span class="badge bg-success">${data}</span>`;
+                    }
+                    return '<em>-</em>';
+                }
+            },
             {
                 data: 'date',
                 width: "10%",

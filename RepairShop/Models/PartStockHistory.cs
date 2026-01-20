@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 
 namespace RepairShop.Models
 {
@@ -27,6 +28,10 @@ namespace RepairShop.Models
         // "Purchase"
 
         public bool IsActive { get; set; } = true;
+
+        public string? UserId { get; set; }
+        [ValidateNever]
+        public AppUser? User { get; set; }
 
         public long? TransactionBodyId { get; set; }
         public TransactionBody? TransactionBody { get; set; }

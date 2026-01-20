@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
+using System.Security.Claims;
 
 namespace RepairShop.Areas.User.Pages.TransactionBodies
 {
@@ -11,10 +12,12 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public UpsertModel(IUnitOfWork unitOfWork)
+        public UpsertModel(IUnitOfWork unitOfWork, IHttpContextAccessor hca)
         {
             _unitOfWork = unitOfWork;
+            _httpContextAccessor = hca;
         }
 
         [BindProperty]
@@ -132,6 +135,8 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                     {
                         await _unitOfWork.PartStockHistory.AddAsy(new PartStockHistory
                         {
+                            UserId = _httpContextAccessor.HttpContext?.User?
+                                        .FindFirst(ClaimTypes.NameIdentifier)?.Value ?? null,
                             PartId = partId,
                             QuantityChange = -1,
                             QuantityAfter = partQuantity,

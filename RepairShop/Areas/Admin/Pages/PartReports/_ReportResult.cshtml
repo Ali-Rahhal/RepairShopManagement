@@ -46,6 +46,7 @@
 <table class="table table-bordered table-striped">
     <thead class="table-primary">
         <tr>
+            <th>User</th>
             <th>Date</th>
             <th>Client</th>
             <th>Serial Number</th>
@@ -59,6 +60,17 @@
         @foreach (var h in Model.History)
         {
             <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(h.UserName))
+                    {
+                        <span class="badge bg-success">@h.UserName</span>
+                    }
+                    else
+                    {
+                        <span class="text-muted">-</span>
+                    }
+                </td>
+
                 <td>@h.Date.ToString("dd-MMM-yyyy hh:mm tt")</td>
 
                 <td>

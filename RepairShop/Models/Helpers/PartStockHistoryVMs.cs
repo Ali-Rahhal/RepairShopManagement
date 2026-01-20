@@ -21,6 +21,7 @@
 
         public class PartStockHistoryRowVM
         {
+            public string UserName { get; set; }
             public DateTime Date { get; set; }
             public string ClientName { get; set; }
             public string SerialNumber { get; set; }

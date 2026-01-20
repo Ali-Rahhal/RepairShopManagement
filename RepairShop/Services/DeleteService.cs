@@ -2,6 +2,7 @@
 using RepairShop.Models.Helpers;
 using RepairShop.Repository;
 using RepairShop.Repository.IRepository;
+using System.Security.Claims;
 
 namespace RepairShop.Services
 {
@@ -9,11 +10,13 @@ namespace RepairShop.Services
     {
         private readonly IUnitOfWork _uow;
         private readonly AuditLogService _auditLogService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public DeleteService(IUnitOfWork uow, AuditLogService als)
+        public DeleteService(IUnitOfWork uow, AuditLogService als, IHttpContextAccessor hca)
         {
             _uow = uow;
             _auditLogService = als;
+            _httpContextAccessor = hca;
         }
 
         // =============================== PART ===============================
@@ -58,6 +61,8 @@ namespace RepairShop.Services
                         await _uow.Part.UpdateAsy(replacementPart);
                         await _uow.PartStockHistory.AddAsy(new PartStockHistory
                         {
+                            UserId = _httpContextAccessor.HttpContext?.User?
+                                        .FindFirst(ClaimTypes.NameIdentifier)?.Value ?? null,
                             PartId = replacementPart.Id,
                             QuantityChange = 1,
                             QuantityAfter = replacementPart.Quantity,

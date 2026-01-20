@@ -14,10 +14,12 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public IndexModel(IUnitOfWork unitOfWork)
+        public IndexModel(IUnitOfWork unitOfWork, IHttpContextAccessor hca)
         {
             _unitOfWork = unitOfWork;
+            _httpContextAccessor = hca;
         }
 
         [BindProperty(SupportsGet = true)]
@@ -125,6 +127,8 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                 await _unitOfWork.SaveAsy();
                 await _unitOfWork.PartStockHistory.AddAsy(new PartStockHistory
                 {
+                    UserId = _httpContextAccessor.HttpContext?.User?
+                                .FindFirst(ClaimTypes.NameIdentifier)?.Value ?? null,
                     PartId = part.Id,
                     QuantityChange = -1,   // initial stock
                     QuantityAfter = part.Quantity,
@@ -174,6 +178,8 @@ namespace RepairShop.Areas.User.Pages.TransactionBodies
                             await _unitOfWork.Part.UpdateAsy(replacementPart);
                             await _unitOfWork.PartStockHistory.AddAsy(new PartStockHistory
                             {
+                                UserId = _httpContextAccessor.HttpContext?.User?
+                                            .FindFirst(ClaimTypes.NameIdentifier)?.Value ?? null,
                                 PartId = replacementPart.Id,
                                 QuantityChange = 1,   // initial stock
                                 QuantityAfter = replacementPart.Quantity,

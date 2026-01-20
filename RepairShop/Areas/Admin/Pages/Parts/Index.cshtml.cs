@@ -6,6 +6,7 @@ using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using RepairShop.Services;
+using System.Security.Claims;
 
 namespace RepairShop.Areas.Admin.Pages.Parts
 {
@@ -14,11 +15,13 @@ namespace RepairShop.Areas.Admin.Pages.Parts
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly AuditLogService _auditLogService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public IndexModel(IUnitOfWork unitOfWork, AuditLogService als)
+        public IndexModel(IUnitOfWork unitOfWork, AuditLogService als, IHttpContextAccessor hca)
         {
             _unitOfWork = unitOfWork;
             _auditLogService = als;
+            _httpContextAccessor = hca;
         }
 
         public void OnGet()
@@ -113,6 +116,8 @@ namespace RepairShop.Areas.Admin.Pages.Parts
 
             await _unitOfWork.PartStockHistory.AddAsy(new PartStockHistory
             {
+                UserId = _httpContextAccessor.HttpContext?.User?
+                            .FindFirst(ClaimTypes.NameIdentifier)?.Value ?? null,
                 PartId = partToBeDeleted.Id,
                 QuantityChange = -partToBeDeleted.Quantity,
                 QuantityAfter = 0,
