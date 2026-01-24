@@ -25,7 +25,7 @@ function loadDataTable() {
         searchDelay: 500, // Add delay for better UX with server-side
         stateSave: true, // Keep user's state
         stateDuration: 86400, // 24 hours in seconds
-        order: [[1, "asc"]], // default: Category ascending
+        order: [], // default
         ajax: {
             url: '/Admin/Models/Index?handler=All',
             type: 'GET',
@@ -103,7 +103,7 @@ function applyCategoryFilter() {
 
 function clearCategoryFilter() {
     $('#categoryFilter').val('All');
-    dataTable.order([[1, 'asc']]).ajax.reload(); // reset ordering to default
+    dataTable.order([]).ajax.reload(); // reset ordering to default
     toastr.info('Category filter and ordering reset');
 }
 

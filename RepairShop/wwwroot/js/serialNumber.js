@@ -35,7 +35,7 @@ function loadDataTable() {
         searchDelay: 500,
         stateSave: true,
         stateDuration: 86400,
-        order: [[6, 'desc']], // default: ReceivedDate column (index 6) descending
+        order: [], // default
         ajax: {
             url: '/Admin/SerialNumbers/Index?handler=All',
             type: 'GET',
@@ -51,7 +51,6 @@ function loadDataTable() {
             }
         },
         "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        order: [[0, "desc"]], // Order by received date descending
 
         columns: [
             {
@@ -165,7 +164,7 @@ function populateClientFilter(clients) {
 function clearFilters() {
     $('#modelFilter').val('');
     $('#clientFilter').val('');
-    dataTable.order([[6, 'desc']]).ajax.reload(null, false); // Reset ordering to ReceivedDate desc
+    dataTable.order([]).ajax.reload(null, false); // Reset ordering to ReceivedDate desc
     toastr.info('All filters and sorting reset');
 }
 

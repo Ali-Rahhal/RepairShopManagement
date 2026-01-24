@@ -29,7 +29,6 @@ function loadDataTable() {
             }
         },
         dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        order: [[0, "desc"]],
         columns: [
             {
                 data: 'contractNumber',

@@ -17,7 +17,7 @@ function loadDataTable() {
         processing: true,
         stateSave: true,
         stateDuration: 86400,
-        order: [[1, 'asc']], // default: Category ascending
+        order: [], // default
         ajax: {
             url: '/Admin/Parts/Index?handler=All',
             type: 'GET',
@@ -80,7 +80,7 @@ function applyCategoryFilter() {
 
 function clearCategoryFilter() {
     $('#categoryFilter').val('All');
-    dataTable.order([[1, 'asc']]).ajax.reload();
+    dataTable.order([]).ajax.reload();
     toastr.info('Category filter cleared');
 }
 
