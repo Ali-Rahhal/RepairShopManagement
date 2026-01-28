@@ -10,8 +10,6 @@ namespace RepairShop.Models
         public string? Code { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        [ValidateNever]
-        public string Status { get; set; }//Active or Expired
         public bool IsActive { get; set; } = true;
 
         [ValidateNever]

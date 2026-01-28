@@ -76,9 +76,6 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                 return Page();
             }
 
-
-            MaintenanceContractForUpsert.Status = MaintenanceContractForUpsert.EndDate < DateTime.Now ? "Expired" : "Active";
-
             bool isNew = MaintenanceContractForUpsert.Id == 0;
 
             if (isNew)
@@ -98,7 +95,6 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                 mcFromDb.StartDate = MaintenanceContractForUpsert.StartDate;
                 mcFromDb.EndDate = MaintenanceContractForUpsert.EndDate;
                 mcFromDb.ClientId = MaintenanceContractForUpsert.ClientId;
-                mcFromDb.Status = MaintenanceContractForUpsert.Status;
                 await _unitOfWork.MaintenanceContract.UpdateAsy(mcFromDb);
                 await _unitOfWork.SaveAsy();
                 await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_MaintenanceContract, mcFromDb.Id);

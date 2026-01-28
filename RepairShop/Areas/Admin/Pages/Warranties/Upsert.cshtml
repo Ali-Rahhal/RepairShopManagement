@@ -73,23 +73,54 @@
                         }
                         else
                         {
-                            <!-- For editing existing warranty, show current serial numbers -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Covered Serial Numbers</label>
-                                <div class="border rounded p-3 bg-light">
-                                    @if (Model.WarrantyForUpsert.SerialNumbers?.Any() == true)
+
+                                <div class="border rounded bg-light p-2" id="serialList" style="max-height: 280px; overflow-y: auto;">
+                                    @foreach (var sn in Model.WarrantyForUpsert.SerialNumbers)
                                     {
-                                        foreach (var serialNumber in Model.WarrantyForUpsert.SerialNumbers)
-                                        {
-                                            <span class="badge bg-primary me-2 mb-2 p-2">@serialNumber.Value</span>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">No serial numbers assigned</span>
+                                        <div class="serial-row d-flex justify-content-between align-items-center
+                                                    px-3 py-2 rounded mb-1 shadow-sm"
+                                             style="cursor:pointer; transition: all .15s ease;"
+                                             data-serial-id="@sn.Id"
+                                             data-current-client="@sn.ClientId">
+
+                                            <div>
+                                                <span class="fw-semibold">@sn.Value</span>
+                                            </div>
+
+                                            <span class="badge bg-secondary-subtle text-dark">
+                                                @sn.Client?.Name
+                                            </span>
+                                        </div>
                                     }
                                 </div>
-                                <small class="form-text text-muted">Serial numbers cannot be modified for existing warranties.</small>
+
+                                <small class="text-muted">
+                                    Click a serial number to change its client.
+                                </small>
+                            </div>
+
+                            <!-- Single-serial editor (hidden by default) -->
+                            <div id="singleSerialEditor" class="border rounded p-3 d-none">
+                                <label class="form-label fw-bold">
+                                    Change Client for Serial:
+                                    <span id="activeSerialValue" class="text-primary"></span>
+                                </label>
+
+                                <select id="singleClientSelect">
+                                    <option value="">-- Select Client --</option>
+                                    @foreach (var client in Model.ClientList)
+                                    {
+                                        <option value="@client.Value">@client.Text</option>
+                                    }
+                                </select>
+
+                                <button type="button"
+                                        class="btn btn-sm btn-primary mt-2"
+                                        id="applySingleClientBtn">
+                                    Update Client
+                                </button>
                             </div>
                         }
 
@@ -114,10 +145,35 @@
                         {
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Status</label>
-                                <input type="text" class="form-control" value="@Model.WarrantyForUpsert.Status" readonly />
+                                <input type="text" class="form-control" value="@(Model.WarrantyForUpsert.EndDate < DateTime.Now ? "Expired" : "Active")" readonly />
                                 <small class="form-text text-muted">Status is automatically calculated based on end date.</small>
                             </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    Change Client for ALL Covered Serial Numbers
+                                </label>
+
+                                <select id="bulkClientSelect">
+                                    <option value="">-- Select Client --</option>
+                                    @foreach (var client in Model.ClientList)
+                                    {
+                                        <option value="@client.Value">@client.Text</option>
+                                    }
+                                </select>
+
+                                <button type="button"
+                                        class="btn btn-warning mt-2"
+                                        onclick="applyBulkClient(@Model.WarrantyForUpsert.Id)">
+                                    Apply to All Serial Numbers
+                                </button>
+
+                                <small class="text-muted">
+                                    This will update the client for all serial numbers under this warranty.
+                                </small>
+                            </div>
                         }
+
 
                         <div class="row pt-3">
                             <div class="col-6 col-md-3">
@@ -142,6 +198,17 @@
         </form>
     </div>
 </div>
+
+<style>
+    .serial-row:hover {
+        background-color: #eef5ff;
+    }
+
+    .serial-row.active {
+        background-color: #dbeafe;
+        border-left: 4px solid #0d6efd;
+    }
+</style>
 
 @section Scripts {
     @{
@@ -291,5 +358,108 @@
                 });
             }
         });
+
+        let activeSerialId = null;
+        let singleClientTS = null;
+
+        // Init bulk TomSelect
+        const bulkClientTS = new TomSelect('#bulkClientSelect', { create: false });
+
+        // Serial row click behavior
+        document.querySelectorAll('.serial-row').forEach(row => {
+            row.addEventListener('click', function () {
+
+                // remove highlight from all rows
+                document.querySelectorAll('.serial-row').forEach(r => r.classList.remove('active'));
+
+                // highlight selected row
+                this.classList.add('active');
+
+                activeSerialId = this.dataset.serialId;
+                const currentClient = this.dataset.currentClient;
+                const serialValue = this.querySelector('span').innerText;
+
+                document.getElementById('activeSerialValue').innerText = serialValue;
+
+                const editor = document.getElementById('singleSerialEditor');
+                editor.classList.remove('d-none');
+
+                if (singleClientTS) {
+                    singleClientTS.destroy();
+                }
+
+                singleClientTS = new TomSelect('#singleClientSelect', {
+                    create: false,
+                    items: currentClient ? [currentClient] : []
+                });
+
+                editor.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            });
+        });
+
+        // Apply single serial update
+        document.getElementById('applySingleClientBtn')?.addEventListener('click', () => {
+            const clientId = singleClientTS.getValue();
+            if (!clientId || !activeSerialId) return;
+
+            fetch('/Admin/Warranties/Upsert?handler=ChangeSerialClient', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'RequestVerificationToken':
+                        document.querySelector('input[name="__RequestVerificationToken"]').value
+                },
+                body: `serialId=${activeSerialId}&clientId=${clientId}`
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    toastr.success('Client updated');
+                    setTimeout(() => {
+                        location.reload();
+                    }, 700);
+                } else {
+                    toastr.error(res.message || 'Failed');
+                }
+            });
+        });
+
+        function applyBulkClient(warrantyId) {
+            const clientId = bulkClientTS.getValue();
+            if (!clientId) {
+                toastr.warning('Please select a client');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Change client for ALL serial numbers?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, update all'
+            }).then(result => {
+                if (!result.isConfirmed) return;
+
+                fetch('/Admin/Warranties/Upsert?handler=ChangeAllSerialClients', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'RequestVerificationToken':
+                            document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: `warrantyId=${warrantyId}&clientId=${clientId}`
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.success) {
+                        toastr.success('All serials updated');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 700);
+                    } else {
+                        toastr.error(res.message || 'Failed');
+                    }
+                });
+            });
+        }
     </script>
 }

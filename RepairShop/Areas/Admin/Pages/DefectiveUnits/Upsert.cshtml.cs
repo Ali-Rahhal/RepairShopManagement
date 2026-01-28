@@ -239,8 +239,8 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 modelId = sn.ModelId,
                 clientId = sn.ClientId,
                 receivedDate = sn.ReceivedDate.ToString("dd-MM-yyyy HH:mm tt"),
-                hasWarranty = sn.Warranty != null && sn.Warranty.Status == "Active",
-                hasContract = sn.MaintenanceContract != null && sn.MaintenanceContract.Status == "Active",
+                hasWarranty = sn.Warranty != null && sn.Warranty.EndDate > DateTime.Now,
+                hasContract = sn.MaintenanceContract != null && sn.MaintenanceContract.EndDate > DateTime.Now,
                 warrantyId = sn.Warranty?.Id,
                 maintenanceContractId = sn.MaintenanceContract?.Id
             };
@@ -282,8 +282,8 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 clientName = $"{clientName}{(branchName != null ? $" - {branchName}" : "")}",
                 modelId = serialNumber.ModelId,
                 clientId = serialNumber.ClientId,
-                hasActiveWarranty = serialNumber.Warranty != null && serialNumber.Warranty.Status == "Active",
-                hasActiveContract = serialNumber.MaintenanceContract != null && serialNumber.MaintenanceContract.Status == "Active",
+                hasActiveWarranty = serialNumber.Warranty != null && serialNumber.Warranty.EndDate > DateTime.Now,
+                hasActiveContract = serialNumber.MaintenanceContract != null && serialNumber.MaintenanceContract.EndDate > DateTime.Now,
                 warrantyId = serialNumber.Warranty?.Id,
                 maintenanceContractId = serialNumber.MaintenanceContract?.Id,
                 receivedDate = serialNumber.ReceivedDate.ToString("dd-MM-yyyy HH:mm tt")
@@ -304,8 +304,8 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             {
                 id = mc.Id,
                 text = mc.Client.ParentClient != null 
-                    ? $"Contract #{mc.Id} - {mc.Client.ParentClient.Name} - {mc.Client.Name} ({mc.Status})" 
-                    : $"Contract #{mc.Id} - {mc.Client.Name} ({mc.Status})"
+                    ? $"Contract #{mc.Id} - {mc.Client.ParentClient.Name} - {mc.Client.Name} ({(mc.EndDate > DateTime.Now ? "Active" : "Expired")})"
+                    : $"Contract #{mc.Id} - {mc.Client.Name} ({(mc.EndDate > DateTime.Now ? "Active" : "Expired")})"
             })
             .ToList();
 
@@ -357,8 +357,8 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             MaintenanceContractList = contracts.Select(mc => new SelectListItem
             {
                 Text = mc.Client.ParentClient != null
-                    ? $"Contract #{mc.Id} - {mc.Client.ParentClient.Name} - {mc.Client.Name} ({mc.Status})"
-                    : $"Contract #{mc.Id} - {mc.Client.Name} ({mc.Status})",
+                    ? $"Contract #{mc.Id} - {mc.Client.ParentClient.Name} - {mc.Client.Name} ({(mc.EndDate > DateTime.Now ? "Active" : "Expired")})"
+                    : $"Contract #{mc.Id} - {mc.Client.Name} ({(mc.EndDate > DateTime.Now ? "Active" : "Expired")})",
                 Value = mc.Id.ToString()
             }).ToList();
 

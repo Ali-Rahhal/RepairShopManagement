@@ -89,8 +89,8 @@
                                                 <strong>Warranty:</strong>
                                                 @if (Model.SerialNumberHistory.SerialNumber.Warranty != null)
                                                 {
-                                                    <span class="badge bg-@(Model.SerialNumberHistory.SerialNumber.Warranty.Status == "Active" ? "success" : "warning")">
-                                                        @Model.SerialNumberHistory.SerialNumber.Warranty.Status
+                                                    <span class="badge bg-@(Model.SerialNumberHistory.SerialNumber.Warranty.EndDate > DateTime.Now ? "success" : "warning")">
+                                                        @(Model.SerialNumberHistory.SerialNumber.Warranty.EndDate > DateTime.Now ? "Active" : "Expired")
                                                     </span>
                                                 }
                                                 else

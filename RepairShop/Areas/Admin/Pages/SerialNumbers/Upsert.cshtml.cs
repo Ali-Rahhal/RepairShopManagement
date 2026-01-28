@@ -187,8 +187,8 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
             {
                 id = mc.Id,
                 text = mc.Client.ParentClient != null
-                    ? $"Contract #{mc.Id} - {mc.Client.ParentClient.Name} - {mc.Client.Name} ({mc.Status})"
-                    : $"Contract #{mc.Id} - {mc.Client.Name} ({mc.Status})"
+                    ? $"Contract #{mc.Id} - {mc.Client.ParentClient.Name} - {mc.Client.Name} ({(mc.EndDate > DateTime.Now ? "Active" : "Expired")})"
+                    : $"Contract #{mc.Id} - {mc.Client.Name} ({(mc.EndDate > DateTime.Now ? "Active" : "Expired")})"
             })
             .ToList();
 
@@ -240,8 +240,8 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
             MaintenanceContractList = contracts.Select(mc => new SelectListItem
             {
                 Text = mc.Client.ParentClient != null
-                    ? $"Contract #{mc.Id} - {mc.Client.ParentClient.Name} - {mc.Client.Name} ({mc.Status})"
-                    : $"Contract #{mc.Id} - {mc.Client.Name} ({mc.Status})",
+                    ? $"Contract #{mc.Id} - {mc.Client.ParentClient.Name} - {mc.Client.Name} ({(mc.EndDate > DateTime.Now ? "Active" : "Expired")})"
+                    : $"Contract #{mc.Id} - {mc.Client.Name} ({(mc.EndDate > DateTime.Now ? "Active" : "Expired")})",
                 Value = mc.Id.ToString()
             }).ToList();
 

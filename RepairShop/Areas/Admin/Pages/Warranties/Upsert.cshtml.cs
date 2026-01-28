@@ -111,8 +111,6 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                     return Page();
                 }
 
-                // Set status based on dates
-                WarrantyForUpsert.Status = WarrantyForUpsert.EndDate < DateTime.Now ? "Expired" : "Active";
 
                 if (WarrantyForUpsert.Id == 0)
                 {
@@ -286,7 +284,7 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
 
             MaintenanceContractList = contracts.Select(mc => new SelectListItem
             {
-                Text = $"Contract #{mc.Id} - {mc.Status}",
+                Text = $"Contract #{mc.Id} - {(mc.EndDate > DateTime.Now ? "Active" : "Expired")}",
                 Value = mc.Id.ToString()
             }).ToList();
 
@@ -295,5 +293,54 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
             maintenanceContractList.Insert(0, new SelectListItem { Text = "No Contract", Value = "" });
             MaintenanceContractList = maintenanceContractList;
         }
+
+        public async Task<JsonResult> OnPostChangeSerialClient(long serialId, long clientId)
+        {
+            var serial = await _unitOfWork.SerialNumber.GetAsy(
+                s => s.Id == serialId && s.IsActive
+            );
+
+            if (serial == null)
+                return new JsonResult(new { success = false, message = "Serial not found" });
+
+            serial.ClientId = clientId;
+
+            await _unitOfWork.SerialNumber.UpdateAsy(serial);
+            await _unitOfWork.SaveAsy();
+
+            await _auditLogService.AddLogAsy(
+                SD.Action_Update,
+                SD.Entity_SerialNumber,
+                serial.Id
+            );
+
+            return new JsonResult(new { success = true });
+        }
+
+        public async Task<JsonResult> OnPostChangeAllSerialClients(long warrantyId, long clientId)
+        {
+            var serials = await _unitOfWork.SerialNumber.GetAllAsy(
+                s => s.WarrantyId == warrantyId && s.IsActive
+            );
+
+            if (!serials.Any())
+                return new JsonResult(new { success = false, message = "No serials found" });
+
+            foreach (var serial in serials)
+            {
+                serial.ClientId = clientId;
+                await _auditLogService.AddLogAsy(
+                    SD.Action_Update,
+                    SD.Entity_SerialNumber,
+                    serial.Id
+                );
+            }
+
+            await _unitOfWork.SerialNumber.UpdateRangeAsy(serials);
+            await _unitOfWork.SaveAsy();
+
+            return new JsonResult(new { success = true });
+        }
+
     }
 }

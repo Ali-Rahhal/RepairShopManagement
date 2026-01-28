@@ -42,27 +42,6 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                     .GetQueryableAsy(w => w.IsActive == true,
                     includeProperties: "SerialNumbers,SerialNumbers.Model,SerialNumbers.Client,SerialNumbers.Client.ParentClient");
 
-                // 🔄 Update status dynamically (Active / Expired)
-                var warrantiesToUpdate = new List<Warranty>();
-                foreach (var warranty in query)
-                {
-                    var newStatus = warranty.EndDate < DateTime.Now ? "Expired" : "Active";
-                    if (warranty.Status != newStatus)
-                    {
-                        warranty.Status = newStatus;
-                        warrantiesToUpdate.Add(warranty);
-                    }
-                }
-
-                if (warrantiesToUpdate.Count > 0)
-                {
-                    foreach (var warranty in warrantiesToUpdate)
-                    {
-                        await _unitOfWork.Warranty.UpdateAsy(warranty);
-                    }
-                    await _unitOfWork.SaveAsy();
-                }
-
                 var recordsTotal = await query.CountAsync();
 
                 // 🔍 Global search
@@ -85,10 +64,14 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                 // 🏷 Status filter
                 if (!string.IsNullOrWhiteSpace(status) && status != "All")
                 {
-                    query = query.Where(w =>
-                        status == "Active" ? w.EndDate >= DateTime.Now :
-                        status == "Expired" ? w.EndDate < DateTime.Now :
-                        w.Status == status);
+                    if (status == "Active")
+                    {
+                        query = query.Where(w => w.EndDate >= DateTime.Now);
+                    }
+                    else
+                    {
+                        query = query.Where(w => w.EndDate < DateTime.Now);
+                    }
                 }
 
                 var recordsFiltered = await query.CountAsync();
@@ -97,51 +80,71 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                 query = ApplyOrdering(query, orderColumnIndex, orderDir);
 
                 // 📄 Pagination
+                var now = DateTime.Now;
+
                 var data = await query
+                    .AsNoTracking()
                     .Skip(start)
                     .Take(length)
                     .Select(w => new
                     {
-                        id = w.Id,
-                        warrantyNumber = $"WARRANTY-{w.Id:D4}",
-                        startDate = w.StartDate,
-                        endDate = w.EndDate,
-                        status = w.EndDate < DateTime.Now ? "Expired" : "Active",
-                        daysRemaining = (w.EndDate - DateTime.Now).Days,
-                        isExpired = w.EndDate < DateTime.Now,
-                        coveredCount = w.SerialNumbers.Count(sn => sn.IsActive),
+                        w.Id,
+                        w.StartDate,
+                        w.EndDate,
 
-                        // For display - get first serial number details
-                        serialNumbers = w.SerialNumbers
+                        ActiveSerials = w.SerialNumbers
                             .Where(sn => sn.IsActive)
-                            .Select(sn => sn.Value ?? "N/A")
-                            .ToList(),
-
-                        modelName = w.SerialNumbers
-                            .Where(sn => sn.IsActive)
-                            .Select(sn => sn.Model.Name)
-                            .FirstOrDefault() ?? "N/A",
-
-                        clientName = w.SerialNumbers
-                            .Where(sn => sn.IsActive)
-                            .Select(sn => sn.Client.ParentClient != null ?
-                                $"{sn.Client.ParentClient.Name} - {sn.Client.Name}" :
-                                sn.Client.Name)
-                            .FirstOrDefault() ?? "N/A",
-
-                        // For sorting
-                        endDateTimestamp = w.EndDate,
-                        startDateTimestamp = w.StartDate,
-                        statusPriority = w.EndDate < DateTime.Now ? 2 : 1 // Active=1, Expired=2
+                            .Select(sn => new
+                            {
+                                sn.Value,
+                                ModelName = sn.Model.Name,
+                                ClientName = sn.Client.Name,
+                                ParentName = sn.Client.ParentClient != null
+                                    ? sn.Client.ParentClient.Name
+                                    : null
+                            })
+                            .ToList()
                     })
                     .ToListAsync();
+
+                var result = data.Select(w => new
+                {
+                    id = w.Id,
+                    warrantyNumber = $"WARRANTY-{w.Id:D4}",
+                    startDate = w.StartDate,
+                    endDate = w.EndDate,
+
+                    status = w.EndDate < now ? "Expired" : "Active",
+                    isExpired = w.EndDate < now,
+                    daysRemaining = (w.EndDate - now).Days,
+
+                    coveredCount = w.ActiveSerials.Count,
+
+                    serialNumbers = w.ActiveSerials
+                        .Select(s => s.Value)
+                        .ToList(),
+
+                    modelName = w.ActiveSerials
+                        .Select(s => s.ModelName)
+                        .FirstOrDefault() ?? "N/A",
+
+                    clientNames = w.ActiveSerials
+                        .Select(s =>
+                            s.ParentName != null
+                                ? $"{s.ParentName} - {s.ClientName}"
+                                : s.ClientName
+                        )
+                        .Distinct()
+                        .ToArray()
+                }).ToList();
+
 
                 return new JsonResult(new
                 {
                     draw,
                     recordsTotal,
                     recordsFiltered,
-                    data
+                    data = result
                 });
             }
             catch (Exception ex)

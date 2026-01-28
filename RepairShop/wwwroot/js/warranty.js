@@ -126,22 +126,34 @@ function loadDataTable() {
                 }
             },
             {
-                data: 'clientName',
+                data: 'clientNames',
                 width: "12%",
-                render: function (data) {
-                    //if (!data || data.length === 0) return '<span class="text-muted">N/A</span>';
-                    //if (data.length === 1) return data[0];
+                render: function (data, type, row) {
 
-                    //const uniqueClients = [...new Set(data)];
-                    //if (uniqueClients.length === 1) return uniqueClients[0];
+                    if (!data || data.length === 0)
+                        return '<span class="text-muted">N/A</span>';
 
-                    //return `
-                    //    <div>
-                    //        <div>${uniqueClients[0]}</div>
-                    //        <small class="text-muted">+${uniqueClients.length - 1} more client${uniqueClients.length > 2 ? 's' : ''}</small>
-                    //    </div>
-                    //`;
-                    return data || 'N/A';
+                    if (data.length === 1)
+                        return `<span class="fw-bold">${data[0]}</span>`;
+
+                    const first = data[0];
+                    const remaining = data.length - 1;
+                    const allClients = data.join('<br>'); // For SweetAlert
+
+                    return `
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold">${first}</span>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-info ms-1 p-0"
+                                    style="width: 20px; height: 20px; font-size: 10px;"
+                                    onclick="showFullClients('${allClients}')">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted">
+                            +${remaining} more client${remaining > 1 ? 's' : ''}
+                        </small>
+                    `;
                 }
             },
             {
@@ -267,6 +279,36 @@ function showFullSerials(description) {
         icon: 'info',
         confirmButtonText: 'Close',
         width: '400px'
+    });
+}
+
+function showFullClients(description) {
+    const safeDescription = description
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+        .replace(/&lt;br&gt;/g, "<br>");
+
+    Swal.fire({
+        title: '<i class="bi bi-people"></i> Covered Clients',
+        html: `
+            <div style="
+                text-align: left;
+                max-height: 400px;
+                overflow-y: auto;
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 5px;
+                border: 1px solid #dee2e6;
+            ">
+                <p style="margin: 0;">${safeDescription}</p>
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Close',
+        width: '420px'
     });
 }
 

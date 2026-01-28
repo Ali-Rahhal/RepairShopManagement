@@ -39,15 +39,6 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                     includeProperties: "Client,Client.ParentClient"
                 );
 
-                // 🔄 Update status dynamically (Active / Expired)
-                foreach (var mc in query)
-                {
-                    var newStatus = mc.EndDate < DateTime.Now ? "Expired" : "Active";
-                    if (mc.Status != newStatus)
-                        mc.Status = newStatus;
-                }
-                await _unitOfWork.SaveAsy();
-
                 var recordsTotal = await query.CountAsync();
 
                 // 🔍 Global search
@@ -65,7 +56,14 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                 // 🏷 Status filter
                 if (!string.IsNullOrWhiteSpace(status) && status != "All")
                 {
-                    query = query.Where(mc => mc.Status == status);
+                    if (status == "Active")
+                    {
+                        query = query.Where(mc => mc.EndDate >= DateTime.Now);
+                    }
+                    else
+                    {
+                        query = query.Where(mc => mc.EndDate < DateTime.Now);
+                    }
                 }
 
                 var recordsFiltered = await query.CountAsync();
@@ -86,7 +84,7 @@ namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
                             : "N/A",
                         startDate = mc.StartDate,
                         endDate = mc.EndDate,
-                        status = mc.Status,
+                        status = mc.EndDate < DateTime.Now ? "Expired" : "Active",
                         daysRemaining = (mc.EndDate - DateTime.Now).Days,
                         isExpired = mc.EndDate < DateTime.Now
                     })
