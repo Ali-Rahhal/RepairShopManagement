@@ -304,6 +304,7 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                 return new JsonResult(new { success = false, message = "Serial not found" });
 
             serial.ClientId = clientId;
+            serial.MaintenanceContractId = null;
 
             await _unitOfWork.SerialNumber.UpdateAsy(serial);
             await _unitOfWork.SaveAsy();
@@ -329,6 +330,7 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
             foreach (var serial in serials)
             {
                 serial.ClientId = clientId;
+                serial.MaintenanceContractId = null;
                 await _auditLogService.AddLogAsy(
                     SD.Action_Update,
                     SD.Entity_SerialNumber,
