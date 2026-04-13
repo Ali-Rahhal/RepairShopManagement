@@ -183,6 +183,65 @@ function loadContractsForClient(clientId) {
         });
 }
 
+function resetContracts() {
+
+    const selectEl = document.getElementById('newSerialContract');
+    const ts = selectEl.tomselect;
+
+    if (!ts) return;
+
+    ts.clear(true);
+    ts.clearOptions();
+
+    ts.addOption({
+        value: "",
+        text: "--Select Contract--"
+    });
+
+    ts.refreshOptions(false);
+
+}
+
+function loadBranchesForClient(clientId) {
+
+    const branchSelect = document.getElementById('newSerialBranch');
+    const ts = branchSelect.tomselect;
+
+    ts.clear(true);
+    ts.clearOptions();
+    ts.addOption({ value: "", text: "Loading..." });
+    ts.refreshOptions(false);
+
+    fetch(`/Admin/DefectiveUnits/Upsert?handler=BranchesByClient&clientId=${clientId}`)
+        .then(response => response.json())
+        .then(data => {
+
+            ts.clearOptions();
+
+            ts.addOption({
+                value: "",
+                text: "--Select or Type Branch--"
+            });
+
+            data.forEach(branch => {
+
+                ts.addOption({
+                    value: branch.id,
+                    text: branch.text
+                });
+
+            });
+
+            ts.refreshOptions(false);
+
+        })
+        .catch(error => {
+
+            console.error(error);
+
+        });
+}
+
 function enableSubmitButton() {
     const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {

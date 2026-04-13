@@ -26,6 +26,8 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
         [BindProperty]
         public SerialNumber NewSerialNumber { get; set; } // For creating new serial numbers
+        [BindProperty]
+        public string? BranchValue { get; set; }
 
         public bool ShowNewSerialSection { get; set; }
 
@@ -141,6 +143,40 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                             await PopulateMaintenanceContracts(NewSerialNumber.ClientId);
                         }
                         return Page();
+                    }
+
+                    var branchValue = BranchValue;
+
+                    if (!string.IsNullOrEmpty(branchValue))
+                    {
+                        long branchId;
+
+                        if (long.TryParse(branchValue, out branchId))
+                        {
+                            // Existing branch selected
+                            NewSerialNumber.ClientId = branchId;
+                        }
+                        else
+                        {
+                            // New branch typed
+
+                            var newBranch = new Client
+                            {
+                                Name = branchValue,
+                                ParentClientId = NewSerialNumber.ClientId,
+                                IsActive = true
+                            };
+
+                            await _unitOfWork.Client.AddAsy(newBranch);
+                            await _unitOfWork.SaveAsy();
+
+                            await _auditLogService.AddLogAsy(
+                                SD.Action_Create,
+                                SD.Entity_Client,
+                                newBranch.Id);
+
+                            NewSerialNumber.ClientId = newBranch.Id;
+                        }
                     }
 
                     // Create the new serial number
@@ -312,6 +348,23 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             return new JsonResult(contracts);
         }
 
+        public async Task<JsonResult> OnGetBranchesByClient(long clientId)
+        {
+            var branches = await _unitOfWork.Client.GetAllAsy(
+                c => c.ParentClientId == clientId && c.IsActive == true
+            );
+
+            var result = branches
+                .OrderBy(b => b.Name)
+                .Select(b => new
+                {
+                    id = b.Id,
+                    text = b.Name
+                });
+
+            return new JsonResult(result);
+        }
+
         private async Task PopulateDropdowns()
         {
             // Populate Models dropdown
@@ -326,15 +379,15 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             });
 
             // Populate Clients dropdown
-            var clients = (await _unitOfWork.Client.GetAllAsy(c => c.IsActive == true))
-                .OrderBy(c => c.Name)
-                .ToList();
+            var clients = (await _unitOfWork.Client.GetAllAsy(
+                c => c.IsActive == true && c.ParentClientId == null
+            ))
+            .OrderBy(c => c.Name)
+            .ToList();
 
             ClientList = clients.Select(c => new SelectListItem
             {
-                Text = c.ParentClient != null
-                    ? $"{c.ParentClient.Name} - {c.Name}"
-                    : $"{c.Name}",
+                Text = c.Name,
                 Value = c.Id.ToString()
             });
 

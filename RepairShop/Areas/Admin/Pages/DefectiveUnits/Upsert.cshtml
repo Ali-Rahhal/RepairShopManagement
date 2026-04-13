@@ -104,6 +104,18 @@
                                         <span asp-validation-for="NewSerialNumber.MaintenanceContractId" class="text-danger"></span>
                                     </div>
                                 </div>
+                                <div class="col-md-6" id="branchSection" style="display:none;">
+                                    <div class="mb-3">
+                                        <label class="form-label fw-bold">Branch</label>
+                                        <select asp-for="BranchValue"
+                                                id="newSerialBranch"
+                                                class="form-select">
+                                        </select>
+                                        <small class="text-muted">
+                                            Select existing branch or type new branch name
+                                        </small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -242,11 +254,38 @@
             new TomSelect('#newSerialClient', {
                 placeholder: '-- Select Client --',
                 create: false,
-                onChange: function(value) {
-                    if (value && value !== '') {
+                onChange: function (value) {
+                    if (value) {
+                        document.getElementById("branchSection").style.display = "block";
+                        loadBranchesForClient(value);
                         loadContractsForClient(value);
-                    } else {
-                        $('#newSerialContract').html('<option value="">--Select Client First--</option>');
+                    }
+                }
+            });
+
+            new TomSelect('#newSerialBranch', {
+                placeholder: '-- Select or Type Branch --',
+                create: true,   // allows new branch creation
+                onChange: function(value) {
+                    if (!value) {
+                        resetContracts();
+                        return;
+                    }
+                    if (!isNaN(value)) {
+                        loadContractsForClient(value);
+                    }
+                    else {
+                        resetContracts();
+                    }
+                },
+                onItemAdd: function(value) {
+                    if (isNaN(value)) {
+                        resetContracts();
+                    }
+                },
+                onType: function(str) {
+                    if (str.length > 0) {
+                        resetContracts();
                     }
                 }
             });
