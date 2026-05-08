@@ -14,6 +14,7 @@ namespace RepairShop.Models
         public bool HasAccessories { get; set; } = false;
         public string? Accessories { get; set; }
         public string Status { get; set; } = SD.Status_DU_Reported; // e.g. Reported, UnderRepair, Fixed, Out of Service
+        public bool InvoiceByBachir { get; set; } = false;
         public bool IsActive { get; set; } = true;
 
         // Relationships

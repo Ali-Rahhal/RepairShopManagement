@@ -125,6 +125,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                         branchName = t.DefectiveUnit.SerialNumber.Client.ParentClient != null
                             ? t.DefectiveUnit.SerialNumber.Client.Name
                             : "N/A",
+                        invoiceByBachir = t.DefectiveUnit.InvoiceByBachir,
                         lastModifiedDate = t.LastModifiedDate ?? t.CreatedDate,
                         createdDate = t.CreatedDate,
                         inProgressDate = t.InProgressDate,
@@ -210,7 +211,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                             ? t.DefectiveUnit.SerialNumber.Client.Name
                             : "N/A",
                 "7" => t => t.CreatedDate,
-                "9" => t => t.LastModifiedDate ?? t.CreatedDate, // Hidden LastModifiedDate column
+                "10" => t => t.LastModifiedDate ?? t.CreatedDate, // Hidden LastModifiedDate column
                 _ => t => t.LastModifiedDate ?? t.CreatedDate // Default
             };
 

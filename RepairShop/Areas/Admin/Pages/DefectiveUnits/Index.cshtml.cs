@@ -122,6 +122,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                         reportedDate = du.ReportedDate,
                         description = du.Description,
                         hasAccessories = du.HasAccessories,
+                        invoiceByBachir = du.InvoiceByBachir,
                         status = du.Status,
                         daysSinceReported = (DateTime.Now - du.ReportedDate).Days,
                         resolvedDate = du.ResolvedDate != null

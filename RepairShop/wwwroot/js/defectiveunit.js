@@ -50,14 +50,14 @@ function loadDataTable() {
             },
             {
                 data: 'clientName',
-                width: "8%",
+                width: "6%",
                 render: function (data) {
                     return data || 'N/A';
                 }
             },
             {
                 data: 'clientBranch',
-                width: "8%",
+                width: "6%",
                 orderable: false,
                 render: function (data) {
                     return data || 'N/A';
@@ -97,7 +97,7 @@ function loadDataTable() {
             },
             {
                 data: 'description',
-                width: "14%",
+                width: "13%",
                 orderable: false,
                 render: function (data, type, row) {
                     let text = '';
@@ -182,6 +182,14 @@ function loadDataTable() {
                         return '<span class="badge bg-warning">Pending</span>';
                     }
                     return data ? data : 'N/A';
+                }
+            },
+            {
+                data: 'invoiceByBachir',
+                width: "5%",
+                orderable: false,
+                render: function (data) {
+                    return data ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-warning">No</span>';
                 }
             },
             {

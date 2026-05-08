@@ -219,6 +219,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                     duFromDb.Description = DefectiveUnitForUpsert.Description;
                     duFromDb.HasAccessories = DefectiveUnitForUpsert.HasAccessories;
                     duFromDb.Accessories = DefectiveUnitForUpsert.Accessories;
+                    duFromDb.InvoiceByBachir = DefectiveUnitForUpsert.InvoiceByBachir;
                     await _unitOfWork.DefectiveUnit.UpdateAsy(duFromDb);
                     await _unitOfWork.SaveAsy();
                     await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_DefectiveUnit, duFromDb.Id);

@@ -77,7 +77,7 @@ function loadDataTable() {
                 type: 'num'
             },
             {
-                targets: 9, // LastModifiedDate column (hidden)
+                targets: 10, // LastModifiedDate column (hidden)
                 visible: false,
                 searchable: false,
                 orderable: true
@@ -179,7 +179,7 @@ function loadDataTable() {
             },
             {
                 data: 'createdDate',
-                "width": "15%",
+                "width": "10%",
                 "render": function (data, type, row) {
                     if (data) {
                         // Convert to Date object and format as dd-MM-yyyy HH:mm tt
@@ -199,6 +199,14 @@ function loadDataTable() {
                             });
                     }
                     return '';
+                }
+            },
+            {
+                data: 'invoiceByBachir',
+                width: "5%",
+                orderable: false,
+                render: function (data) {
+                    return data ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-warning">No</span>';
                 }
             },
             {
