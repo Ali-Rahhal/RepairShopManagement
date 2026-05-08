@@ -35,6 +35,15 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
         [BindProperty(SupportsGet = true)]
         public string? returnUrl { get; set; }
 
+        public class SerialMigrationDto
+        {
+            public long Id { get; set; }
+            public string Value { get; set; }
+            public long ModelId { get; set; }
+            public long ClientId { get; set; }
+            public long? MaintenanceContractId { get; set; }
+        }
+
         public async Task<IActionResult> OnGet()
         {
             SerialNumberForUpsert = new SerialNumber();
@@ -107,23 +116,8 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
                     return Page();
                 }
 
-                // Check if serial number already exists (for create operation)
                 if (SerialNumberForUpsert.Id == 0)
                 {
-                    var existingSerialNumber = await _unitOfWork.SerialNumber.GetAsy(
-                        sn => sn.Value == SerialNumberForUpsert.Value && sn.IsActive == true
-                    );
-                    if (existingSerialNumber != null)
-                    {
-                        ModelState.AddModelError("SerialNumberForUpsert.Value", "Serial number already exists.");
-                        await PopulateDropdowns();
-                        if (SerialNumberForUpsert.ClientId > 0)
-                        {
-                            await PopulateMaintenanceContracts(SerialNumberForUpsert.ClientId);
-                        }
-                        return Page();
-                    }
-
                     await _unitOfWork.SerialNumber.AddAsy(SerialNumberForUpsert);
                     await _unitOfWork.SaveAsy();
                     await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_SerialNumber, SerialNumberForUpsert.Id);
@@ -249,6 +243,103 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
             var maintenanceContractList = MaintenanceContractList.ToList();
             maintenanceContractList.Insert(0, new SelectListItem { Text = "No Contract", Value = "" });
             MaintenanceContractList = maintenanceContractList;
+        }
+
+        public async Task<JsonResult> OnPostCheckDuplicateAsync(
+            [FromBody] SerialMigrationDto dto)
+        {
+            if (dto == null || string.IsNullOrEmpty(dto.Value))
+                return new JsonResult(new { exists = false });
+
+            var existing = await _unitOfWork.SerialNumber.GetAsy(
+                sn => sn.Value == dto.Value && sn.IsActive == true,
+                includeProperties: "Client,Client.ParentClient,Model,MaintenanceContract"
+            );
+
+            if (existing == null)
+                return new JsonResult(new { exists = false });
+
+            var newClient = await _unitOfWork.Client.GetAsy(
+                c => c.Id == dto.ClientId,
+                includeProperties: "ParentClient"
+            );
+
+            var newModel = await _unitOfWork.Model.GetAsy(
+                m => m.Id == dto.ModelId
+            );
+
+            var newContract = dto.MaintenanceContractId != null
+                ? await _unitOfWork.MaintenanceContract.GetAsy(
+                    mc => mc.Id == dto.MaintenanceContractId
+                )
+                : null;
+
+            string oldClientName =
+                existing.Client.ParentClient != null
+                ? $"{existing.Client.ParentClient.Name} - {existing.Client.Name}"
+                : existing.Client.Name;
+
+            string newClientName =
+                newClient.ParentClient != null
+                ? $"{newClient.ParentClient.Name} - {newClient.Name}"
+                : newClient.Name;
+
+            string oldContractName =
+                existing.MaintenanceContractId != null
+                ? $"Contract #{existing.MaintenanceContractId}"
+                : "No Contract";
+
+            string newContractName =
+                dto.MaintenanceContractId != null
+                ? $"Contract #{dto.MaintenanceContractId}"
+                : "No Contract";
+
+            return new JsonResult(new
+            {
+                exists = true,
+
+                oldClient = oldClientName,
+                newClient = newClientName,
+
+                oldModel = existing.Model.Name,
+                newModel = newModel?.Name,
+
+                oldContract = oldContractName,
+                newContract = newContractName,
+
+                clientChanged = existing.ClientId != dto.ClientId,
+                modelChanged = existing.ModelId != dto.ModelId,
+                contractChanged = existing.MaintenanceContractId != dto.MaintenanceContractId
+            });
+        }
+
+        public async Task<JsonResult> OnPostMigrateAsync(
+            [FromBody] SerialMigrationDto dto)
+        {
+            if (dto == null)
+                return new JsonResult(new { success = false });
+
+            var existing = await _unitOfWork.SerialNumber.GetAsy(
+                sn => sn.Value == dto.Value && sn.IsActive == true
+            );
+
+            if (existing == null)
+                return new JsonResult(new { success = false });
+
+            existing.ClientId = dto.ClientId;
+            existing.ModelId = dto.ModelId;
+            existing.MaintenanceContractId = dto.MaintenanceContractId;
+
+            await _unitOfWork.SerialNumber.UpdateAsy(existing);
+            await _unitOfWork.SaveAsy();
+
+            await _auditLogService.AddLogAsy(
+                SD.Action_Update,
+                SD.Entity_SerialNumber,
+                existing.Id
+            );
+
+            return new JsonResult(new { success = true });
         }
     }
 }

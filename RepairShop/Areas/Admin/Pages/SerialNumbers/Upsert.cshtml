@@ -174,4 +174,130 @@
             }
         });
     </script>
+    <script>
+        $(document).ready(function () {
+            $('form').submit(function (e) {
+                e.preventDefault();
+                var form = $(this);
+                var formObject = getFormObject();
+                $.ajax({
+                    url: '?handler=CheckDuplicate',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formObject),
+                    headers: {
+                        'RequestVerificationToken':
+                            $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    beforeSend: function () {
+                        Swal.showLoading();
+                    },
+                    success: function (response) {
+                        Swal.close();
+                        if (response.exists) {
+                            showMigrationDialog(response, formObject);
+                        } else {
+                            form.off('submit');
+                            form.submit();
+                        }
+                    },
+                    error: function () {
+                        Swal.close();
+                        toastr.error(
+                            'Error checking duplicate serial'
+                        );
+                    }
+                });
+            });
+
+            function getFormObject() {
+                return {
+                    Id: $('#SNId').val(),
+                    Value: $('input[name="SerialNumberForUpsert.Value"]').val(),
+                    ModelId: parseInt($('#modelSelect').val()),
+                    ClientId: parseInt($('#clientDropdown').val()),
+                    MaintenanceContractId:
+                        $('#contractDropdown').val() === ""
+                            ? null
+                            : parseInt($('#contractDropdown').val())
+                };
+            }
+
+            function showMigrationDialog(response, formObject) {
+                let changesHtml = "";
+                if (response.clientChanged) {
+                    changesHtml +=
+                        `Client: <b>${response.oldClient}</b> → <b>${response.newClient}</b><br>`;
+                }
+                if (response.modelChanged) {
+                    changesHtml +=
+                        `Model: <b>${response.oldModel}</b> → <b>${response.newModel}</b><br>`;
+                }
+                if (response.contractChanged) {
+                    changesHtml +=
+                        `Contract: <b>${response.oldContract}</b> → <b>${response.newContract}</b><br>`;
+                }
+                if (changesHtml === "") {
+                    Swal.fire({
+                        title: 'Serial Already Exists',
+                        text: 'No changes detected.',
+                        icon: 'info'
+                    });
+                    return;
+                }
+                Swal.fire({
+                    title: 'Serial Already Exists',
+                    html:
+                        "This serial already exists.<br><br>" +
+                        "<b>Migration Changes:</b><br><br>" +
+                        changesHtml +
+                        "<br>Do you want to apply these changes?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, migrate',
+                    cancelButtonText: 'Cancel'
+                })
+                .then((result) => {
+                    if (result.isConfirmed) {
+                        migrateSerial(formObject);
+                    }
+                });
+            }
+
+            function migrateSerial(formObject) {
+                $.ajax({
+                    url: '?handler=Migrate',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formObject),
+                    headers: {
+                        'RequestVerificationToken':
+                            $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    beforeSend: function () {
+                        Swal.showLoading();
+                    },
+                    success: function (response) {
+                        Swal.close();
+                        if (response.success) {
+                            toastr.success('Serial migrated successfully');
+                            setTimeout(() => {
+                                window.location.href = '/Admin/SerialNumbers/Index';
+                            }, 800);
+                        } else {
+                            toastr.error(
+                                'Migration failed'
+                            );
+                        }
+                    },
+                    error: function () {
+                        Swal.close();
+                        toastr.error(
+                            'Error migrating serial'
+                        );
+                    }
+                });
+            }
+        });
+    </script>
 }

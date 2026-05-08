@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	
 	<!-- 🔽 Version Information -->
-	<Version>1.6.9</Version>
-	<FileVersion>1.6.9.0</FileVersion>
-	<InformationalVersion>1.6.9 - 20th Release (Added client branch creation in the DU new serial number creation page)</InformationalVersion>
+	<Version>1.7.0</Version>
+	<FileVersion>1.7.0.0</FileVersion>
+	<InformationalVersion>1.7.0 - 21th Release (If a sn is created and already exists then it asks user if they want to migrate this sn to diff client or modlel or contract or all)</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
