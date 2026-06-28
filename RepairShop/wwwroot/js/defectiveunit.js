@@ -1,4 +1,5 @@
 ﻿let dataTable;
+let currentDuId = 0;
 
 $(document).ready(function () {
     loadDataTable();
@@ -215,9 +216,8 @@ function loadDataTable() {
                                     </a>`;
                     }
 
-                    //DU Quotation Status
                     if (row.status === 'Reported') {
-                        if (window.env.Feature_DUQuotationStatus.toLowerCase().trim() === 'true') {
+                        if (window.Env.Feature_DUQuotationStatus.toLowerCase().trim() === 'true') {
                             // Quotation sent Button (reported only)
                             buttons += `<a onclick="quotationChange(${data}, false)"
                                             title="Change to Quotation Sent"
@@ -232,20 +232,30 @@ function loadDataTable() {
                                             <i class="bi bi-plus-circle"></i>
                                         </a>`;
                         }
-                    } else if (row.status === 'QuotationSent' && window.env.Feature_DUQuotationStatus.toLowerCase().trim() === 'true') {
+                    } else if (row.status === 'QuotationSent' && window.Env.Feature_DUQuotationStatus.toLowerCase().trim() === 'true') {
                         // Quotation confirmed Button (quotation sent only)
                         buttons += `<a onclick="quotationChange(${data}, true)"
                                         title="Change to Quotation Confirmed"
                                         class="btn btn-success btn-sm mx-1">
                                         <i class="bi bi-check2-circle"></i>
                                     </a>`;
-                    } else if (row.status === 'QuotationConfirmed' && window.env.Feature_DUQuotationStatus.toLowerCase().trim() === 'true') {
+                    } else if (row.status === 'QuotationConfirmed' && window.Env.Feature_DUQuotationStatus.toLowerCase().trim() === 'true') {
                         // Add to Transaction Button (quotation confirmed only)
                         buttons += `<a onclick="addToTransaction(${data})" 
                                         title="Add to Transaction" 
                                         class="btn btn-success btn-sm mx-1">
                                         <i class="bi bi-plus-circle"></i>
                                     </a>`;
+                    }
+
+                    if (row.status === 'UnderRepair' && window.Env.Feature_DUNotes.toLowerCase().trim() === 'true') {
+                        // Notes Button (under repair only)
+                        buttons += `
+                            <a onclick="showNotes(${data})"
+                                class="btn btn-secondary btn-sm mx-1"
+                                title="Working Notes">
+                                <i class="bi bi-journal-text"></i>
+                            </a>`;
                     }
 
                     if (isAdmin()) {
@@ -382,4 +392,69 @@ function addToTransaction(id) {
             console.error('Error:', error);
             toastr.error('Error deleting defective unit report');
         });
+}
+
+function showNotes(id) {
+    currentDuId = id;
+    $('#newNote').val('');
+    loadNotes();
+    new bootstrap.Modal(
+        document.getElementById('notesModal')
+    ).show();
+}
+function loadNotes() {
+    fetch(`/Admin/DefectiveUnits/Index?handler=Notes&id=${currentDuId}`)
+        .then(r => r.json())
+        .then(notes => {
+            let html = '';
+            if (notes.length === 0) {
+                html = '<p class="text-muted">No notes yet.</p>';
+            } else {
+                notes.forEach(n => {
+                    html += `
+                <div class="card mb-2">
+                    <div class="card-body">
+                        <div class="small text-muted">
+                            UserCode(${n.user})
+                            -
+                            ${n.date}
+                        </div>
+                        <div style="white-space:pre-wrap">
+                            ${n.note}
+                        </div>
+                    </div>
+                </div>`;
+                });
+            }
+            $('#notesContainer').html(html);
+        });
+}
+function addNote() {
+    const note = $('#newNote').val();
+    if (note.trim() === '') {
+        toastr.error('Enter a note');
+        return;
+    }
+    $.ajax({
+        url: '/Admin/DefectiveUnits/Index?handler=AddNote',
+        type: 'POST',
+        headers: {
+            'RequestVerificationToken':
+                $('input[name="__RequestVerificationToken"]').val()
+        },
+        data: {
+            defectiveUnitId: currentDuId,
+            note: note
+        },
+        success: function (r) {
+            if (r.success) {
+                $('#newNote').val('');
+                loadNotes();
+                toastr.success('Note added');
+            }
+            else {
+                toastr.error(r.message);
+            }
+        }
+    });
 }

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
@@ -227,8 +228,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 return new JsonResult(new { success = false, message = "Error while adding to transaction" });
             }
 
-            //DU Quotation Status
-            if (env.Feature_DUQuotationStatus)
+            if (Env.Feature_DUQuotationStatus)
             {
                 if (defectiveUnitToBeAdded.Status != SD.Status_DU_QuotationConfirmed)
                 {
@@ -282,6 +282,58 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
             return File(pdfBytes, "application/pdf",
                 $"DefectiveUnitReport_{defectiveUnit.SerialNumber?.Value}_{defectiveUnit.Id}_{DateTime.Now:yyyy-MM-dd hh:mm tt}.pdf");
+        }
+
+        public async Task<IActionResult> OnGetNotes(long id)
+        {
+            var notes = await _unitOfWork.DefectiveUnitNote.GetAllAsy(
+                n => n.DefectiveUnitId == id && n.IsActive,
+                includeProperties: "User");
+
+            var result = notes
+                .OrderByDescending(x => x.CreatedDate)
+                .Select(x => new
+                {
+                    note = x.Note,
+                    user = x.User.UserName,
+                    date = x.CreatedDate.ToString("dd/MM/yyyy hh:mm tt")
+                });
+
+            return new JsonResult(result);
+        }
+
+        public async Task<IActionResult> OnPostAddNote(
+            long defectiveUnitId,
+            string note,
+            [FromServices] SignInManager<AppUser> SignInManager)
+        {
+            if (string.IsNullOrWhiteSpace(note))
+            {
+                return new JsonResult(new
+                {
+                    success = false,
+                    message = "Note cannot be empty."
+                });
+            }
+
+            var currentUser =
+                SignInManager.UserManager.GetUserId(User);
+
+            var duNote = new DefectiveUnitNote
+            {
+                DefectiveUnitId = defectiveUnitId,
+                Note = note.Trim(),
+                UserId = currentUser
+            };
+
+            await _unitOfWork.DefectiveUnitNote.AddAsy(duNote);
+
+            await _unitOfWork.SaveAsy();
+
+            return new JsonResult(new
+            {
+                success = true
+            });
         }
     }
 }

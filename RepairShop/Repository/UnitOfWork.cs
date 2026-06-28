@@ -24,6 +24,7 @@ namespace RepairShop.Repository
         public IPreventiveMaintenanceRecordRepository PreventiveMaintenanceRecord { get; private set; }
         public IAuditLogRepository AuditLog { get; private set; }
         public IPartStockHistoryRepository PartStockHistory { get; private set; }
+        public IDefectiveUnitNoteRepository DefectiveUnitNote { get; private set; }
 
 
 
@@ -43,6 +44,7 @@ namespace RepairShop.Repository
             PreventiveMaintenanceRecord = new PreventiveMaintenanceRecordRepository(_db);
             AuditLog = new AuditLogRepository(_db);
             PartStockHistory = new PartStockHistoryRepository(_db);
+            DefectiveUnitNote = new DefectiveUnitNoteRepository(_db);
         }
 
         public async Task SaveAsy()

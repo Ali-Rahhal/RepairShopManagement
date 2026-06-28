@@ -24,6 +24,7 @@ namespace RepairShop.Models
         public SerialNumber SerialNumber { get; set; } // which device failed
 
         public DateTime? ResolvedDate { get; set; }
+        public ICollection<DefectiveUnitNote> Notes { get; set; } = []; // notes by technicians
 
         public DefectiveUnit Clone()
         {

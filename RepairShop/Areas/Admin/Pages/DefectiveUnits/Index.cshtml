@@ -28,7 +28,7 @@
                         <select id="statusFilter" class="form-select form-select-sm">
                             <option value="All">All</option>
                             <option value=@(SD.Status_DU_Reported)>Reported</option>
-                            @if(env.Feature_DUQuotationStatus)
+                            @if (Env.Feature_DUQuotationStatus)
                             {
                                 <option value=@(SD.Status_DU_QuotationSent)>Quotation Sent</option>
                                 <option value=@(SD.Status_DU_QuotationConfirmed)>Quotation Confirmed</option>
@@ -72,12 +72,41 @@
                 </thead>
             </table>
         </div>
+        <div class="modal fade" id="notesModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5>Working Notes</h5>
+                        <button class="btn-close"
+                                data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="notesContainer"
+                            style="max-height:350px;overflow-y:auto">
+                        </div>
+                        <hr />
+                        <textarea id="newNote"
+                                class="form-control"
+                                rows="4"
+                                placeholder="Write a new note..."></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-success"
+                                onclick="addNote()">
+                            <i class="bi bi-plus-circle"></i>
+                            Add Note
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-    window.env = {
-        Feature_DUQuotationStatus: '@env.Feature_DUQuotationStatus'
+    window.Env = {
+        Feature_DUQuotationStatus: '@Env.Feature_DUQuotationStatus',
+        Feature_DUNotes: '@Env.Feature_DUNotes'
     };
 </script>
 @section Scripts {

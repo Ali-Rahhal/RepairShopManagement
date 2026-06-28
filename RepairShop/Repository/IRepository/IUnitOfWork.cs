@@ -22,6 +22,7 @@ namespace RepairShop.Repository.IRepository
         IPreventiveMaintenanceRecordRepository PreventiveMaintenanceRecord { get; }
         IAuditLogRepository AuditLog { get; }
         IPartStockHistoryRepository PartStockHistory { get; }
+        IDefectiveUnitNoteRepository DefectiveUnitNote { get; }
 
 
         Task SaveAsy();
