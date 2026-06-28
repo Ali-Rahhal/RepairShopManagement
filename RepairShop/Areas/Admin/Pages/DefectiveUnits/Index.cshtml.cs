@@ -6,6 +6,7 @@ using RepairShop.Models;
 using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using RepairShop.Services;
+using System;
 using System.Security.Claims;
 
 namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
@@ -91,17 +92,24 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                         : query.OrderByDescending(du => du.ReportedDate),
                     "7" => orderDir == "asc"
                         ? query.OrderBy(du => du.Status == SD.Status_DU_Reported ? 1 :
-                                                du.Status == SD.Status_DU_UnderRepair ? 2 :
-                                                du.Status == SD.Status_DU_Fixed ? 3 : 4)
+                                                du.Status == SD.Status_DU_QuotationSent ? 2 :
+                                                du.Status == SD.Status_DU_QuotationConfirmed ? 3 :
+                                                du.Status == SD.Status_DU_UnderRepair ? 4 :
+                                                du.Status == SD.Status_DU_Fixed ? 5 : 6)
                         : query.OrderByDescending(du => du.Status == SD.Status_DU_Reported ? 1 :
-                                                        du.Status == SD.Status_DU_UnderRepair ? 2 :
-                                                        du.Status == SD.Status_DU_Fixed ? 3 : 4),
+                                                        du.Status == SD.Status_DU_QuotationSent ? 2 :
+                                                        du.Status == SD.Status_DU_QuotationConfirmed ? 3 :
+                                                        du.Status == SD.Status_DU_UnderRepair ? 4 :
+                                                        du.Status == SD.Status_DU_Fixed ? 5 : 6),
                     "10" => orderDir == "asc"
                         ? query.OrderBy(du => du.ResolvedDate)
                         : query.OrderByDescending(du => du.ResolvedDate),
-                    _ => query.OrderBy(du => du.Status == SD.Status_DU_Reported ? 1 :
-                                            du.Status == SD.Status_DU_UnderRepair ? 2 :
-                                            du.Status == SD.Status_DU_Fixed ? 3 : 4)
+                    _ => query.OrderByDescending(du => du.LastModifiedDate ?? du.ReportedDate)
+                                .ThenBy(du => du.Status == SD.Status_DU_Reported ? 1 :
+                                                du.Status == SD.Status_DU_QuotationSent ? 2 :
+                                                du.Status == SD.Status_DU_QuotationConfirmed ? 3 :
+                                                du.Status == SD.Status_DU_UnderRepair ? 4 :
+                                                du.Status == SD.Status_DU_Fixed ? 5 : 6)
                                 .ThenByDescending(du => du.ReportedDate) // DEFAULT ordering
                 };
 
@@ -168,6 +176,41 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
             return new JsonResult(new { success = true, message = "Defective unit report deleted successfully" });
         }
 
+        public async Task<IActionResult> OnGetQuotationChange(int? id, bool?isConfirmed = false)
+        {
+            if (id == null || id == 0)
+            {
+                return new JsonResult(new { success = false, message = "Error while changing quotation status" });
+            }
+
+            var defectiveUnit = await _unitOfWork.DefectiveUnit.GetAsy(du => du.IsActive == true && du.Id == id, includeProperties: "SerialNumber,SerialNumber.Client");
+
+            if (defectiveUnit == null)
+            {
+                return new JsonResult(new { success = false, message = "Error while changing quotation status" });
+            }
+
+            DefectiveUnit oldDefectiveUnit = defectiveUnit.Clone();
+
+            if(isConfirmed != true)
+            {
+                defectiveUnit.Status = SD.Status_DU_QuotationSent;
+            }
+            else
+            {
+                defectiveUnit.Status = SD.Status_DU_QuotationConfirmed;
+            }
+
+            defectiveUnit.LastModifiedDate = DateTime.Now;
+            await _unitOfWork.DefectiveUnit.UpdateAsy(defectiveUnit);
+
+            await _unitOfWork.SaveAsy();
+
+            await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_DefectiveUnit, defectiveUnit.Id, oldDefectiveUnit);
+
+            return new JsonResult(new { success = true, message = "Quotation status changed successfully to " + (isConfirmed == true ? "confirmed" : "sent")});
+        }
+
         public async Task<IActionResult> OnGetAddToTransaction(int? DuId)
         {
             if (DuId == null || DuId == 0)
@@ -184,18 +227,38 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 return new JsonResult(new { success = false, message = "Error while adding to transaction" });
             }
 
-            TransactionHeader thForDu = new TransactionHeader()
+            //DU Quotation Status
+            if (env.Feature_DUQuotationStatus)
             {
-                DefectiveUnitId = (int)DuId,
-                UserId = currentUserId
-            };
+                if (defectiveUnitToBeAdded.Status != SD.Status_DU_QuotationConfirmed)
+                {
+                    return new JsonResult(new { success = false, message = "Defective unit must have status 'Quotation confirmed' before adding to transaction" });
+                }
+            }
+            else
+            {
+                if (defectiveUnitToBeAdded.Status != SD.Status_DU_Reported)
+                {
+                    return new JsonResult(new { success = false, message = "Defective unit must have status 'Reported' before adding to transaction" });
+                }
+            }
+
+            TransactionHeader thForDu = new TransactionHeader()
+                {
+                    DefectiveUnitId = (int)DuId,
+                    UserId = currentUserId
+                };
+
+            DefectiveUnit oldDefectiveUnit = defectiveUnitToBeAdded.Clone();
 
             defectiveUnitToBeAdded.Status = SD.Status_DU_UnderRepair;
+            defectiveUnitToBeAdded.LastModifiedDate = DateTime.Now;
             await _unitOfWork.DefectiveUnit.UpdateAsy(defectiveUnitToBeAdded);
 
             await _unitOfWork.TransactionHeader.AddAsy(thForDu);
 
             await _unitOfWork.SaveAsy();
+            await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_DefectiveUnit, defectiveUnitToBeAdded.Id, oldDefectiveUnit);
             await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_TransactionHeader, thForDu.Id);
 
             return new JsonResult(new { success = true, message = "Defective unit added to transaction successfully" });

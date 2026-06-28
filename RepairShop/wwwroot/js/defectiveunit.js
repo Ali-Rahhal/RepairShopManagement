@@ -137,6 +137,8 @@ function loadDataTable() {
                         let badgeClass = 'bg-secondary';
                         switch (data) {
                             case 'Reported': badgeClass = 'bg-info'; break;
+                            case 'QuotationSent': badgeClass = 'bg-dark'; break;
+                            case 'QuotationConfirmed': badgeClass = 'bg-dark'; break;
                             case 'UnderRepair': badgeClass = 'bg-warning'; break;
                             case 'Fixed': badgeClass = 'bg-success'; break;
                             case 'OutOfService': badgeClass = 'bg-danger'; break;
@@ -199,44 +201,60 @@ function loadDataTable() {
 
                     // PDF Download Button (always visible)
                     buttons += `<a href="/Admin/DefectiveUnits/Index?handler=DownloadPdf&id=${data}" 
-                                  title="Download PDF Report" 
-                                  class="btn btn-info btn-sm mx-1" target="_blank">
-                                  <i class="bi bi-file-earmark-pdf"></i>
-                               </a>`;
+                                    title="Download PDF Report" 
+                                    class="btn btn-info btn-sm mx-1" target="_blank">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>`;
 
-                    // Edit Button (always visible)
+                    // Edit Button (always visible execpt for Fixed and OutOfService)
                     if (row.status !== 'Fixed' && row.status !== 'OutOfService') {
                         buttons += `<a href="/Admin/DefectiveUnits/Upsert?id=${data}" 
-                                      title="Edit" 
-                                      class="btn btn-primary btn-sm mx-1">
-                                      <i class="bi bi-pencil-square"></i>
-                                   </a>`;
+                                        title="Edit" 
+                                        class="btn btn-primary btn-sm mx-1">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>`;
+                    }
+
+                    //DU Quotation Status
+                    if (row.status === 'Reported') {
+                        if (window.env.Feature_DUQuotationStatus.toLowerCase().trim() === 'true') {
+                            // Quotation sent Button (reported only)
+                            buttons += `<a onclick="quotationChange(${data}, false)"
+                                            title="Change to Quotation Sent"
+                                            class="btn btn-success btn-sm mx-1">
+                                            <i class="bi bi-send"></i>
+                                        </a>`;
+                        } else {
+                            // Add to Transaction Button (reported only)
+                            buttons += `<a onclick="addToTransaction(${data})" 
+                                            title="Add to Transaction" 
+                                            class="btn btn-success btn-sm mx-1">
+                                            <i class="bi bi-plus-circle"></i>
+                                        </a>`;
+                        }
+                    } else if (row.status === 'QuotationSent' && window.env.Feature_DUQuotationStatus.toLowerCase().trim() === 'true') {
+                        // Quotation confirmed Button (quotation sent only)
+                        buttons += `<a onclick="quotationChange(${data}, true)"
+                                        title="Change to Quotation Confirmed"
+                                        class="btn btn-success btn-sm mx-1">
+                                        <i class="bi bi-check2-circle"></i>
+                                    </a>`;
+                    } else if (row.status === 'QuotationConfirmed' && window.env.Feature_DUQuotationStatus.toLowerCase().trim() === 'true') {
+                        // Add to Transaction Button (quotation confirmed only)
+                        buttons += `<a onclick="addToTransaction(${data})" 
+                                        title="Add to Transaction" 
+                                        class="btn btn-success btn-sm mx-1">
+                                        <i class="bi bi-plus-circle"></i>
+                                    </a>`;
                     }
 
                     if (isAdmin()) {
-                        if (row.status === 'Reported') {
-                            // Add to Transaction Button
-                            buttons += `<a onclick="addToTransaction(${data})" 
-                                         title="Add to Transaction" 
-                                         class="btn btn-success btn-sm mx-1">
-                                         <i class="bi bi-plus-circle"></i>
-                                      </a>`;
-                        }
                         // Delete Button (admin only)
                         buttons += `<button onclick="Delete(${data})" 
-                                           title="Delete" 
-                                           class="btn btn-danger btn-sm mx-1">
-                                           <i class="bi bi-trash-fill"></i>
-                                        </button>`;
-                    } else {
-                        if (row.status === 'Reported') {
-                            // Add to Transaction Button (non-admin)
-                            buttons += `<a onclick="addToTransaction(${data})" 
-                                         title="Add to Transaction" 
-                                         class="btn btn-success btn-sm mx-1">
-                                         <i class="bi bi-plus-circle"></i>
-                                      </a>`;
-                        }
+                                        title="Delete" 
+                                        class="btn btn-danger btn-sm mx-1">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </button>`;
                     }
 
                     return `<div class="d-flex justify-content-center" role="group">${buttons}</div>`;
@@ -331,6 +349,22 @@ function Delete(id) {
                 });
         }
     });
+}
+function quotationChange(id, isConfirmed) {
+    fetch(`/Admin/DefectiveUnits/Index?handler=QuotationChange&id=${id}&isConfirmed=${isConfirmed}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                dataTable.ajax.reload();
+                toastr.success(data.message);
+            } else {
+                toastr.error(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            toastr.error('Error changing quotation status');
+        });
 }
 
 function addToTransaction(id) {

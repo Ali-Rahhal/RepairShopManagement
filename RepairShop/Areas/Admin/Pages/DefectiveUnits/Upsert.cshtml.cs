@@ -190,7 +190,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
 
                 var duplicateReportedDU = await _unitOfWork.DefectiveUnit.GetAsy(du => du.IsActive == true
                     && du.SerialNumberId == DefectiveUnitForUpsert.SerialNumberId
-                    && (du.Status == SD.Status_DU_Reported || du.Status == SD.Status_DU_UnderRepair)
+                    && (du.Status == SD.Status_DU_Reported || du.Status == SD.Status_DU_UnderRepair || du.Status == SD.Status_DU_QuotationSent || du.Status == SD.Status_DU_QuotationConfirmed)
                     && du.Id != DefectiveUnitForUpsert.Id);
 
                 if (duplicateReportedDU != null)
@@ -215,14 +215,16 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                 {
                     var duFromDb = await _unitOfWork.DefectiveUnit.GetAsy(du => du.Id == DefectiveUnitForUpsert.Id && du.IsActive == true);
                     if (duFromDb == null) return NotFound();
+                    DefectiveUnit oldDefectiveUnit = duFromDb.Clone();
                     duFromDb.SerialNumberId = DefectiveUnitForUpsert.SerialNumberId;
                     duFromDb.Description = DefectiveUnitForUpsert.Description;
                     duFromDb.HasAccessories = DefectiveUnitForUpsert.HasAccessories;
                     duFromDb.Accessories = DefectiveUnitForUpsert.Accessories;
                     duFromDb.InvoiceByBachir = DefectiveUnitForUpsert.InvoiceByBachir;
+                    duFromDb.LastModifiedDate = DateTime.Now;
                     await _unitOfWork.DefectiveUnit.UpdateAsy(duFromDb);
                     await _unitOfWork.SaveAsy();
-                    await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_DefectiveUnit, duFromDb.Id);
+                    await _auditLogService.AddLogAsy(SD.Action_Update, SD.Entity_DefectiveUnit, duFromDb.Id, oldDefectiveUnit);
 
                     TempData["success"] = "Defective unit updated successfully";
                     return RedirectToPage("Index");

@@ -36,5 +36,10 @@ namespace RepairShop.Models
         [ValidateNever]
         [JsonIgnore]
         public ICollection<PreventiveMaintenanceRecord> PreventiveMaintenanceRecords { get; set; }
+
+        public Client Clone()
+        {
+            return (Client)this.MemberwiseClone();
+        }
     }
 }

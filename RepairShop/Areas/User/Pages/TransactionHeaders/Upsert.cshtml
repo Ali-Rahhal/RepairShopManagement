@@ -153,10 +153,12 @@
     {
         switch (status)
         {
-            case "Reported": return "bg-info";
-            case "UnderRepair": return "bg-warning";
-            case "Fixed": return "bg-success";
-            case "OutOfService": return "bg-danger";
+            case SD.Status_DU_Reported: return "bg-info";
+            case SD.Status_DU_QuotationSent: return "bg-dark";
+            case SD.Status_DU_QuotationConfirmed: return "bg-dark";
+            case SD.Status_DU_UnderRepair: return "bg-warning";
+            case SD.Status_DU_Fixed: return "bg-success";
+            case SD.Status_DU_OutOfService: return "bg-danger";
             default: return "bg-secondary";
         }
     }
@@ -282,6 +284,8 @@
         function getStatusBadgeClass(status) {
             switch (status) {
                 case 'Reported': return 'bg-info';
+                case 'QuotationSent': return 'bg-dark';
+                case 'QuotationConfirmed': return 'bg-dark';
                 case 'UnderRepair': return 'bg-warning';
                 case 'Fixed': return 'bg-success';
                 case 'OutOfService': return 'bg-danger';

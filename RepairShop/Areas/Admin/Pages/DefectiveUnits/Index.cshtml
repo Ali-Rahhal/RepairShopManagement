@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Defective Units";
 }
+@using RepairShop.Models.Helpers
 
 @Html.AntiForgeryToken()
 
@@ -26,10 +27,15 @@
                     <div class="col-auto">
                         <select id="statusFilter" class="form-select form-select-sm">
                             <option value="All">All</option>
-                            <option value="Reported">Reported</option>
-                            <option value="UnderRepair">Under Repair</option>
-                            <option value="Fixed">Fixed</option>
-                            <option value="OutOfService">Out of Service</option>
+                            <option value=@(SD.Status_DU_Reported)>Reported</option>
+                            @if(env.Feature_DUQuotationStatus)
+                            {
+                                <option value=@(SD.Status_DU_QuotationSent)>Quotation Sent</option>
+                                <option value=@(SD.Status_DU_QuotationConfirmed)>Quotation Confirmed</option>
+                            }
+                            <option value=@(SD.Status_DU_UnderRepair)>Under Repair</option>
+                            <option value=@(SD.Status_DU_Fixed)>Fixed</option>
+                            <option value=@(SD.Status_DU_OutOfService)>Out of Service</option>
                         </select>
                     </div>
                     <div class="col-auto">
@@ -69,6 +75,11 @@
     </div>
 </div>
 
+<script>
+    window.env = {
+        Feature_DUQuotationStatus: '@env.Feature_DUQuotationStatus'
+    };
+</script>
 @section Scripts {
     <script src="~/js/defectiveunit.js" asp-append-version="true"></script>
 }

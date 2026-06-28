@@ -74,6 +74,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                 }
 
                 defectiveUnit.Status = SD.Status_DU_UnderRepair;
+                defectiveUnit.LastModifiedDate = DateTime.Now;
                 await _unitOfWork.DefectiveUnit.UpdateAsy(defectiveUnit);
 
                 if (thForUpsert.Id == 0)
@@ -100,7 +101,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             // Search defective units by serial number, model, or client name
             var defectiveUnits = (await _unitOfWork.DefectiveUnit.GetAllAsy(
                 du => du.IsActive == true &&
-                      du.Status == SD.Status_DU_Reported &&
+                      du.Status == (env.Feature_DUQuotationStatus ? SD.Status_DU_QuotationConfirmed : SD.Status_DU_Reported) &&
                      (du.SerialNumber.Value.Contains(term) ||
                       du.SerialNumber.Model.Name.Contains(term) ||
                       du.SerialNumber.Client.Name.Contains(term)),
