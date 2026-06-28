@@ -25,8 +25,8 @@ namespace RepairShop.Repository
         public IAuditLogRepository AuditLog { get; private set; }
         public IPartStockHistoryRepository PartStockHistory { get; private set; }
         public IDefectiveUnitNoteRepository DefectiveUnitNote { get; private set; }
-
-
+        public IReceptionNoteRepository ReceptionNote { get; private set; }
+        public IReceptionNoteItemRepository ReceptionNoteItem { get; private set; }
 
         public UnitOfWork(AppDbContext db)
         {
@@ -45,6 +45,8 @@ namespace RepairShop.Repository
             AuditLog = new AuditLogRepository(_db);
             PartStockHistory = new PartStockHistoryRepository(_db);
             DefectiveUnitNote = new DefectiveUnitNoteRepository(_db);
+            ReceptionNote = new ReceptionNoteRepository(_db);
+            ReceptionNoteItem = new ReceptionNoteItemRepository(_db);
         }
 
         public async Task SaveAsy()

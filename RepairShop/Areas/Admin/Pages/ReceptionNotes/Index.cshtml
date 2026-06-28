@@ -1,0 +1,98 @@
+﻿@page
+@model RepairShop.Areas.Admin.Pages.ReceptionNotes.IndexModel
+@{
+    ViewData["Title"] = "Reception Notes";
+}
+
+@Html.AntiForgeryToken()
+
+<div class="card shadow border-0 my-4 w-100 w-xl-60 mx-auto">
+
+    <div class="card-header bg-primary bg-gradient text-white py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white">
+                    Reception Notes
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="card-body">
+        <div class="row pb-3">
+            <div class="col-6">
+                <button type="button" class="btn btn-sm btn-warning" title="Reset Sorting" onclick="reloadTable()">
+                    <i class="bi bi-x-circle"></i>
+                </button>
+            </div>
+            <div class="col-6 text-end">
+                <span class="text-muted">
+                    Reception Notes generated from newly received devices.
+                </span>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table id="tblData"
+                    class="table table-bordered table-striped"
+                    style="width:100%">
+                <thead>
+                    <tr class="table-primary">
+                        <th>Reception Code</th>
+                        <th>Client</th>
+                        <th>No. Devices</th>
+                        <th>Reception Date</th>
+                        <th>Printed</th>
+                        <th style="width:180px;"></th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ========================= -->
+<!-- Details Modal -->
+<!-- ========================= -->
+<div class="modal fade"
+        id="detailsModal"
+        tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Reception Note Details
+                </h5>
+                <button class="btn-close"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Serial Number</th>
+                                <th>Model</th>
+                            </tr>
+                        </thead>
+                        <tbody id="serialNumbersBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts
+{
+    <script src="~/js/receptionNote.js"
+            asp-append-version="true"></script>
+}

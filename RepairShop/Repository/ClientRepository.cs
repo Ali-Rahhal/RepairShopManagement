@@ -1,4 +1,5 @@
-﻿using RepairShop.Data;
+﻿using Microsoft.EntityFrameworkCore;
+using RepairShop.Data;
 using RepairShop.Models;
 using RepairShop.Repository.IRepository;
 using System;
@@ -21,28 +22,22 @@ namespace RepairShop.Repository
 
         public async Task AddAsy(Client client)
         {
+            if (string.IsNullOrEmpty(client.Name))
+                throw new ArgumentException("Client Name is required");
+
+            client.Code = await GenerateClientCodeAsync(client);
+
             await _db.Clients.AddAsync(client);
-
-            await _db.SaveChangesAsync();
-
-            client.Code = client.Id.ToString();
-
-            await UpdateAsy(client);
-
             await Task.CompletedTask;
         }
 
         public async Task AddRangeAsy(IEnumerable<Client> clients)
         {
-            await _db.Clients.AddRangeAsync(clients);
-            await _db.SaveChangesAsync();
             foreach (var client in clients)
             {
-                client.Code = client.Id.ToString();
+                client.Code = await GenerateClientCodeAsync(client);
             }
-
-            await UpdateRangeAsy(clients);
-
+            await _db.Clients.AddRangeAsync(clients);
             await Task.CompletedTask;
         }
 
@@ -75,6 +70,35 @@ namespace RepairShop.Repository
                 await UpdateAsy(item);
                 await Task.CompletedTask;
             }
+        }
+
+        private async Task<string> GenerateClientCodeAsync(Client client)
+        {
+            // Root client: first 3 letters
+            if (!client.ParentClientId.HasValue || client.ParentClientId.Value == 0)
+            {
+                return GetNameCode(client.Name, 3);
+            }
+
+            // Child client: parent code + first 5 letters
+            var parent = await _db.Clients
+                .FindAsync(client.ParentClientId.Value);
+
+            if (parent == null)
+                throw new ArgumentException($"Parent client not found");
+
+            var childCode = GetNameCode(client.Name, 5);
+            return $"{parent.Code}-{childCode}";
+        }
+
+        private string GetNameCode(string name, int length)
+        {
+            if (string.IsNullOrEmpty(name))
+                return new string('X', length);
+
+            return name.Length >= length
+                ? name.Substring(0, length).ToUpper()
+                : name.ToUpper().PadRight(length, 'X');
         }
     }
 }

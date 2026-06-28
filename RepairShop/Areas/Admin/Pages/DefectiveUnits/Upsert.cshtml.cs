@@ -14,11 +14,13 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly AuditLogService _auditLogService;
+        private readonly NotesService _notesService;
 
-        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als)
+        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als, NotesService notesService)
         {
             _unitOfWork = unitOfWork;
             _auditLogService = als;
+            _notesService = notesService;
         }
 
         [BindProperty]
@@ -183,6 +185,10 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                     await _unitOfWork.SerialNumber.AddAsy(NewSerialNumber);
                     await _unitOfWork.SaveAsy();
                     await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_SerialNumber, NewSerialNumber.Id);
+                    if (Env.Feature_ReceptionDeliveryNotes)
+                    {
+                        await _notesService.AddToReceptionNotesAsync(NewSerialNumber);
+                    }        
 
                     // Set the new serial number ID to the defective unit
                     DefectiveUnitForUpsert.SerialNumberId = NewSerialNumber.Id;

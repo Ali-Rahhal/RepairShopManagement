@@ -23,7 +23,8 @@ namespace RepairShop.Repository.IRepository
         IAuditLogRepository AuditLog { get; }
         IPartStockHistoryRepository PartStockHistory { get; }
         IDefectiveUnitNoteRepository DefectiveUnitNote { get; }
-
+        IReceptionNoteRepository ReceptionNote { get; }
+        IReceptionNoteItemRepository ReceptionNoteItem { get; }
 
         Task SaveAsy();
     }

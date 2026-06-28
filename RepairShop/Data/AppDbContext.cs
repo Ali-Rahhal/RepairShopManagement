@@ -24,8 +24,8 @@ namespace RepairShop.Data
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<PartStockHistory> PartStockHistory { get; set; }
         public DbSet<DefectiveUnitNote> DefectiveUnitNotes { get; set; }
-
-        
+        public DbSet<ReceptionNote> ReceptionNotes { get; set; }
+        public DbSet<ReceptionNoteItem> ReceptionNoteItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

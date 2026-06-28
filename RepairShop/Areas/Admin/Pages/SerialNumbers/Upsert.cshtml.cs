@@ -14,11 +14,13 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly AuditLogService _auditLogService;
+        private readonly NotesService _notesService;
 
-        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als)
+        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als, NotesService notesService)
         {
             _unitOfWork = unitOfWork;
             _auditLogService = als;
+            _notesService = notesService;
         }
 
         [BindProperty]
@@ -121,6 +123,10 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
                     await _unitOfWork.SerialNumber.AddAsy(SerialNumberForUpsert);
                     await _unitOfWork.SaveAsy();
                     await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_SerialNumber, SerialNumberForUpsert.Id);
+                    if (Env.Feature_ReceptionDeliveryNotes)
+                    {
+                        await _notesService.AddToReceptionNotesAsync(SerialNumberForUpsert);
+                    } 
                     TempData["success"] = "Serial number created successfully";
                 }
                 else

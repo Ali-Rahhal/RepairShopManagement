@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using RepairShop.Data;
 
@@ -11,9 +12,11 @@ using RepairShop.Data;
 namespace RepairShop.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260628114852_AddedNoteSequenceFieldToClientsTable")]
+    partial class AddedNoteSequenceFieldToClientsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -612,64 +615,6 @@ namespace RepairShop.Migrations
                     b.ToTable("PreventiveMaintenanceRecords");
                 });
 
-            modelBuilder.Entity("RepairShop.Models.ReceptionNote", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<long>("ClientId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Code")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsPrinted")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClientId");
-
-                    b.ToTable("ReceptionNotes");
-                });
-
-            modelBuilder.Entity("RepairShop.Models.ReceptionNoteItem", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<long>("ReceptionNoteId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("SerialNumberId")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReceptionNoteId");
-
-                    b.HasIndex("SerialNumberId");
-
-                    b.ToTable("ReceptionNoteItems");
-                });
-
             modelBuilder.Entity("RepairShop.Models.SerialNumber", b =>
                 {
                     b.Property<long>("Id")
@@ -1020,36 +965,6 @@ namespace RepairShop.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("RepairShop.Models.ReceptionNote", b =>
-                {
-                    b.HasOne("RepairShop.Models.Client", "Client")
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
-                });
-
-            modelBuilder.Entity("RepairShop.Models.ReceptionNoteItem", b =>
-                {
-                    b.HasOne("RepairShop.Models.ReceptionNote", "ReceptionNote")
-                        .WithMany("Items")
-                        .HasForeignKey("ReceptionNoteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("RepairShop.Models.SerialNumber", "SerialNumber")
-                        .WithMany()
-                        .HasForeignKey("SerialNumberId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ReceptionNote");
-
-                    b.Navigation("SerialNumber");
-                });
-
             modelBuilder.Entity("RepairShop.Models.SerialNumber", b =>
                 {
                     b.HasOne("RepairShop.Models.Client", "Client")
@@ -1139,11 +1054,6 @@ namespace RepairShop.Migrations
             modelBuilder.Entity("RepairShop.Models.Model", b =>
                 {
                     b.Navigation("SerialNumbers");
-                });
-
-            modelBuilder.Entity("RepairShop.Models.ReceptionNote", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("RepairShop.Models.TransactionHeader", b =>

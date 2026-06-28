@@ -14,11 +14,13 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly AuditLogService _auditLogService;
+        private readonly NotesService _notesService;
 
-        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als)
+        public UpsertModel(IUnitOfWork unitOfWork, AuditLogService als, NotesService notesService)
         {
             _unitOfWork = unitOfWork;
             _auditLogService = als;
+            _notesService = notesService;
         }
 
         [BindProperty]
@@ -213,6 +215,10 @@ namespace RepairShop.Areas.Admin.Pages.Warranties
                     foreach (var sn in newSerialNumbers)
                     {
                         await _auditLogService.AddLogAsy(SD.Action_Create, SD.Entity_SerialNumber, sn.Id);
+                    }
+                    if (Env.Feature_ReceptionDeliveryNotes)
+                    {
+                        await _notesService.AddToReceptionNotesAsync(newSerialNumbers);
                     }
 
                     // Create warranty with serial numbers

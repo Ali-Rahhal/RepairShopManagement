@@ -38,6 +38,8 @@ builder.Services.AddScoped<DUReportService>();
 builder.Services.AddScoped<TransactionReportService>();
 builder.Services.AddScoped<IMaintenanceContractService, MaintenanceContractService>();
 builder.Services.AddScoped<AuditLogService>();
+builder.Services.AddScoped<NotesService>();
+builder.Services.AddScoped<ReceptionNoteReportService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

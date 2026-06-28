@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
@@ -28,6 +29,8 @@ namespace RepairShop.Models
         public string? Address { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        public int NoteSequence { get; set; } = 0; //Sequence counter for note IDs
 
         [ValidateNever]
         [JsonIgnore]
