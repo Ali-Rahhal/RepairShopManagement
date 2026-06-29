@@ -198,5 +198,19 @@ namespace RepairShop.Areas.Admin.Pages.ReceptionNotes
         }
 
         #endregion
+
+        public async Task<IActionResult> OnGetReceptionNotesAlert()
+        {
+            var query = await _unitOfWork.ReceptionNote
+                .GetQueryableAsy(r => r.IsActive && !r.IsPrinted);
+
+            bool hasPending = await query.AnyAsync();
+
+            return new JsonResult(new
+            {
+                hasPending,
+                message = "Reception note(s) are not printed yet"
+            });
+        }
     }
 }

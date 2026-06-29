@@ -69,13 +69,12 @@ function loadDataTable() {
                 render: function (data) {
                     return `
                         <div class="text-center">
-                        <button class="btn btn-info btn-sm me-1" onclick="showItems(${data})">
+                        <button class="btn btn-info btn-sm me-1" title="View Devices" onclick="showItems(${data})">
                             <i class="bi bi-list"></i>
                         </button>
-                        <a class="btn btn-primary btn-sm" target="_blank"
-                            href="/Admin/ReceptionNotes/Index?handler=Print&id=${data}">
+                        <button class="btn btn-primary btn-sm" title="Print Reception Note" onclick="printReceptionNote(${data})">
                             <i class="bi bi-printer"></i>
-                        </a>
+                        </button>
                         </div>
                     `;
                 }
@@ -112,4 +111,16 @@ function showItems(id) {
                 new bootstrap.Modal(document.getElementById("detailsModal"));
             modal.show();
         });
+}
+
+function printReceptionNote(id) {
+    // Open in new tab
+    window.open(`/Admin/ReceptionNotes/Index?handler=Print&id=${id}`, '_blank');
+    // Reload the table after a moment
+    setTimeout(() => {
+        if (dataTable) {
+            dataTable.ajax.reload();
+        }
+    }, 1000);
+    toastr.info('Generating reception note...');
 }

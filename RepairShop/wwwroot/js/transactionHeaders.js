@@ -77,12 +77,6 @@ function loadDataTable() {
                 type: 'num'
             },
             {
-                targets: 10, // LastModifiedDate column (hidden)
-                visible: false,
-                searchable: false,
-                orderable: true
-            },
-            {
                 targets: 7, // CreatedDate column
                 type: 'date' // Treat as date for proper ordering
             }
@@ -234,7 +228,23 @@ function loadDataTable() {
                         thirdButton = `<a title="Deliver(Transaction is out of service)" class="btn btn-dark mx-2"><i class="bi bi-truck"></i></a>`;
                     }
                     else if (row.status === "Delivered" || row.status === "Processed") {
-                        thirdButton = `<a href="/User/TransactionHeaders/Index?handler=DownloadPdf&id=${data}" title="Download PDF Report" class="btn btn-info mx-2" target="_blank"> <i class="bi bi-file-earmark-pdf"></i></a>`;
+                        thirdButton = `
+                            <a href="/User/TransactionHeaders/Index?handler=DownloadPdf&id=${data}"
+                               title="Transaction Report"
+                               class="btn btn-info mx-1"
+                               target="_blank">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </a>
+                            ${window.Env.Feature_ReceptionDeliveryNotes.toLowerCase().trim() === 'true' ? `
+                                <a href="/User/TransactionHeaders/Index?handler=DownloadDeliveryNote&id=${data}"
+                                    title="Delivery Note"
+                                    class="btn btn-outline-info mx-1"
+                                    target="_blank">
+                                    <i class="bi bi-printer"></i>
+                                </a>
+                            ` : ''}
+                            
+                        `;
                     }
 
                     let fourthButton = `<button onclick="showHistory('${row.id}', '${row.createdDate}', '${row.inProgressDate}', '${row.completedOrOutOfServiceDate}', '${row.deliveredDate}', '${row.processedDate}')"
@@ -254,10 +264,6 @@ function loadDataTable() {
                                 ${fifthButton}
                             </div>`;
                 }
-            },
-            {
-                data: 'lastModifiedDate',
-                visible: false // hide from user, used for ordering
             }
         ],
         "language": {
@@ -395,6 +401,16 @@ function ToBeDelivered(transactionId) {
                 data: postData,
                 success: function (data) {
                     if (data.success) {
+                        if (window.Env.Feature_ReceptionDeliveryNotes.toLowerCase().trim() === 'true') {
+                            // Automatically print/download the delivery note
+                            const printWindow = window.open(
+                                `/User/TransactionHeaders/Index?handler=DownloadDeliveryNote&id=${transactionId}`,
+                                "_blank"
+                            );
+                            if (printWindow) {
+                                printWindow.focus();
+                            }
+                        } 
                         dataTable.ajax.reload();
                         toastr.success(data.message);
                     }

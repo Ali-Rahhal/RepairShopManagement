@@ -126,7 +126,6 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                             ? t.DefectiveUnit.SerialNumber.Client.Name
                             : "N/A",
                         invoiceByBachir = t.DefectiveUnit.InvoiceByBachir,
-                        lastModifiedDate = t.LastModifiedDate ?? t.CreatedDate,
                         createdDate = t.CreatedDate,
                         inProgressDate = t.InProgressDate,
                         completedOrOutOfServiceDate = t.CompletedOrOutOfServiceDate,
@@ -135,7 +134,6 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                         defectiveUnitId = t.DefectiveUnitId,
                         // For sorting
                         statusPriority = GetStatusPriority(t.Status),
-                        lastModifiedTimestamp = t.LastModifiedDate ?? t.CreatedDate,
                         createdTimestamp = t.CreatedDate
                     })
                     .ToListAsync();
@@ -403,7 +401,11 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
             THToBeCompleted.LastModifiedDate = DateTime.Now;
             await _unitOfWork.TransactionHeader.UpdateAsy(THToBeCompleted);
             await _unitOfWork.SaveAsy();
-            return new JsonResult(new { success = true, message = "Transaction marked as delivered successfully" });
+            return new JsonResult(new 
+            { 
+                success = true, 
+                message = "Transaction marked as delivered successfully",
+            });
         }
 
         // Method to download the PDF report
@@ -424,6 +426,36 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
 
             return File(pdfBytes, "application/pdf",
                 $"TransactionReport_{transactionHeader.DefectiveUnit.SerialNumber?.Value}_{transactionHeader.Id}_{DateTime.Now:yyyy-MM-dd hh:mm tt}.pdf");
+        }
+
+        public async Task<IActionResult> OnGetDownloadDeliveryNote(
+            int id, 
+            [FromServices] DeliveryNoteReportService _deliveryNoteReportService, 
+            [FromServices] NotesService _notesService)
+        {
+            var transaction = await _unitOfWork.TransactionHeader.GetAsy(
+                t => t.Id == id && t.IsActive,
+                includeProperties:
+                    "BrokenParts," +
+                    "BrokenParts.Part," +
+                    "DefectiveUnit," +
+                    "DefectiveUnit.SerialNumber," +
+                    "DefectiveUnit.SerialNumber.Model," +
+                    "DefectiveUnit.SerialNumber.Client," +
+                    "DefectiveUnit.SerialNumber.Client.ParentClient," +
+                    "User");
+
+            if (transaction == null)
+                return NotFound();
+            
+            string code = await _notesService.GetDeliveryNoteCodeAsync(transaction);
+
+            var pdf = _deliveryNoteReportService.GenerateDeliveryNotePdf(transaction, code);
+
+            return File(
+                pdf,
+                "application/pdf",
+                $"{code}.pdf");
         }
     }
 }

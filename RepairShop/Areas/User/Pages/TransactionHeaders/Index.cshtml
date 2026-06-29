@@ -84,7 +84,6 @@
                         <th>Created Date</th>
                         <th>Inv By Bachir</th>
                         <th></th><!-- Parts, Edit, Delete... -->
-                        <th></th><!-- Modified date(hidden) -->
                     </tr>
                 </thead>
             </table>
@@ -92,6 +91,12 @@
 
     </div>
 </div>
+
+<script>
+    window.Env = {
+        Feature_ReceptionDeliveryNotes: '@Env.Feature_ReceptionDeliveryNotes'
+    };
+</script>
 
 @section Scripts {
     <script src="~/js/transactionHeaders.js" asp-append-version="true"></script>

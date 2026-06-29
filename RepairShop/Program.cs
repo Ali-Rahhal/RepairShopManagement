@@ -40,6 +40,7 @@ builder.Services.AddScoped<IMaintenanceContractService, MaintenanceContractServi
 builder.Services.AddScoped<AuditLogService>();
 builder.Services.AddScoped<NotesService>();
 builder.Services.AddScoped<ReceptionNoteReportService>();
+builder.Services.AddScoped<DeliveryNoteReportService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

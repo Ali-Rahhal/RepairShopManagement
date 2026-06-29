@@ -138,8 +138,8 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
             }
         }
 
-        // ❌ DELETE — UNCHANGED
-        public async Task<IActionResult> OnPostDelete(int? id, string reason)
+        // ❌ DELETE
+        public async Task<IActionResult> OnPostDelete(int? id, [FromBody] string reason)
         {
             var serialNumberToBeDeleted = await _unitOfWork.SerialNumber.GetAsy(sn => sn.Id == id && sn.IsActive == true);
             if (serialNumberToBeDeleted == null)

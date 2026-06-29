@@ -1,4 +1,5 @@
-﻿using RepairShop.Models;
+﻿using Microsoft.CodeAnalysis.Elfie.Model.Strings;
+using RepairShop.Models;
 using RepairShop.Repository.IRepository;
 
 namespace RepairShop.Services
@@ -54,6 +55,7 @@ namespace RepairShop.Services
 
             await _unitOfWork.SaveAsy();
         }
+
         public async Task AddToReceptionNotesAsync(List<SerialNumber> SerialNumbers)
         {
             foreach (var sn in SerialNumbers)
@@ -98,6 +100,18 @@ namespace RepairShop.Services
             }
             
             await _unitOfWork.SaveAsy();
+        }
+
+        public async Task<string> GetDeliveryNoteCodeAsync(TransactionHeader th)
+        {
+            th.DefectiveUnit.SerialNumber.Client.NoteSequence++;
+
+            string code = $"{th.DefectiveUnit.SerialNumber.Client.Code}-02{th.DefectiveUnit.SerialNumber.Client.NoteSequence:D8}";
+
+            await _unitOfWork.Client.UpdateAsy(th.DefectiveUnit.SerialNumber.Client);
+            await _unitOfWork.SaveAsy();
+
+            return code;
         }
     }
 }

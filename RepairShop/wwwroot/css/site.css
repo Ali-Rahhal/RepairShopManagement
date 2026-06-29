@@ -76,3 +76,37 @@ body {
     width: 600px !important;
     max-width: 90vw;
 }
+
+/*for notification alerts*/
+.notification-dot {
+    position: relative;
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-left: 6px;
+    border-radius: 50%;
+    background: #dc3545;
+    box-shadow: 0 0 6px rgba(220,53,69,.45);
+    vertical-align: middle;
+}
+
+    .notification-dot::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 2px solid rgba(220,53,69,.6);
+        animation: notificationRipple 2.5s ease-out infinite;
+    }
+
+@keyframes notificationRipple {
+    0% {
+        transform: scale(1);
+        opacity: .8;
+    }
+
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
