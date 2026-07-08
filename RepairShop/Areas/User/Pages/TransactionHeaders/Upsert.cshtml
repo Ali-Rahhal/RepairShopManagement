@@ -118,7 +118,7 @@
                                         <strong>Status:</strong> <span class="badge @GetStatusBadgeClass(Model.thForUpsert.DefectiveUnit?.Status)">@(Model.thForUpsert.DefectiveUnit?.Status ?? "N/A")</span>
                                     </div>
                                     <div class="col-md-4">
-                                        <strong>Inv By Bachir:</strong> <span class="badge @(Model.thForUpsert.DefectiveUnit?.InvoiceByBachir == true ? "bg-success" : "bg-danger")">@(Model.thForUpsert.DefectiveUnit?.InvoiceByBachir == true ? "Yes" : "No")</span>
+                                        <strong>Paid:</strong> <span class="badge @(Model.thForUpsert.DefectiveUnit?.Paid == true ? "bg-success" : "bg-danger")">@(Model.thForUpsert.DefectiveUnit?.Paid == true ? "Yes" : "No")</span>
                                     </div>
                                     <div class="col-md-12">
                                         <strong>Issue Description:</strong> <span>@(Model.thForUpsert.DefectiveUnit?.Description ?? "N/A")</span>

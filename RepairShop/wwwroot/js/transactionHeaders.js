@@ -196,7 +196,7 @@ function loadDataTable() {
                 }
             },
             {
-                data: 'invoiceByBachir',
+                data: 'paid',
                 width: "5%",
                 orderable: false,
                 render: function (data) {

@@ -125,7 +125,7 @@ namespace RepairShop.Areas.User.Pages.TransactionHeaders
                         branchName = t.DefectiveUnit.SerialNumber.Client.ParentClient != null
                             ? t.DefectiveUnit.SerialNumber.Client.Name
                             : "N/A",
-                        invoiceByBachir = t.DefectiveUnit.InvoiceByBachir,
+                        paid = t.DefectiveUnit.Paid,
                         createdDate = t.CreatedDate,
                         inProgressDate = t.InProgressDate,
                         completedOrOutOfServiceDate = t.CompletedOrOutOfServiceDate,

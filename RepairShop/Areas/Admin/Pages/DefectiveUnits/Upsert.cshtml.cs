@@ -226,7 +226,7 @@ namespace RepairShop.Areas.Admin.Pages.DefectiveUnits
                     duFromDb.Description = DefectiveUnitForUpsert.Description;
                     duFromDb.HasAccessories = DefectiveUnitForUpsert.HasAccessories;
                     duFromDb.Accessories = DefectiveUnitForUpsert.Accessories;
-                    duFromDb.InvoiceByBachir = DefectiveUnitForUpsert.InvoiceByBachir;
+                    duFromDb.Paid = DefectiveUnitForUpsert.Paid;
                     duFromDb.LastModifiedDate = DateTime.Now;
                     await _unitOfWork.DefectiveUnit.UpdateAsy(duFromDb);
                     await _unitOfWork.SaveAsy();
