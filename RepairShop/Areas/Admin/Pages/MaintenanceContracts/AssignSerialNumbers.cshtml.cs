@@ -7,7 +7,7 @@ using RepairShop.Services;
 
 namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = SD.Role_Admin)]
     public class AssignSerialNumbersModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;

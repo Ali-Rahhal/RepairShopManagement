@@ -37,11 +37,13 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="User" asp-page="/TransactionHeaders/Index"><i class="bi bi-receipt"></i> Transactions</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="User" asp-page="/PreventiveMaintenanceRecords/Index"><i class="bi bi-gear-fill"></i> Maintenance</a>
-                        </li>
-
-                        <!-- Assets & Inventory -->
+                        @if (User.IsInRole(SD.Role_Admin))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="User" asp-page="/PreventiveMaintenanceRecords/Index"><i class="bi bi-gear-fill"></i> Maintenance</a>
+                            </li>
+                        }
+                        
                         <li class="nav-item">
                             <a class="nav-link" asp-area="User" asp-page="/Clients/Index"><i class="bi bi-people-fill"></i> Clients</a>
                         </li>
@@ -54,12 +56,16 @@
                         <li class="nav-item">
                             <a class="nav-link" asp-area="Admin" asp-page="/Warranties/Index"><i class="bi bi-award-fill"></i> Warranties</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-page="/MaintenanceContracts/Index"><i class="bi bi-file-earmark-text"></i> Contracts</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-page="/Parts/Index"><i class="bi bi-box-seam"></i> Parts</a>
-                        </li>
+                        <!-- Assets & Inventory -->
+                        @if (User.IsInRole(SD.Role_Admin))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Admin" asp-page="/MaintenanceContracts/Index"><i class="bi bi-file-earmark-text"></i> Contracts</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Admin" asp-page="/Parts/Index"><i class="bi bi-box-seam"></i> Parts</a>
+                            </li>
+                        }     
 
                         <!-- Admin Section (only for admins) -->
                         @if (User.IsInRole(SD.Role_Admin))

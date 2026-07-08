@@ -3,11 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using RepairShop.Models;
+using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 
 namespace RepairShop.Areas.User.Pages.PreventiveMaintenanceRecords
 {
-    [Authorize]
+    [Authorize(Roles = SD.Role_Admin)]
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;

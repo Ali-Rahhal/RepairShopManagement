@@ -210,9 +210,9 @@ function loadDataTable() {
                         <a href="/Admin/Warranties/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-1">
                             <i class="bi bi-pencil-square"></i>
                         </a>
-                        <a onclick="Delete('/Admin/Warranties/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-1">
+                        ${isAdmin() ? `<a onclick="Delete('/Admin/Warranties/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-1">
                             <i class="bi bi-trash-fill"></i>
-                        </a>
+                        </a>` : ''}
                     </div>`;
                 },
                 width: "8%",
@@ -224,13 +224,6 @@ function loadDataTable() {
             zeroRecords: "No matching warranties found"
         }
     });
-
-    // Apply column visibility based on admin status
-    if (isAdmin()) {
-        dataTable.column(9).visible(true);
-    } else {
-        dataTable.column(9).visible(false);
-    }
 
     // Add event listener for filter
     $('#statusFilter').on('change', function () {

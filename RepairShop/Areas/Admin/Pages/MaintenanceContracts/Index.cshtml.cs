@@ -9,7 +9,7 @@ using RepairShop.Services;
 
 namespace RepairShop.Areas.Admin.Pages.MaintenanceContracts
 {
-    [Authorize]
+    [Authorize(Roles = SD.Role_Admin)]
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;

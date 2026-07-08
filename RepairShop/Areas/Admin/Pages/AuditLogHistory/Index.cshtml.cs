@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using RepairShop.Models;
+using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using RepairShop.Services;
 
 namespace RepairShop.Areas.Admin.Pages.AuditLogHistory
 {
-    [Authorize]
+    [Authorize(Roles = SD.Role_Admin)]
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;

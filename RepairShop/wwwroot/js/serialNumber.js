@@ -120,7 +120,7 @@ function loadDataTable() {
                 "render": function (data) {
                     return `<div class="w-100 d-flex justify-content-center" role="group">
                         <a href="/Admin/SerialNumbers/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                        <a onClick="Delete(${data})" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
+                        ${isAdmin() ? `<a onClick="Delete(${data})" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>` : ''}
                     </div>`;
                 },
             }

@@ -9,7 +9,7 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace RepairShop.Areas.User.Pages.Clients
 {
-    [Authorize(Roles = SD.Role_Admin)]
+    [Authorize]
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;

@@ -58,13 +58,13 @@ function loadDataTable() {
                     return `
                         <div class="w-100 d-flex justify-content-center">
                             <a href="/Admin/Models/Upsert?id=${data}"
-                               class="btn btn-primary mx-2">
-                               <i class="bi bi-pencil-square"></i>
+                                class="btn btn-primary mx-2">
+                                <i class="bi bi-pencil-square"></i>
                             </a>
-                            <a onclick="Delete('/Admin/Models/Index?handler=Delete&id=${data}')"
-                               class="btn btn-danger mx-2">
-                               <i class="bi bi-trash-fill"></i>
-                            </a>
+                            ${isAdmin() ? `<a onclick="Delete('/Admin/Models/Index?handler=Delete&id=${data}')"
+                                class="btn btn-danger mx-2">
+                                <i class="bi bi-trash-fill"></i>
+                            </a>` : ''}
                         </div>`;
                 }
             }
@@ -75,8 +75,6 @@ function loadDataTable() {
             zeroRecords: "No matching models found"
         }
     });
-
-    dataTable.column(2).visible(isAdmin());
 
     $('#categoryFilter').on('change', applyCategoryFilter);
 }

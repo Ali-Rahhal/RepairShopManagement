@@ -27,39 +27,45 @@ function loadDataTable() {
                 toastr.error('Failed to load clients');
             }
         },
-        "dom": '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
-        "columns": [
+        dom: '<"d-flex justify-content-between align-items-center mb-2"l<"ml-auto"f>>rtip',
+        columns: [
             { data: 'name', "width": "14%" },
             {
                 data: 'branchCount',
-                "width": "14%",
-                "render": function (data) {
+                width: "14%",
+                render: function (data) {
                     return `<span class="badge bg-info">${data}</span>`;
                 }
             },
-            { data: 'phone', "width": "20%" },
-            { data: 'email', "width": "20%" },
-            { data: 'address', "width": "20%" },
+            { data: 'phone', width: "20%" },
+            { data: 'email', width: "20%" },
+            { data: 'address', width: "20%" },
             {
                 data: 'id',
-                visible: isAdmin(),//only show this column if the user is admin.
-                "render": function (data) {//this is to render the edit and delete buttons in the last column.
+                width: "12%",
+                orderable: false,
+                searchable: false,
+                render: function (data) {
+                    let buttons = '';
+
+                    buttons += `<a href="/User/Clients/ClientSNIndex?id=${data}" title="View Serial Numbers" class="btn btn-info mx-2"><i class="bi bi-list"></i></a>
+                                <a href="/Admin/SerialNumbers/Upsert?clientId=${data}&returnUrl=${encodeURIComponent(window.location.href)}" title="Add Serial Number" class="btn btn-outline-info mx-2"><i class="bi bi-plus-square"></i></a>
+                                <a href="/User/Clients/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
+                                <a href="/User/Clients/ClientBranchIndex?id=${data}" title="View Branches" class="btn btn-warning mx-2"><i class="bi bi-people"></i></a>`;
+
+                    if (isAdmin()) {
+                        buttons += `<a onClick="Delete('/User/Clients/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>`;
+                    }
+
                     return `<div class="w-100 d-flex justify-content-center" role="group">
-                    <a href="/User/Clients/ClientSNIndex?id=${data}" title="View Serial Numbers" class="btn btn-info mx-2"><i class="bi bi-list"></i></a>
-                    <a href="/Admin/SerialNumbers/Upsert?clientId=${data}&returnUrl=${encodeURIComponent(window.location.href)}" title="Add Serial Number" class="btn btn-outline-info mx-2"><i class="bi bi-plus-square"></i></a>
-                    <a href="/User/Clients/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
-                    <a href="/User/Clients/ClientBranchIndex?id=${data}" title="View Branches" class="btn btn-warning mx-2"><i class="bi bi-people"></i></a>
-                    <a onClick="Delete('/User/Clients/Index?handler=Delete&id=${data}')" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>
-                    </div>`
-                },
-                "width": "12%",
-                "orderable": false,
-                "searchable": false
+                        ${buttons}
+                    </div>`;
+                }
             }
         ],
-        "language": {
-            "emptyTable": "No clients found",
-            "zeroRecords": "No matching clients found"
+        language: {
+            emptyTable: "No clients found",
+            zeroRecords: "No matching clients found"
         }
     });
 }

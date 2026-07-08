@@ -6,6 +6,10 @@ $(document).ready(function () {
     loadDataTable();
 });
 
+function isAdmin() {//function to check if the user is admin
+    return document.getElementById("isAdmin").value === "True";
+}
+
 function loadDataTable() {
     dataTable = $('#tblData').DataTable({
         serverSide: true,
@@ -52,6 +56,7 @@ function loadDataTable() {
             {
                 "data": null,
                 "width": "10%",
+                "visible": isAdmin(),
                 "render": function (data, type, row) {
                     // Add History button
                     return `<div class="text-center">

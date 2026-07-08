@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
@@ -6,6 +7,7 @@ using RepairShop.Repository.IRepository;
 
 namespace RepairShop.Areas.Admin.Pages.ProcessTransactions
 {
+    [Authorize(Roles = SD.Role_Admin)]
     public class IndexModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;

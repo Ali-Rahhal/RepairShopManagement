@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace RepairShop.Areas.Admin.Pages.Models
 {
-    [Authorize(Roles = SD.Role_Admin)]
+    [Authorize]
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;

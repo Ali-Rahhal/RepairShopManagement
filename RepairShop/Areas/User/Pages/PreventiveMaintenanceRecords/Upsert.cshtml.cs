@@ -1,11 +1,14 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using RepairShop.Models;
+using RepairShop.Models.Helpers;
 using RepairShop.Repository.IRepository;
 using System.ComponentModel.DataAnnotations;
 
 namespace RepairShop.Areas.User.Pages.PreventiveMaintenanceRecords
 {
+    [Authorize(Roles = SD.Role_Admin)]
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;

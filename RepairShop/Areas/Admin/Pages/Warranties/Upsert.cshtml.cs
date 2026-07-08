@@ -9,7 +9,7 @@ using RepairShop.Services;
 
 namespace RepairShop.Areas.Admin.Pages.Warranties
 {
-    [Authorize(Roles = SD.Role_Admin)]
+    [Authorize]
     public class UpsertModel : PageModel
     {
         private readonly IUnitOfWork _unitOfWork;
