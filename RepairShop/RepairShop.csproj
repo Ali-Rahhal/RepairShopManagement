@@ -6,9 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
 	
 	<!-- 🔽 Version Information -->
-	<Version>1.7.3</Version>
-	<FileVersion>1.7.3.0</FileVersion>
-	<InformationalVersion>1.7.3 - 24th Release (Implemented the USER role and renamed invoicebybachir table field to paid.)</InformationalVersion>
+	<Version>1.7.4</Version>
+	<FileVersion>1.7.4.0</FileVersion>
+	<InformationalVersion>1.7.4 - 25th Release (Implemented a serial number repair history button.)</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -197,5 +197,29 @@ namespace RepairShop.Areas.Admin.Pages.SerialNumbers
 
             return new JsonResult(new { clients });
         }
+
+        // REPAIR HISTORY
+        public async Task<JsonResult> OnGetRepairHistory(long id)
+        {
+            var query = await _unitOfWork.DefectiveUnit
+                .GetQueryableAsy(du =>
+                    du.SerialNumberId == id &&
+                    du.IsActive);
+
+            var history = await query
+                .OrderByDescending(du => du.ReportedDate)
+                .Select(du => new
+                {
+                    reportedDate = du.ReportedDate.ToString("dd-MM-yyyy hh:mm tt"),
+                    description = du.Description
+                })
+                .ToListAsync();
+
+            return new JsonResult(new
+            {
+                success = true,
+                history
+            });
+        }
     }
 }

@@ -120,6 +120,12 @@ function loadDataTable() {
                 "render": function (data) {
                     return `<div class="w-100 d-flex justify-content-center" role="group">
                         <a href="/Admin/SerialNumbers/Upsert?id=${data}" title="Edit" class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i></a>
+                        <button type="button"
+                                onclick="ShowRepairHistory(${data})"
+                                title="Repair History"
+                                class="btn btn-info text-white mx-1">
+                            <i class="bi bi-clock-history"></i>
+                        </button>
                         ${isAdmin() ? `<a onClick="Delete(${data})" title="Delete" class="btn btn-danger mx-2"><i class="bi bi-trash-fill"></i></a>` : ''}
                     </div>`;
                 },
@@ -166,6 +172,70 @@ function clearFilters() {
     $('#clientFilter').val('');
     dataTable.order([]).ajax.reload(null, false); // Reset ordering to ReceivedDate desc
     toastr.info('All filters and sorting reset');
+}
+
+function ShowRepairHistory(id) {
+    const modal = bootstrap.Modal.getOrCreateInstance(
+        document.getElementById('repairHistoryModal')
+    );
+    const content = $('#repairHistoryContent');
+    content.html(`
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2 mb-0">Loading repair history...</p>
+        </div>
+    `);
+    modal.show();
+    $.get('/Admin/SerialNumbers/Index?handler=RepairHistory&id=' + id)
+        .done(function (response) {
+            if (!response.success || !response.history.length) {
+                content.html(`
+                    <div class="alert alert-info text-center mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        No repair history found for this serial number.
+                    </div>
+                `);
+                return;
+            }
+            let html = `
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle mb-0">
+                        <thead class="table-primary">
+                            <tr>
+                                <th style="width: 25%">Reported Date</th>
+                                <th>Issue / Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            response.history.forEach(function (item) {
+                html += `
+                    <tr>
+                        <td class="text-nowrap">${escapeHtml(item.reportedDate)}</td>
+                        <td>${escapeHtml(item.description)}</td>
+                    </tr>
+                `;
+            });
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-muted small mt-2">
+                    Total records: ${response.history.length}
+                </div>
+            `;
+            content.html(html);
+        })
+        .fail(function () {
+            content.html(`
+                <div class="alert alert-danger mb-0">
+                    Failed to load repair history. Please try again.
+                </div>
+            `);
+        });
+}
+function escapeHtml(value) {
+    return $('<div>').text(value ?? '-').html();
 }
 
 // ================= DELETE FUNCTION =================
